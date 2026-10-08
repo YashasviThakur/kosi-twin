@@ -26,6 +26,9 @@ type Strings = {
   exitReplay: string
   replayNote: string
   legend: string
+  collapse: string
+  expand: string
+  textSize: string
   mapStyle: string
   satellite: string
   plainMap: string
@@ -60,6 +63,9 @@ export const T: Record<Lang, Strings> = {
     exitReplay: 'Back to the gauge',
     replayNote: 'Approximate curve — only the peak is from reports.',
     legend: 'Column height = people · colour = risk',
+    collapse: 'Hide panel',
+    expand: 'Show panel',
+    textSize: 'Text size',
     mapStyle: 'Map style',
     satellite: 'Satellite',
     plainMap: 'Map',
@@ -92,6 +98,9 @@ export const T: Record<Lang, Strings> = {
     exitReplay: 'गेज पर लौटें',
     replayNote: 'अनुमानित वक्र — केवल उच्चतम स्तर रिपोर्ट से है।',
     legend: 'स्तंभ की ऊँचाई = आबादी · रंग = ख़तरा',
+    collapse: 'पैनल छिपाएँ',
+    expand: 'पैनल दिखाएँ',
+    textSize: 'अक्षर का आकार',
     mapStyle: 'नक्शे का प्रकार',
     satellite: 'सैटेलाइट',
     plainMap: 'नक्शा',
@@ -124,6 +133,9 @@ export const T: Record<Lang, Strings> = {
     exitReplay: 'गेज पर लवटीं',
     replayNote: 'अंदाजा वाला वक्र — खाली सबसे ऊँच स्तर रिपोर्ट से बा।',
     legend: 'खंभा के ऊँचाई = आबादी · रंग = खतरा',
+    collapse: 'पैनल छिपाईं',
+    expand: 'पैनल देखाईं',
+    textSize: 'अक्षर के आकार',
     mapStyle: 'नक्सा के किसिम',
     satellite: 'सैटेलाइट',
     plainMap: 'नक्सा',
@@ -156,6 +168,9 @@ export const T: Record<Lang, Strings> = {
     exitReplay: 'गेज पर घुरू',
     replayNote: 'अनुमानित वक्र — मात्र सभसँ ऊँच स्तर रिपोर्ट सँ अछि।',
     legend: 'खाम्हक ऊँचाई = आबादी · रंग = खतरा',
+    collapse: 'पैनल नुकाउ',
+    expand: 'पैनल देखाउ',
+    textSize: 'अक्षरक आकार',
     mapStyle: 'नक्शाक प्रकार',
     satellite: 'सैटेलाइट',
     plainMap: 'नक्शा',

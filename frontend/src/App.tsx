@@ -3,6 +3,7 @@ import { api, layerPrefix, riseFor, statsAt } from './api'
 import type { Lang, Meta, Replay, Risk, Scenario, Village } from './api'
 import { Gauge } from './components/Gauge'
 import { MapView } from './components/MapView'
+import { Panel } from './components/Panel'
 import type { Basemap } from './components/MapView'
 import { ReplayBar } from './components/ReplayBar'
 import { SummaryPanel } from './components/SummaryPanel'
@@ -14,9 +15,24 @@ const GAUGE_MAX = 8
 const PEAK_2024 = 6.61
 const FRAME_MS = 220
 
+type TextSize = 'sm' | 'md' | 'lg'
+const TEXT_SIZES: TextSize[] = ['sm', 'md', 'lg']
+function loadTextSize(): TextSize {
+  try {
+    const v = localStorage.getItem('kosi.textSize')
+    return v === 'sm' || v === 'lg' ? v : 'md'
+  } catch {
+    return 'md'
+  }
+}
+function saveTextSize(v: TextSize) {
+  try { localStorage.setItem('kosi.textSize', v) } catch { /* not remembered, still applied */ }
+}
+
 export default function App() {
   const [lang, setLang] = useState<Lang>('en')
   const [basemap, setBasemap] = useState<Basemap>('satellite')
+  const [textSize, setTextSize] = useState<TextSize>(loadTextSize)
   const [meta, setMeta] = useState<Meta | null>(null)
   const [villages, setVillages] = useState<Village[]>([])
   const [failed, setFailed] = useState(false)
@@ -89,7 +105,7 @@ export default function App() {
   if (!meta) return <div className="state-screen">{t.loading}</div>
 
   return (
-    <div className="app" lang={lang === 'en' ? 'en' : lang}>
+    <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang}>
       <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} layer={layerPrefix(extentRise)}
         basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId} />
 
@@ -99,6 +115,12 @@ export default function App() {
           <span className="brand-name">{t.title}</span>
         </div>
         <span className="badge" title={t.replayNote}>{t.estimate}</span>
+        <nav className="text-size" aria-label={t.textSize}>
+          {TEXT_SIZES.map((s) => (
+            <button key={s} className={`ts-${s}${s === textSize ? ' is-active' : ''}`} aria-pressed={s === textSize}
+              onClick={() => { setTextSize(s); saveTextSize(s) }} title={`${t.textSize}: ${s.toUpperCase()}`}>A</button>
+          ))}
+        </nav>
         <nav className="langs" aria-label="Language">
           {(Object.keys(meta.languages) as Lang[]).map((l) => (
             <button key={l} className={l === lang ? 'is-active' : ''} aria-pressed={l === lang} onClick={() => setLang(l)}>
@@ -108,8 +130,9 @@ export default function App() {
         </nav>
       </header>
 
-      <section className="panel gauge-panel">
-        <h1 className="eyebrow">{t.gaugeTitle}</h1>
+      <Panel id="gauge" className="gauge-panel" collapseLabel={t.collapse} expandLabel={t.expand}
+        title={<h1 className="eyebrow">{t.gaugeTitle}</h1>}
+        summary={<><strong>{q.toFixed(2)}</strong> {t.unit}</>}>
         <div className="readout num">
           <strong>{q.toFixed(2)}</strong>
           <span>{t.unit}</span>
@@ -125,7 +148,7 @@ export default function App() {
           onChange={setDischarge}
         />
         {!replay && <button className="btn btn-primary" onClick={startReplay}>{t.replay}</button>}
-      </section>
+      </Panel>
 
       <SummaryPanel lang={lang} discharge={qExtent} stats={stats} top={scenario?.top_villages ?? []}
         selectedId={selectedId} onSelect={setSelectedId} />

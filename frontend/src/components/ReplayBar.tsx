@@ -2,6 +2,7 @@
 import type { Lang, Replay } from '../api'
 import { clock } from '../format'
 import { T } from '../i18n'
+import { Panel } from './Panel'
 
 interface Props {
   lang: Lang
@@ -26,7 +27,10 @@ export function ReplayBar({ lang, replay, frame, playing, onToggle, onSeek, onEx
   const current = frames[frame]
 
   return (
-    <section className="panel replay" aria-label={t.replay}>
+    <Panel id="replay" className="replay" collapseLabel={t.collapse} expandLabel={t.expand}
+      title={<h2 className="eyebrow">{t.replay}</h2>}
+      summary={<>{clock(current.time)} · {current.discharge_lakh.toFixed(2)} {t.unit}</>}>
+      <div className="replay-grid">
       <button className="btn btn-primary replay-play" onClick={onToggle}>{playing ? t.pause : t.resume}</button>
       <div className="replay-clock num">
         <strong>{clock(current.time)}</strong>
@@ -45,6 +49,7 @@ export function ReplayBar({ lang, replay, frame, playing, onToggle, onSeek, onEx
         <button className="btn btn-quiet" onClick={onExit}>{t.exitReplay}</button>
         <small>{t.replayNote}</small>
       </div>
-    </section>
+      </div>
+    </Panel>
   )
 }

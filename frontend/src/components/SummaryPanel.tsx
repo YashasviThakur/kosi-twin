@@ -2,6 +2,7 @@
 import type { Lang, Scenario, StageStats } from '../api'
 import { hours, int, people } from '../format'
 import { T } from '../i18n'
+import { Panel } from './Panel'
 
 interface Props {
   lang: Lang
@@ -18,10 +19,10 @@ export function SummaryPanel({ lang, discharge, stats, top, selectedId, onSelect
   const dry = !stats || stats.people === 0
 
   return (
-    <aside className="panel summary" aria-live="polite">
-      <p className="summary-lede">
+    <Panel id="summary" className="summary" collapseLabel={t.collapse} expandLabel={t.expand}
+      title={<p className="summary-lede" aria-live="polite">
         {dry ? t.summaryDry(q) : t.summary(q, int(stats.villages), people(stats.people, lang))}
-      </p>
+      </p>}>
 
       {!dry && (
         <dl className="facts num">
@@ -50,6 +51,6 @@ export function SummaryPanel({ lang, discharge, stats, top, selectedId, onSelect
         </ol>
       )}
       <p className="hint">{t.clickHint}</p>
-    </aside>
+    </Panel>
   )
 }
