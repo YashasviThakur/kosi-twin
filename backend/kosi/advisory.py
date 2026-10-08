@@ -37,7 +37,7 @@ def template(card):
     route = card["route"]
     if route:
         shelters = {"en": route["shelter"]["name"]}
-        shelters.update(dict.fromkeys(("hi", "bho", "mai"), hindi_name(route["shelter"]["name"])))
+        shelters.update(dict.fromkeys(("hi", "bho", "mai"), route["shelter"].get("name_hi") or hindi_name(route["shelter"]["name"])))
     out = {"source": "template"}
     for l in LANGS:
         eta = clock(card["eta_time"], l)

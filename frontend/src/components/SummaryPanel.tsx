@@ -34,6 +34,7 @@ export function SummaryPanel({ lang, discharge, stats, top, selectedId, onSelect
       )}
 
       <h2 className="eyebrow">{t.pathTitle}</h2>
+      {top.length > 0 && <p className="hint path-hint">{t.clickHint}</p>}
       {top.length === 0 ? (
         <p className="empty">{t.pathEmpty}</p>
       ) : (
@@ -45,12 +46,12 @@ export function SummaryPanel({ lang, discharge, stats, top, selectedId, onSelect
                 <span className="path-name">{lang === 'en' ? v.name : (v.name_hi ?? v.name)}</span>
                 <span className="path-meta num">{t.waterIn(hours(v.eta_h, lang))}</span>
                 <span className={`risk-tag risk-${v.risk.toLowerCase()}`}>{t.risk[v.risk]}</span>
+                <svg className="path-open" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" /></svg>
               </button>
             </li>
           ))}
         </ol>
       )}
-      <p className="hint">{t.clickHint}</p>
     </Panel>
   )
 }

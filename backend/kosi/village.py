@@ -79,7 +79,8 @@ def card(village_id, hydrograph):
         "needs_boat": route is None,
         "route": None if route is None else {
             "shelter": {**{k: route["shelter"][k] for k in ("name", "kind", "lon", "lat")},
-                        "name_hi": hindi_name(route["shelter"]["name"])},
+                        # translated at build time (prep/translate_names.py); live Translate only as a fallback
+                        "name_hi": route["shelter"].get("name_hi") or hindi_name(route["shelter"]["name"])},
             "distance_km": route["distance_km"], "walk_min": round(route["walk_h"] * 60), "path": route["path"]},
         "facilities_at_risk": _nearby_facilities(v, peak_rise),
         "shelter_dry_margin_m": SHELTER_DRY_MARGIN_M,

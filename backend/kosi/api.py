@@ -136,4 +136,10 @@ def status():
 if (DATA_DIR / "layers").exists():   # local dev only; production serves layers from S3/CloudFront
     app.mount("/layers", StaticFiles(directory=DATA_DIR / "layers"), name="layers")
 
+# Load the model when the process starts (Lambda's init phase), not on a user's first village click:
+# building the road network takes ~2 s once, then every card is ~70 ms.
+store.villages()
+store.shelters()
+store.roads()
+
 handler = Mangum(app)
