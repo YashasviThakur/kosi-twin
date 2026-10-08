@@ -26,6 +26,7 @@ export interface Meta {
 export interface Village {
   id: number
   name: string
+  type: 'village' | 'hamlet' | 'town' | 'city'
   name_hi: string | null
   lon: number
   lat: number

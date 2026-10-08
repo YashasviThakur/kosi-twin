@@ -9,6 +9,7 @@ Method (HAND-style, see README):
   5. Precompute per-stage stats, village table, shelters, road graph, and map overlays.
 
 Optional: data/raw/embankments.geojson (hand-traced LineStrings) — raised as 5 m walls.
+Needs data/out/bihar.geojson from bihar.py (outputs are limited to Bihar).
 """
 import heapq
 import json
@@ -205,6 +206,14 @@ def main():
 
     stage = flood_stage(hand, river)
 
+    # Bihar only: water still flows in from Nepal (hydrology above uses the whole region), but people,
+    # villages, shelters, roads and the flood overlay are counted and shown inside Bihar only.
+    bihar = json.loads((OUT / "bihar.geojson").read_text())["geometry"]
+    in_bihar = rasterize([bihar], out_shape=dem.shape, transform=transform) > 0
+    stage = np.where(in_bihar, stage, np.nan).astype("float32")
+    pop, elderly, children = (np.where(in_bihar, a, 0) for a in (pop, elderly, children))
+    print(f"Bihar covers {in_bihar.mean():.0%} of the model region")
+
     out_profile = {**profile, "dtype": "float32", "nodata": np.nan}
     for name, arr in (("hand", hand), ("flood_stage", stage), ("dist_river_km", dist_km),
                       ("chainage_km", near_chain.astype("float32"))):
@@ -218,7 +227,7 @@ def main():
 
     def cell_of(lon, lat):
         r, c = to_rc(lon, lat)
-        return (r, c) if 0 <= r < dem.shape[0] and 0 <= c < dem.shape[1] else None
+        return (r, c) if 0 <= r < dem.shape[0] and 0 <= c < dem.shape[1] and in_bihar[r, c] else None
 
     villages = []
     for e in places:

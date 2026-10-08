@@ -48,7 +48,7 @@ def scenario(discharge: float = DISCHARGE):
 
 @app.get("/api/villages")
 def villages():
-    return [{k: v[k] for k in ("id", "name", "name_hi", "lon", "lat", "pop", "first_wet_stage_m")}
+    return [{k: v[k] for k in ("id", "name", "name_hi", "type", "lon", "lat", "pop", "first_wet_stage_m")}
             for v in store.villages().values()]
 
 

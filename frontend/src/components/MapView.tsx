@@ -1,7 +1,7 @@
 // The 3D map: a light map or Sentinel-2 satellite base, AWS Terrain Tiles relief, the flood layer,
 // one column per village (height = people, colour = risk) and village name labels.
 import * as maplibregl from 'maplibre-gl'
-import type { FeatureCollection } from 'geojson'
+import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef, useState } from 'react'
 import type { Lang, Risk, Village } from '../api'
@@ -16,7 +16,14 @@ const BLANK = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAw
 
 // Opening view: the Supaul – Saharsa – Madhepura flood belt, close enough to see villages and channels.
 const START: [[number, number], [number, number]] = [[86.42, 25.62], [87.12, 26.38]]
-const LABELS_FROM_ZOOM = 9.6     // below this only villages in the water's path are labelled
+const LABELS_FROM_ZOOM = 8.5     // below this only towns and villages in the water's path are labelled
+// Bihar plus a small margin: the map can't be panned away from the state.
+const BIHAR_LIMITS: [[number, number], [number, number]] = [[82.6, 23.8], [89.0, 28.0]]
+
+// Basemap (OpenFreeMap Positron) label layers: city/town names we restyle, and ones we hide on satellite.
+const PLACE_LABELS = ['label_city', 'label_city_capital', 'label_town', 'label_state']
+const CLUTTER_LABELS = ['label_village', 'label_other', 'highway-name-path', 'highway-name-minor', 'highway-name-major',
+  'highway-shield-non-us', 'highway-shield-us-interstate', 'road_shield_us']
 
 const RISK_COLOR: Record<Risk, string> = { EVACUATE: '#B23A26', WATCH: '#9A6512', SAFE: '#CFCAC0' }
 
@@ -54,6 +61,9 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
   const el = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const labels = useRef(new Map<number, HTMLDivElement>())
+  const placeLayers = useRef<{ id: string; size: unknown }[]>([])
+  const roadLayers = useRef<{ id: string; color: unknown; opacity: unknown }[]>([])
+  const districtLabels = useRef<HTMLDivElement[]>([])
   const [ready, setReady] = useState(false)
   const byId = useRef(new Map<number, Village>())
   byId.current = new Map(villages.map((v) => [v.id, v]))
@@ -68,9 +78,10 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
       style: STYLE,
       bounds: START,
       fitBoundsOptions: { padding: framePadding() },
-      pitch: 50,
-      bearing: -10,
+      pitch: 35,
+      bearing: -6,
       maxPitch: 70,
+      maxBounds: BIHAR_LIMITS,
       attributionControl: { compact: true },
     })
     mapRef.current = map
@@ -85,7 +96,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
       map.addSource('satellite', { type: 'raster', tiles: [SATELLITE], tileSize: 256, maxzoom: 15,
         attribution: '<a href="https://s2maps.eu">Sentinel-2 cloudless 2023</a> by EOX (Copernicus Sentinel data)' })
       map.addLayer({ id: 'satellite', type: 'raster', source: 'satellite', layout: { visibility: 'none' },
-        paint: { 'raster-saturation': -0.2, 'raster-contrast': 0.05 } }, firstLine)
+        paint: { 'raster-saturation': 0.12, 'raster-contrast': 0.08 } }, firstLine)
 
       const dem = { type: 'raster-dem' as const, tiles: [TERRARIUM], encoding: 'terrarium' as const, tileSize: 256, maxzoom: 12,
         attribution: 'Terrain: <a href="https://registry.opendata.aws/terrain-tiles/">AWS Terrain Tiles</a>' }
@@ -100,6 +111,30 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
         map.addLayer({ id: `flood-${i}`, type: 'raster', source: `flood-${i}`,
           paint: { 'raster-opacity': 0.92, 'raster-fade-duration': 0 } }, firstSymbol)
       })
+
+      // District boundaries and the main Kosi channel, drawn over the flood.
+      map.addSource('districts', { type: 'geojson', data: '/districts.geojson' })
+      map.addLayer({ id: 'districts', type: 'line', source: 'districts',
+        paint: { 'line-color': '#5A6B71', 'line-width': 1, 'line-opacity': 0.55 } }, firstSymbol)
+      map.addSource('kosi', { type: 'geojson', data: '/kosi.geojson' })
+      map.addLayer({ id: 'kosi', type: 'line', source: 'kosi', layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#1B4352', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1.5, 12, 4], 'line-opacity': 0.85 } }, firstSymbol)
+
+      // Roads: remember the light map's colours so switching back from satellite restores them.
+      roadLayers.current = layers
+        .filter((l) => l.type === 'line' && (l as { 'source-layer'?: string })['source-layer'] === 'transportation')
+        .map((l) => ({ id: l.id, color: map.getPaintProperty(l.id, 'line-color'), opacity: map.getPaintProperty(l.id, 'line-opacity') }))
+
+      // Dim everything outside Bihar (above the basemap and its labels) and outline the state.
+      map.addSource('outside-bihar', { type: 'geojson', data: '/bihar-mask.geojson' })
+      map.addLayer({ id: 'outside-bihar', type: 'fill', source: 'outside-bihar',
+        paint: { 'fill-color': '#F8F6F1', 'fill-opacity': 0.86 } })
+      map.addLayer({ id: 'bihar-outline', type: 'line', source: 'outside-bihar',
+        paint: { 'line-color': '#1B4352', 'line-width': 1.6, 'line-opacity': 0.7 } })
+
+      // Remember the basemap's city/town name sizes so the satellite view can enlarge them.
+      placeLayers.current = layers.filter((l) => PLACE_LABELS.includes(l.id))
+        .map((l) => ({ id: l.id, size: map.getLayoutProperty(l.id, 'text-size') }))
 
       map.addSource('villages', { type: 'geojson', data: columns(villages), promoteId: 'id' })
       map.addLayer({
@@ -121,12 +156,25 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
       // Village names as HTML labels: the browser shapes Devanagari correctly, map text rendering does not.
       for (const v of villages) {
         const label = document.createElement('div')
-        label.className = 'vlabel'
+        label.className = v.type === 'town' || v.type === 'city' ? 'vlabel is-town' : 'vlabel'
         label.textContent = villageName(v, langRef.current)
         label.addEventListener('click', () => onSelectRef.current(v.id))
         labels.current.set(v.id, label)
         new maplibregl.Marker({ element: label, anchor: 'left', offset: [10, 0] }).setLngLat([v.lon, v.lat]).addTo(map)
       }
+      // District names (HTML for correct Devanagari), larger and quieter than village names.
+      fetch('/district-labels.geojson').then((r) => r.json()).then((fc: FeatureCollection) => {
+        for (const f of fc.features) {
+          const label = document.createElement('div')
+          label.className = 'dlabel'
+          const props = f.properties as { name: string; name_hi: string | null }
+          label.dataset.en = props.name
+          label.dataset.hi = props.name_hi ?? props.name
+          label.textContent = langRef.current === 'en' ? props.name : label.dataset.hi
+          districtLabels.current.push(label)
+          new maplibregl.Marker({ element: label }).setLngLat((f.geometry as Point).coordinates as [number, number]).addTo(map)
+        }
+      })
       const zoomClass = () => el.current?.classList.toggle('labels-all', map.getZoom() >= LABELS_FROM_ZOOM)
       map.on('zoom', zoomClass)
       zoomClass()
@@ -170,7 +218,41 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
     if (!ready || !map) return
     const sat = basemap === 'satellite'
     map.setLayoutProperty('satellite', 'visibility', sat ? 'visible' : 'none')
-    map.setLayoutProperty('hillshade', 'visibility', sat ? 'none' : 'visible')
+    // Satellite look: vivid imagery with relief shading, white district lines, orange roads, bright blue
+    // floodwater over a deep-blue channel. Outside Bihar is only lightly dimmed so the Himalayan relief shows.
+    const paint: [string, string, unknown, unknown][] = [
+      ['hillshade', 'hillshade-exaggeration', 0.55, 0.3],
+      ['hillshade', 'hillshade-shadow-color', '#0B1A20', '#5A6B71'],
+      ['hillshade', 'hillshade-highlight-color', 'rgba(255,255,255,0.18)', '#F8F6F1'],
+      ['outside-bihar', 'fill-color', '#0B1A20', '#F8F6F1'],
+      ['outside-bihar', 'fill-opacity', 0.38, 0.86],
+      ['bihar-outline', 'line-color', '#FFFFFF', '#1B4352'],
+      ['bihar-outline', 'line-width', 2.2, 1.6],
+      ['districts', 'line-color', '#FFFFFF', '#5A6B71'],
+      ['districts', 'line-opacity', 0.75, 0.55],
+      ['kosi', 'line-color', '#1F4E9A', '#1B4352'],
+      ...tiles.flatMap((_, i): [string, string, unknown, unknown][] => [
+        [`flood-${i}`, 'raster-hue-rotate', 14, 0],
+        [`flood-${i}`, 'raster-saturation', 0.45, 0],
+        [`flood-${i}`, 'raster-opacity', 0.86, 0.92],
+      ]),
+    ]
+    // The table mixes properties of different layer types, so it goes through a loosely typed setter.
+    const setPaint = map.setPaintProperty.bind(map) as (id: string, prop: string, value: unknown) => void
+    for (const [id, prop, satValue, mapValue] of paint) setPaint(id, prop, sat ? satValue : mapValue)
+    for (const { id, color, opacity } of roadLayers.current) {
+      setPaint(id, 'line-color', sat ? '#F0A35E' : color)
+      setPaint(id, 'line-opacity', sat ? 0.8 : opacity)
+    }
+    // City and town names: white with a dark outline on satellite, ink on the light map; larger either way.
+    for (const { id, size } of placeLayers.current) {
+      map.setPaintProperty(id, 'text-color', sat ? '#FFFFFF' : '#1E2F36')
+      map.setPaintProperty(id, 'text-halo-color', sat ? 'rgba(30,47,54,0.9)' : 'rgba(255,255,255,0.95)')
+      map.setPaintProperty(id, 'text-halo-width', 1.6)
+      if (size !== undefined) map.setLayoutProperty(id, 'text-size', scaleSize(size, 1.25))
+    }
+    // The basemap's own village/hamlet names and road names duplicate our labels: hide them on satellite.
+    for (const id of CLUTTER_LABELS) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', sat ? 'none' : 'visible')
     el.current?.classList.toggle('is-satellite', sat)
   }, [ready, basemap])
 
@@ -190,6 +272,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
       const label = labels.current.get(v.id)
       if (label) label.textContent = villageName(v, lang)
     }
+    for (const label of districtLabels.current) label.textContent = (lang === 'en' ? label.dataset.en : label.dataset.hi) ?? ''
   }, [ready, lang, villages])
 
   useEffect(() => {
@@ -211,6 +294,18 @@ const isPhone = () => window.matchMedia('(max-width: 860px)').matches
 function framePadding() {
   if (isPhone()) return { top: 110, bottom: Math.round(window.innerHeight * 0.52) + 16, left: 8, right: 8 }
   return { top: 60, bottom: 40, left: 260, right: 350 }
+}
+
+// Scale a style's text-size, which may be a number, a legacy {stops} function, or a zoom
+// interpolate expression (zoom expressions can't be wrapped in ['*', …], so scale each output instead).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function scaleSize(size: any, k: number): any {
+  if (typeof size === 'number') return size * k
+  if (size && Array.isArray(size.stops)) return { ...size, stops: size.stops.map(([z, v]: [number, number]) => [z, v * k]) }
+  if (Array.isArray(size) && size[0] === 'interpolate') {
+    return [...size.slice(0, 3), ...size.slice(3).map((v: unknown, i: number) => (i % 2 === 1 && typeof v === 'number' ? v * k : v))]
+  }
+  return size
 }
 
 function escapeHtml(s: string) {
