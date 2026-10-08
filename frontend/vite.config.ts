@@ -8,6 +8,7 @@ export default defineConfig({
   // MapLibre 6 loads its web worker relative to its own module file; pre-bundling moves that file and breaks the path.
   optimizeDeps: { exclude: ['maplibre-gl'] },
   server: {
+    host: '127.0.0.1',   // listen on IPv4 too; Node otherwise may bind only [::1] and browsers can't reach "localhost"
     proxy: {
       '/api': 'http://127.0.0.1:8000',
       '/layers': 'http://127.0.0.1:8000',
