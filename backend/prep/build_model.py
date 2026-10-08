@@ -179,6 +179,21 @@ def tile_bounds(shape):
             for rs, cs in tile_slices(shape)]
 
 
+PLACE_RANK = {"city": 0, "town": 1, "village": 2, "hamlet": 3}
+
+
+def dedupe_places(places, km=3.0):
+    """OSM sometimes maps one place twice (e.g. as a town and a village). Same name within `km` = one
+    place; keep the higher-ranked entry. Same-named villages farther apart are genuinely different."""
+    kept = []
+    for e in sorted(places, key=lambda e: PLACE_RANK.get(e["tags"].get("place"), 9)):
+        name = e["tags"].get("name:en") or e["tags"].get("name")
+        if not any(name == (k["tags"].get("name:en") or k["tags"].get("name"))
+                   and np.hypot((e["lon"] - k["lon"]) * 100, (e["lat"] - k["lat"]) * 111) < km for k in kept):
+            kept.append(e)
+    return kept
+
+
 def window_sum(arr, r, c, radius):
     return float(arr[max(r - radius, 0):r + radius + 1, max(c - radius, 0):c + radius + 1].sum())
 
@@ -237,7 +252,7 @@ def main():
         return (r, c) if 0 <= r < dem.shape[0] and 0 <= c < dem.shape[1] and in_bihar[r, c] else None
 
     villages = []
-    for e in places:
+    for e in dedupe_places(places):
         rc = cell_of(e["lon"], e["lat"])
         name = e["tags"].get("name:en") or e["tags"].get("name")
         if not rc or not name:

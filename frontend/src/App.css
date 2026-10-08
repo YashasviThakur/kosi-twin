@@ -76,7 +76,7 @@
 
 /* ---------- summary ---------- */
 .summary {
-  position: absolute; right: 16px; top: 78px; width: 330px; max-height: calc(100% - 170px);
+  position: absolute; right: 16px; top: 78px; width: 330px; max-height: calc(100% - 78px - 150px); /* clears zoom buttons */
   overflow: auto; padding: 18px;
 }
 .summary-lede {
@@ -152,6 +152,7 @@
 }
 .labels-all .vlabel, .vlabel.is-town, .vlabel[data-risk="WATCH"], .vlabel[data-risk="EVACUATE"], .vlabel.is-selected { display: block; }
 .vlabel.is-town { font-size: 14px; font-weight: 700; }
+.vlabel.is-hidden, .dlabel.is-hidden { visibility: hidden; }
 .vlabel[data-risk="SAFE"] { font-weight: 500; color: var(--muted); }
 .vlabel[data-risk="WATCH"] { box-shadow: inset 3px 0 0 var(--watch); }
 .vlabel[data-risk="EVACUATE"] { box-shadow: inset 3px 0 0 var(--evacuate); }

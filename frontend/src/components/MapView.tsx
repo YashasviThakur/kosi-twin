@@ -20,9 +20,10 @@ const LABELS_FROM_ZOOM = 8.5     // below this only towns and villages in the wa
 // Bihar plus a small margin: the map can't be panned away from the state.
 const BIHAR_LIMITS: [[number, number], [number, number]] = [[82.6, 23.8], [89.0, 28.0]]
 
-// Basemap (OpenFreeMap Positron) label layers: city/town names we restyle, and ones we hide on satellite.
-const PLACE_LABELS = ['label_city', 'label_city_capital', 'label_town', 'label_state']
-const CLUTTER_LABELS = ['label_village', 'label_other', 'highway-name-path', 'highway-name-minor', 'highway-name-major',
+// Basemap (OpenFreeMap Positron) label layers. Its place names would duplicate our own village/town/district
+// labels (which also follow the language switch), so they are always hidden; road names only on satellite.
+const PLACE_LABELS = ['label_village', 'label_other', 'label_town', 'label_city', 'label_city_capital']
+const ROAD_LABELS = ['highway-name-path', 'highway-name-minor', 'highway-name-major',
   'highway-shield-non-us', 'highway-shield-us-interstate', 'road_shield_us']
 
 const RISK_COLOR: Record<Risk, string> = { EVACUATE: '#B23A26', WATCH: '#9A6512', SAFE: '#CFCAC0' }
@@ -61,9 +62,33 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
   const el = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const labels = useRef(new Map<number, HTMLDivElement>())
-  const placeLayers = useRef<{ id: string; size: unknown }[]>([])
   const roadLayers = useRef<{ id: string; color: unknown; opacity: unknown }[]>([])
   const districtLabels = useRef<HTMLDivElement[]>([])
+
+  // Hide labels that would overlap a more important one: evacuate > watch > selected > town > district >
+  // larger villages. Hidden labels keep their size (visibility: hidden), so every label can be measured.
+  const declutter = () => {
+    const rank = (el: HTMLDivElement) => {
+      if (el.classList.contains('is-selected')) return 0
+      if (el.dataset.risk === 'EVACUATE') return 1
+      if (el.dataset.risk === 'WATCH') return 2
+      if (el.classList.contains('is-town')) return 3
+      if (el.classList.contains('dlabel')) return 4
+      return 5
+    }
+    const all = [...labels.current.values(), ...districtLabels.current]
+      .map((el) => ({ el, rank: rank(el), pop: Number(el.dataset.pop ?? 0), box: el.getBoundingClientRect() }))
+      .filter((l) => l.box.width > 0)                      // display:none (not shown at this zoom)
+      .sort((a, b) => a.rank - b.rank || b.pop - a.pop)
+    const placed: DOMRect[] = []
+    const gap = 3
+    for (const l of all) {
+      const hit = placed.some((p) => l.box.left < p.right + gap && l.box.right > p.left - gap
+        && l.box.top < p.bottom + gap && l.box.bottom > p.top - gap)
+      l.el.classList.toggle('is-hidden', hit)
+      if (!hit) placed.push(l.box)
+    }
+  }
   const [ready, setReady] = useState(false)
   const byId = useRef(new Map<number, Village>())
   byId.current = new Map(villages.map((v) => [v.id, v]))
@@ -132,9 +157,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
       map.addLayer({ id: 'bihar-outline', type: 'line', source: 'outside-bihar',
         paint: { 'line-color': '#1B4352', 'line-width': 1.6, 'line-opacity': 0.7 } })
 
-      // Remember the basemap's city/town name sizes so the satellite view can enlarge them.
-      placeLayers.current = layers.filter((l) => PLACE_LABELS.includes(l.id))
-        .map((l) => ({ id: l.id, size: map.getLayoutProperty(l.id, 'text-size') }))
+      for (const id of PLACE_LABELS) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none')
 
       map.addSource('villages', { type: 'geojson', data: columns(villages), promoteId: 'id' })
       map.addLayer({
@@ -158,6 +181,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
         const label = document.createElement('div')
         label.className = v.type === 'town' || v.type === 'city' ? 'vlabel is-town' : 'vlabel'
         label.textContent = villageName(v, langRef.current)
+        label.dataset.pop = String(v.pop)
         label.addEventListener('click', () => onSelectRef.current(v.id))
         labels.current.set(v.id, label)
         new maplibregl.Marker({ element: label, anchor: 'left', offset: [10, 0] }).setLngLat([v.lon, v.lat]).addTo(map)
@@ -174,10 +198,16 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
           districtLabels.current.push(label)
           new maplibregl.Marker({ element: label }).setLngLat((f.geometry as Point).coordinates as [number, number]).addTo(map)
         }
+        declutter()
       })
       const zoomClass = () => el.current?.classList.toggle('labels-all', map.getZoom() >= LABELS_FROM_ZOOM)
       map.on('zoom', zoomClass)
       zoomClass()
+      let frame = 0
+      map.on('move', () => {
+        cancelAnimationFrame(frame)
+        frame = requestAnimationFrame(declutter)
+      })
 
       const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'village-pop', offset: 8 })
       map.on('mousemove', 'village-cols', (ev) => {
@@ -239,15 +269,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
       setPaint(id, 'line-color', sat ? '#F0A35E' : color)
       setPaint(id, 'line-opacity', sat ? 0.8 : opacity)
     }
-    // City and town names: white with a dark outline on satellite, ink on the light map; larger either way.
-    for (const { id, size } of placeLayers.current) {
-      map.setPaintProperty(id, 'text-color', sat ? '#FFFFFF' : '#1E2F36')
-      map.setPaintProperty(id, 'text-halo-color', sat ? 'rgba(30,47,54,0.9)' : 'rgba(255,255,255,0.95)')
-      map.setPaintProperty(id, 'text-halo-width', 1.6)
-      if (size !== undefined) map.setLayoutProperty(id, 'text-size', scaleSize(size, 1.25))
-    }
-    // The basemap's own village/hamlet names and road names duplicate our labels: hide them on satellite.
-    for (const id of CLUTTER_LABELS) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', sat ? 'none' : 'visible')
+    for (const id of ROAD_LABELS) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', sat ? 'none' : 'visible')
     el.current?.classList.toggle('is-satellite', sat)
   }, [ready, basemap])
 
@@ -260,6 +282,8 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
       const label = labels.current.get(v.id)
       if (label) label.dataset.risk = r
     }
+    requestAnimationFrame(declutter)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, risk, villages])
 
   useEffect(() => {
@@ -268,6 +292,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
       if (label) label.textContent = villageName(v, lang)
     }
     for (const label of districtLabels.current) label.textContent = (lang === 'en' ? label.dataset.en : label.dataset.hi) ?? ''
+    requestAnimationFrame(declutter)
   }, [ready, lang, villages])
 
   useEffect(() => {
@@ -275,10 +300,12 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
     if (!ready || !map || selectedId == null) return
     map.setFeatureState({ source: 'villages', id: selectedId }, { selected: true })
     labels.current.get(selectedId)?.classList.add('is-selected')
+    requestAnimationFrame(declutter)
     return () => {
       map.setFeatureState({ source: 'villages', id: selectedId }, { selected: false })
       labels.current.get(selectedId)?.classList.remove('is-selected')
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, selectedId])
 
   return <div ref={el} className="map" />
@@ -289,18 +316,6 @@ const isPhone = () => window.matchMedia('(max-width: 860px)').matches
 function framePadding() {
   if (isPhone()) return { top: 110, bottom: Math.round(window.innerHeight * 0.52) + 16, left: 8, right: 8 }
   return { top: 60, bottom: 40, left: 260, right: 350 }
-}
-
-// Scale a style's text-size, which may be a number, a legacy {stops} function, or a zoom
-// interpolate expression (zoom expressions can't be wrapped in ['*', …], so scale each output instead).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function scaleSize(size: any, k: number): any {
-  if (typeof size === 'number') return size * k
-  if (size && Array.isArray(size.stops)) return { ...size, stops: size.stops.map(([z, v]: [number, number]) => [z, v * k]) }
-  if (Array.isArray(size) && size[0] === 'interpolate') {
-    return [...size.slice(0, 3), ...size.slice(3).map((v: unknown, i: number) => (i % 2 === 1 && typeof v === 'number' ? v * k : v))]
-  }
-  return size
 }
 
 function escapeHtml(s: string) {
