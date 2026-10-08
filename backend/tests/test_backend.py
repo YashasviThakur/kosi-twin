@@ -87,8 +87,37 @@ def test_waterline_geometry():
 def test_mirror_endpoint_returns_watermarked_jpeg():
     buf = io.BytesIO()
     Image.new("RGB", (400, 300), (180, 160, 120)).save(buf, "JPEG")
+    # Door from row 40 to row 250 of 300 (2.1 m) -> 1.0 m of water at row 150.
     r = client.post("/api/mirror", files={"photo": ("s.jpg", buf.getvalue(), "image/jpeg")},
-                    data={"depth_m": 1.0, "ground_y": 250, "top_y": 40, "ref_height_m": 2.1})
+                    data={"depth_m": 1.0, "ground_frac": 250 / 300, "top_frac": 40 / 300, "ref_height_m": 2.1})
     assert r.status_code == 200 and r.headers["content-type"] == "image/jpeg"
-    assert r.headers["x-waterline-y"] == "150"
+    assert r.headers["x-waterline-y"] == "150" and r.headers["x-render"] == "fallback"
     assert Image.open(io.BytesIO(r.content)).size == (400, 300)
+
+
+def test_mirror_without_reference_asks_for_taps():
+    buf = io.BytesIO()
+    Image.new("RGB", (400, 300)).save(buf, "JPEG")
+    r = client.post("/api/mirror", files={"photo": ("s.jpg", buf.getvalue(), "image/jpeg")}, data={"depth_m": 1.0})
+    assert r.status_code == 422
+
+
+def test_advisory_guardrail_rejects_changed_numbers(monkeypatch):
+    from kosi import advisory, cloud
+
+    class FakeBedrock:
+        def __init__(self, reply):
+            self.reply = reply
+
+        def converse(self, **_):
+            return {"output": {"message": {"content": [{"text": self.reply}]}}}
+
+    draft = {"en": "Leave before 3 PM, 2.5 km away.", "hi": "दोपहर 3 बजे से पहले निकलें, 2.5 किमी।"}
+    monkeypatch.setattr(cloud, "ENABLED", True)
+    monkeypatch.setattr(cloud, "TEXT_MODELS", ["fake"])
+    monkeypatch.setattr(cloud, "client", lambda _: FakeBedrock('{"en": "Leave by 4 PM, 2.5 km.", "hi": "4 बजे, 2.5 किमी"}'))
+    assert advisory._rewrite(draft) is None                       # time changed -> rejected
+    assert not cloud.available("bedrock-text")                    # ...and the breaker opened
+    cloud._down_until.clear()
+    monkeypatch.setattr(cloud, "client", lambda _: FakeBedrock('{"en": "Please leave before 3 PM; it is 2.5 km.", "hi": "3 बजे से पहले निकल जाएँ, 2.5 किमी।"}'))
+    assert advisory._rewrite(draft)["source"] == "bedrock:fake"

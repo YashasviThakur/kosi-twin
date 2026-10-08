@@ -5,12 +5,13 @@ from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
 
-from . import advisory, hydro, mirror, store
+from . import advisory, cloud, hydro, mirror, speech, store
 from .config import D0_M, DATA_DIR, EXPONENT, Q0_LAKH
 from .village import card
 
 app = FastAPI(title="Kosi Twin API")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+                   expose_headers=["X-Waterline-Y", "X-Render", "X-Reference", "X-Faces-Blurred"])
 
 DISCHARGE = Query(4.0, ge=0.5, le=10.0, description="Birpur barrage discharge, lakh cusecs")
 
@@ -60,7 +61,19 @@ def village_advisory(village_id: int, discharge: float = DISCHARGE, replay: str 
     c = card(village_id, _hydrograph(discharge, replay))
     if c is None:
         raise HTTPException(404, "village not found")
-    return advisory.template(c)
+    return advisory.generate(c)
+
+
+@app.get("/api/villages/{village_id}/audio")
+def village_audio(village_id: int, lang: str = Query("hi", pattern="^(hi|en)$"),
+                  discharge: float = DISCHARGE, replay: str | None = None):
+    c = card(village_id, _hydrograph(discharge, replay))
+    if c is None:
+        raise HTTPException(404, "village not found")
+    audio = speech.synthesize(advisory.generate(c)[lang], lang)
+    if audio is None:
+        raise HTTPException(503, "voice unavailable")
+    return Response(audio, media_type="audio/mpeg", headers={"Cache-Control": "public, max-age=3600"})
 
 
 @app.get("/api/replay/{name}")
@@ -71,18 +84,46 @@ def replay(name: str):
         raise HTTPException(404, f"unknown replay '{name}'")
 
 
+MAX_PHOTO = 4 * 1024 * 1024   # Lambda caps request bodies at 6 MB; the UI downsizes photos first
+
+
+async def _read_photo(photo):
+    data = await photo.read()
+    if len(data) > MAX_PHOTO:
+        raise HTTPException(413, "photo too large (max 4 MB)")
+    return data
+
+
+@app.post("/api/mirror/detect")
+async def mirror_detect(photo: UploadFile = File(...)):
+    """Where Rekognition found a scale reference, so the UI can show it before rendering."""
+    img = mirror.load_photo(await _read_photo(photo))
+    ref = mirror.detect_reference(img)
+    return {"size": list(img.size), "reference": ref,
+            "reference_frac": None if ref is None else {"ground": ref["ground_y"] / img.height, "top": ref["top_y"] / img.height}}
+
+
 @app.post("/api/mirror")
 async def flood_mirror(photo: UploadFile = File(...), depth_m: float = Form(..., gt=0, le=6),
-                       ground_y: float = Form(...), top_y: float = Form(...),
-                       ref_height_m: float = Form(2.1, gt=0), label: str = Form("")):
-    data = await photo.read()
-    if len(data) > 8 * 1024 * 1024:
-        raise HTTPException(413, "photo too large (max 8 MB)")
+                       ground_frac: float | None = Form(None, ge=0, le=1), top_frac: float | None = Form(None, ge=0, le=1),
+                       ref_height_m: float = Form(2.1, gt=0), label: str = Form("", max_length=60)):
+    data = await _read_photo(photo)
     try:
-        image, line = mirror.render_fallback(data, depth_m, ground_y, top_y, ref_height_m, label)
+        image, info = mirror.render(data, depth_m, label, ground_frac, top_frac, ref_height_m)
+    except LookupError as e:
+        raise HTTPException(422, str(e))
     except ValueError as e:
         raise HTTPException(400, str(e))
-    return Response(image, media_type="image/jpeg", headers={"X-Waterline-Y": str(line), "X-Render": "fallback"})
+    return Response(image, media_type="image/jpeg",
+                    headers={"X-Waterline-Y": str(info["waterline_y"]), "X-Render": info["render"],
+                             "X-Reference": info["reference"]["kind"], "X-Faces-Blurred": str(info["faces_blurred"])})
+
+
+@app.get("/api/status")
+def status():
+    """Which AWS features are live — lets the UI and the demo show what is real."""
+    return {"aws": cloud.ENABLED, "region": cloud.REGION, "bucket": bool(cloud.BUCKET),
+            "text_models": cloud.TEXT_MODELS, "image_model": cloud.IMAGE_MODEL}
 
 
 if (DATA_DIR / "layers").exists():   # local dev only; production serves layers from S3/CloudFront
