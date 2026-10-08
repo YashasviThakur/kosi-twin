@@ -109,7 +109,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
       tiles.forEach(([w, s, e, n], i) => {
         map.addSource(`flood-${i}`, { type: 'image', url: BLANK, coordinates: [[w, n], [e, n], [e, s], [w, s]] })
         map.addLayer({ id: `flood-${i}`, type: 'raster', source: `flood-${i}`,
-          paint: { 'raster-opacity': 0.92, 'raster-fade-duration': 0 } }, firstSymbol)
+          paint: { 'raster-opacity': 1, 'raster-fade-duration': 0 } }, firstSymbol)
       })
 
       // District boundaries and the main Kosi channel, drawn over the flood.
@@ -118,7 +118,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
         paint: { 'line-color': '#5A6B71', 'line-width': 1, 'line-opacity': 0.55 } }, firstSymbol)
       map.addSource('kosi', { type: 'geojson', data: '/kosi.geojson' })
       map.addLayer({ id: 'kosi', type: 'line', source: 'kosi', layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#1B4352', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1.5, 12, 4], 'line-opacity': 0.85 } }, firstSymbol)
+        paint: { 'line-color': '#12357A', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1.5, 12, 4], 'line-opacity': 0.85 } }, firstSymbol)
 
       // Roads: remember the light map's colours so switching back from satellite restores them.
       roadLayers.current = layers
@@ -218,8 +218,8 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
     if (!ready || !map) return
     const sat = basemap === 'satellite'
     map.setLayoutProperty('satellite', 'visibility', sat ? 'visible' : 'none')
-    // Satellite look: vivid imagery with relief shading, white district lines, orange roads, bright blue
-    // floodwater over a deep-blue channel. Outside Bihar is only lightly dimmed so the Himalayan relief shows.
+    // Satellite look: vivid imagery with relief shading, white district lines, orange roads, and the
+    // blue flood ramp over a navy channel. Outside Bihar is only lightly dimmed so the Himalayan relief shows.
     const paint: [string, string, unknown, unknown][] = [
       ['hillshade', 'hillshade-exaggeration', 0.55, 0.3],
       ['hillshade', 'hillshade-shadow-color', '#0B1A20', '#5A6B71'],
@@ -230,12 +230,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
       ['bihar-outline', 'line-width', 2.2, 1.6],
       ['districts', 'line-color', '#FFFFFF', '#5A6B71'],
       ['districts', 'line-opacity', 0.75, 0.55],
-      ['kosi', 'line-color', '#1F4E9A', '#1B4352'],
-      ...tiles.flatMap((_, i): [string, string, unknown, unknown][] => [
-        [`flood-${i}`, 'raster-hue-rotate', 14, 0],
-        [`flood-${i}`, 'raster-saturation', 0.45, 0],
-        [`flood-${i}`, 'raster-opacity', 0.86, 0.92],
-      ]),
+      ['kosi', 'line-color', '#0E2A66', '#12357A'],
     ]
     // The table mixes properties of different layer types, so it goes through a loosely typed setter.
     const setPaint = map.setPaintProperty.bind(map) as (id: string, prop: string, value: unknown) => void

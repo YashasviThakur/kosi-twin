@@ -139,8 +139,15 @@ def flood_stage(hand, river):
     return stage
 
 
-# Flood depth ramp from the design tokens: shallow -> deep.
-DEPTH_RAMP = [(0.0, (0xC9, 0xE1, 0xE8)), (1.0, (0x7F, 0xAF, 0xC2)), (2.5, (0x2F, 0x6B, 0x80)), (4.0, (0x1B, 0x43, 0x52))]
+# Flood depth ramp: light, see-through sky blue at the shallow edge -> deep royal blue -> navy.
+# (depth m, colour, opacity) — opacity rises with depth so shallow water still shows the fields below.
+DEPTH_RAMP = [
+    (0.0, (0xA8, 0xDC, 0xF7), 120),
+    (0.5, (0x6C, 0xB8, 0xEC), 165),
+    (1.5, (0x35, 0x86, 0xD6), 200),
+    (3.0, (0x1D, 0x56, 0xB0), 222),
+    (5.0, (0x12, 0x35, 0x7A), 235),
+]
 
 
 TILES = 2   # each overlay is split TILES x TILES: many GPUs can't show one image wider than 4096 px
@@ -149,11 +156,11 @@ TILES = 2   # each overlay is split TILES x TILES: many GPUs can't show one imag
 def overlay_tiles(stage, hand, h, folder):
     wet = stage <= h
     depth = np.where(wet, np.clip(h - hand, 0, None), 0)
-    stops = np.array([d for d, _ in DEPTH_RAMP])
+    stops = np.array([d for d, _, _ in DEPTH_RAMP])
     rgba = np.zeros(stage.shape + (4,), dtype=np.uint8)
     for ch in range(3):
-        rgba[..., ch] = np.interp(depth, stops, [c[ch] for _, c in DEPTH_RAMP]).astype(np.uint8)
-    rgba[..., 3] = np.where(wet, np.interp(depth, [0, 4], [170, 225]), 0).astype(np.uint8)
+        rgba[..., ch] = np.interp(depth, stops, [c[ch] for _, c, _ in DEPTH_RAMP]).astype(np.uint8)
+    rgba[..., 3] = np.where(wet, np.interp(depth, stops, [a for _, _, a in DEPTH_RAMP]), 0).astype(np.uint8)
     for i, (rs, cs) in enumerate(tile_slices(stage.shape)):
         # 64-colour palette keeps the depth gradient and makes layers ~5x smaller for slow connections.
         Image.fromarray(rgba[rs, cs], "RGBA").quantize(colors=64, method=Image.Quantize.FASTOCTREE).save(

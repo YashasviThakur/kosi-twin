@@ -120,8 +120,8 @@
 .replay-clock strong { font-size: 18px; }
 .replay-clock span { font-size: 13px; color: var(--muted); }
 .replay-curve { width: 100%; height: 56px; cursor: pointer; }
-.replay-area { fill: var(--water-1); }
-.replay-line { fill: none; stroke: var(--water-3); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.replay-area { fill: var(--flood-1); opacity: .6; }
+.replay-line { fill: none; stroke: var(--flood-4); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .replay-head { stroke: var(--evacuate); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .replay-side { display: flex; flex-direction: column; align-items: flex-end; max-width: 190px; text-align: right; }
 .replay-side small { color: var(--muted); font-size: 12px; line-height: 1.3; }

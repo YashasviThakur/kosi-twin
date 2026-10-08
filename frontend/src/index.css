@@ -7,6 +7,11 @@
   --water-2: #7FAFC2;     /* mid water, highlights (not for text) */
   --water-3: #2F6B80;     /* deep water, primary actions, links */
   --water-4: #1B4352;     /* deepest water */
+  --flood-1: #A8DCF7;     /* flood depth ramp (same stops as backend/prep/build_model.py DEPTH_RAMP) */
+  --flood-2: #6CB8EC;
+  --flood-3: #3586D6;
+  --flood-4: #1D56B0;
+  --flood-5: #12357A;
   --ink: #1E2F36;         /* text */
   --muted: #5A6B71;       /* secondary text */
   --evacuate: #B23A26;

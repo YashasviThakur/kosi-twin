@@ -88,9 +88,11 @@ export function Gauge({ value, min, max, marks, disabled, label, valueText, onCh
     >
       <defs>
         <clipPath id="board"><rect x={BOARD_X} y={PAD - 6} width={BOARD_W} height={H - 2 * PAD + 12} rx="3" /></clipPath>
-        <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="var(--water-2)" />
-          <stop offset="1" stopColor="var(--water-3)" />
+        {/* Measured from the water surface down (user units): light at the top, navy one gauge-height below. */}
+        <linearGradient id="water" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2={H - 2 * PAD}>
+          <stop offset="0" stopColor="var(--flood-2)" />
+          <stop offset="0.5" stopColor="var(--flood-3)" />
+          <stop offset="1" stopColor="var(--flood-5)" />
         </linearGradient>
       </defs>
 
