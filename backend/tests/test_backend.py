@@ -66,10 +66,15 @@ def test_replay_runs_and_peaks_near_2024_level():
     assert max(f["discharge_lakh"] for f in frames) == pytest.approx(6.61)
 
 
-def test_advisory_is_bilingual():
-    v = flooding_villages(6.61)[0]
-    a = client.get(f"/api/villages/{v['id']}/advisory?discharge=6.61").json()
-    assert a["en"] and a["hi"] and any("ऀ" <= ch <= "ॿ" for ch in a["hi"])
+def test_advisory_in_all_four_languages_with_identical_numbers():
+    import re
+    for v in flooding_villages(6.61)[:6]:
+        a = client.get(f"/api/villages/{v['id']}/advisory?discharge=6.61").json()
+        nums = {l: sorted(re.findall(r"\d+(?:\.\d+)?", a[l])) for l in ("en", "hi", "bho", "mai")}
+        assert nums["hi"] == nums["bho"] == nums["mai"] == nums["en"], nums
+        for l in ("hi", "bho", "mai"):
+            assert any("ऀ" <= ch <= "ॿ" for ch in a[l])
+        assert len({a["hi"], a["bho"], a["mai"]}) == 3          # genuinely different wording
 
 
 def test_unknown_ids_404():

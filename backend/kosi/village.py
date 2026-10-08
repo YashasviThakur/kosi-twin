@@ -1,31 +1,14 @@
 """Village card: when water arrives, how deep, when to leave, where to go."""
-import math
-
 import numpy as np
 
 from . import store
 from .config import SAFETY_MARGIN_H, SHELTER_DRY_MARGIN_M
 from .hydro import lag_hours, rise_for
+from .lang import depth_band
 from .routing import safe_route
 
 TIMELINE_H = 72        # hours shown on the water-depth chart
 URGENT_H = 24          # EVACUATE if deep water arrives within this window
-
-DEPTH_BANDS = [  # (max depth m, en, hi)
-    (0.3, "ankle-deep", "टखने तक"),
-    (0.7, "knee-deep", "घुटने तक"),
-    (1.1, "waist-deep", "कमर तक"),
-    (1.5, "chest-deep", "छाती तक"),
-    (math.inf, "over head height", "सिर से ऊपर"),
-]
-
-
-def depth_band(depth):
-    if depth <= 0:
-        return None
-    for limit, en, hi in DEPTH_BANDS:
-        if depth <= limit:
-            return {"en": en, "hi": hi}
 
 
 def _nearby_facilities(v, peak_rise, radius_km=2.0):

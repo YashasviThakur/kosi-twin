@@ -1,10 +1,11 @@
 """Advisory audio via Amazon Polly (Kajal, neural — speaks Hindi and Indian English).
+Polly has no Bhojpuri or Maithili voice; the Hindi voice reads their Devanagari text (Hindi accent).
 Synthesised once per distinct text and cached in S3 when a bucket is configured."""
 import hashlib
 
 from . import cloud
 
-LANGS = {"hi": "hi-IN", "en": "en-IN"}
+LANGS = {"en": "en-IN", "hi": "hi-IN", "bho": "hi-IN", "mai": "hi-IN"}
 
 
 def synthesize(text, lang):

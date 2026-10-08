@@ -7,6 +7,7 @@ from mangum import Mangum
 
 from . import advisory, cloud, hydro, mirror, speech, store
 from .config import D0_M, DATA_DIR, EXPONENT, Q0_LAKH
+from .lang import LANGS
 from .village import card
 
 app = FastAPI(title="Kosi Twin API")
@@ -34,7 +35,7 @@ def health():
 def meta():
     return {"grid": store.grid(), "stages_m": [s["rise_m"] for s in store.stage_stats()],
             "rating_curve": {"q0_lakh": Q0_LAKH, "d0_m": D0_M, "exponent": EXPONENT},
-            "discharge_range_lakh": [0.5, 10.0], "replays": ["2024"]}
+            "discharge_range_lakh": [0.5, 10.0], "replays": ["2024"], "languages": LANGS}
 
 
 @app.get("/api/scenario")
@@ -65,7 +66,7 @@ def village_advisory(village_id: int, discharge: float = DISCHARGE, replay: str 
 
 
 @app.get("/api/villages/{village_id}/audio")
-def village_audio(village_id: int, lang: str = Query("hi", pattern="^(hi|en)$"),
+def village_audio(village_id: int, lang: str = Query("hi", pattern="^(en|hi|bho|mai)$"),
                   discharge: float = DISCHARGE, replay: str | None = None):
     c = card(village_id, _hydrograph(discharge, replay))
     if c is None:
