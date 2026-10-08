@@ -4,7 +4,7 @@ import * as maplibregl from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef, useState } from 'react'
-import type { Lang, Risk, Village } from '../api'
+import type { Lang, Risk, Village, VillageCard } from '../api'
 import { int } from '../format'
 
 export type Basemap = 'map' | 'satellite'
@@ -35,6 +35,7 @@ interface Props {
   layer: string | null                        // flood layer prefix, e.g. /layers/flood_3.0
   basemap: Basemap
   selectedId: number | null
+  focus: { villageId: number; route: VillageCard['route'] } | null   // loaded card: draw its route, fit once
   lang: Lang
   onSelect: (id: number) => void
 }
@@ -58,12 +59,14 @@ function columns(villages: Village[]): FeatureCollection {
 
 const villageName = (v: Village, lang: Lang) => (lang === 'en' ? v.name : (v.name_hi ?? v.name))
 
-export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lang, onSelect }: Props) {
+export function MapView({ tiles, villages, risk, layer, basemap, selectedId, focus, lang, onSelect }: Props) {
   const el = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const labels = useRef(new Map<number, HTMLDivElement>())
   const roadLayers = useRef<{ id: string; color: unknown; opacity: unknown }[]>([])
   const districtLabels = useRef<HTMLDivElement[]>([])
+  const shelterPin = useRef<maplibregl.Marker | null>(null)
+  const fittedFor = useRef<number | null>(null)
 
   // Hide labels that would overlap a more important one: evacuate > watch > selected > town > district >
   // larger villages. Hidden labels keep their size (visibility: hidden), so every label can be measured.
@@ -159,6 +162,14 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
 
       for (const id of PLACE_LABELS) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none')
 
+      // Evacuation route of the selected village: dark casing under a bright green dashed line.
+      map.addSource('route', { type: 'geojson', data: EMPTY })
+      map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#0B1A20', 'line-width': 9, 'line-opacity': 0.55 } })
+      // Bright safety green so the route reads on both satellite fields and the light map.
+      map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#4ADE80', 'line-width': 5, 'line-dasharray': [1.4, 1] } })
+
       map.addSource('villages', { type: 'geojson', data: columns(villages), promoteId: 'id' })
       map.addLayer({
         id: 'village-cols', type: 'fill-extrusion', source: 'villages',
@@ -167,8 +178,10 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
             ['boolean', ['feature-state', 'selected'], false], '#1E2F36',
             ['match', ['feature-state', 'risk'], 'EVACUATE', RISK_COLOR.EVACUATE, 'WATCH', RISK_COLOR.WATCH, RISK_COLOR.SAFE]],
           // Unaffected villages stay as short stubs; columns rise to full height when water reaches them.
-          'fill-extrusion-height': ['*', ['get', 'h'],
-            ['match', ['feature-state', 'risk'], 'EVACUATE', 1, 'WATCH', 1, 0.18]],
+          // Zoomed in close (village card), columns shrink so they don't hide the flood around the village.
+          'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'],
+            9, ['*', ['get', 'h'], ['match', ['feature-state', 'risk'], 'EVACUATE', 1, 'WATCH', 1, 0.18]],
+            12.5, ['*', ['get', 'h'], ['match', ['feature-state', 'risk'], 'EVACUATE', 0.12, 'WATCH', 0.12, 0.03]]],
           'fill-extrusion-height-transition': { duration: 500, delay: 0 },
           'fill-extrusion-color-transition': { duration: 300, delay: 0 },
           'fill-extrusion-opacity': 0.94,
@@ -309,14 +322,43 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, selectedId])
 
+  // Draw the selected village's route and shelter; frame them once per selection (not on every gauge change).
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    const route = focus && focus.villageId === selectedId ? focus.route : null
+    ;(map.getSource('route') as maplibregl.GeoJSONSource).setData(route
+      ? { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: route.path } } : EMPTY)
+    shelterPin.current?.remove()
+    shelterPin.current = null
+    if (route) {
+      const pin = document.createElement('div')
+      pin.className = 'shelter-pin'
+      pin.textContent = lang === 'en' ? route.shelter.name : route.shelter.name_hi
+      shelterPin.current = new maplibregl.Marker({ element: pin, anchor: 'bottom' })
+        .setLngLat([route.shelter.lon, route.shelter.lat]).addTo(map)
+    }
+    if (selectedId == null) { fittedFor.current = null; return }
+    if (!focus || focus.villageId !== selectedId || fittedFor.current === selectedId) return
+    fittedFor.current = selectedId
+    const v = byId.current.get(selectedId)
+    const pts: [number, number][] = route ? route.path : v ? [[v.lon, v.lat]] : []
+    if (!pts.length) return
+    const b = new maplibregl.LngLatBounds(pts[0], pts[0])
+    for (const p of pts) b.extend(p)
+    map.fitBounds(b, { padding: framePadding(), maxZoom: 13, duration: 900 })
+  }, [ready, focus, selectedId, lang])
+
   return <div ref={el} className="map" />
 }
+
+const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
 
 // Keep the flood belt visible between the panels: side panels on desktop, bottom panels on phones.
 const isPhone = () => window.matchMedia('(max-width: 860px)').matches
 function framePadding() {
   if (isPhone()) return { top: 110, bottom: Math.round(window.innerHeight * 0.52) + 16, left: 8, right: 8 }
-  return { top: 60, bottom: 40, left: 260, right: 350 }
+  return { top: 80, bottom: 60, left: 280, right: 400 }
 }
 
 function escapeHtml(s: string) {

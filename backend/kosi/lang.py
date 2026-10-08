@@ -50,10 +50,10 @@ T = {
         "mai": "सुरक्षित स्थान धरि सुखायल बाट नहि भेटल। लगक सभसँ ऊँच छत वा बान्ह पर चलि जाउ आ नाहक प्रतीक्षा करू।",
     },
     "leave": {
-        "en": "Leave {when} for {shelter}, {km} km away (about {minutes} minutes on foot).",
-        "hi": "{when} {shelter} ({km} किमी, लगभग {minutes} मिनट पैदल) के लिए निकल जाएँ।",
-        "bho": "{when} {shelter} ({km} किमी, मोटा-मोटी {minutes} मिनट पैदल) खातिर निकल जाईं।",
-        "mai": "{when} {shelter} ({km} किमी, करीब {minutes} मिनट पैदल) दिस निकलि जाउ।",
+        "en": "Leave {when} for {shelter}, {km} km away (about {walk} on foot).",
+        "hi": "{when} {shelter} ({km} किमी, लगभग {walk} पैदल) के लिए निकल जाएँ।",
+        "bho": "{when} {shelter} ({km} किमी, मोटा-मोटी {walk} पैदल) खातिर निकल जाईं।",
+        "mai": "{when} {shelter} ({km} किमी, करीब {walk} पैदल) दिस निकलि जाउ।",
     },
     "now": {"en": "now", "hi": "अभी", "bho": "अबहिंए", "mai": "एखनहि"},
     "before": {"en": "before {clock}", "hi": "{clock} से पहले", "bho": "{clock} से पहिले", "mai": "{clock} सँ पहिने"},
@@ -74,6 +74,13 @@ def clock(iso, lang):
     morning, afternoon, evening, night = DAY_PARTS[lang]
     part = morning if 4 <= h < 12 else afternoon if 12 <= h < 16 else evening if 16 <= h < 19 else night
     return f"{part} {h12} बजे"
+
+
+def walk_time(minutes, lang):
+    """Walking time as '6 h 8 min' / '6 घंटे 8 मिनट' (plain minutes under an hour)."""
+    h, m = divmod(int(round(minutes)), 60)
+    hu, mu = ("h", "min") if lang == "en" else ("घंटे", "मिनट")
+    return f"{h} {hu} {m} {mu}" if h else f"{m} {mu}"
 
 
 def depth_band(depth):

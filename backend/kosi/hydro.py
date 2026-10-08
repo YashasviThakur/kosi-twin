@@ -1,5 +1,7 @@
 """Discharge -> water rise, flood timing, and scenario statistics."""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+IST = timezone(timedelta(hours=5, minutes=30))   # India has no daylight saving; Lambda's clock is UTC
 
 from . import store
 from .config import D0_M, EXPONENT, FLOOD_WAVE_KMH, LAYER_BASE_URL, OVERLAND_KMH, Q0_LAKH
@@ -50,7 +52,7 @@ class Hydrograph:
 
     @classmethod
     def constant(cls, discharge_lakh, start=None):
-        return cls(start or datetime.now(), [(0.0, discharge_lakh)])
+        return cls(start or datetime.now(IST).replace(tzinfo=None, second=0, microsecond=0), [(0.0, discharge_lakh)])
 
     @classmethod
     def from_replay(cls, name):

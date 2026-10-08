@@ -258,3 +258,90 @@
   .map-tools { left: 8px; bottom: auto; top: 96px; }
   .legend { display: none; }
 }
+
+/* ---------- village card (Screen 2) ---------- */
+.village-card {
+  position: absolute; right: 16px; top: 80px; width: var(--summary-w);
+  max-height: calc(100% - 80px - 150px);            /* clears the zoom buttons */
+  display: flex; flex-direction: column; background: rgb(247 249 248 / 96%);
+}
+.vc-head { position: relative; padding: 16px 52px 14px 18px; color: #fff; }
+.risk-evacuate .vc-head { background: linear-gradient(135deg, #7E2516 0%, #B23A26 100%); }
+.risk-watch .vc-head { background: linear-gradient(135deg, #5E3D09 0%, #9A6512 100%); }
+.risk-safe .vc-head { background: linear-gradient(135deg, #2A5238 0%, #3F7552 100%); }
+.vc-risk {
+  display: inline-block; margin: 0 0 6px; padding: 2px 10px; border-radius: 999px;
+  background: rgb(255 255 255 / 20%); font-size: calc(12px * var(--fs)); font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+}
+.vc-name { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: calc(28px * var(--fs)); line-height: 1.15; }
+.vc-people { margin: 6px 0 0; font-size: calc(13px * var(--fs)); opacity: .92; }
+.vc-close {
+  position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 32px; height: 32px;
+  border: 0; border-radius: 8px; background: rgb(255 255 255 / 18%); color: #fff; cursor: pointer;
+}
+.vc-close:hover { background: rgb(255 255 255 / 30%); }
+.vc-close svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; }
+.vc-body { overflow: auto; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+.vc-note { margin: 0; color: var(--muted); font-size: calc(14px * var(--fs)); }
+.vc-safe strong { display: block; font-size: calc(18px * var(--fs)); color: var(--safe); }
+.vc-safe p { margin: 6px 0 0; color: var(--muted); }
+
+.vc-leave {
+  display: grid; gap: 2px; padding: 14px 16px; border-radius: 12px;
+  background: var(--grad-deep); color: #fff; box-shadow: 0 6px 16px rgb(18 53 122 / 25%);
+}
+.vc-leave-label { font-size: calc(12px * var(--fs)); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .9; }
+.vc-leave strong { font-size: calc(30px * var(--fs)); font-weight: 700; line-height: 1.1; }
+.vc-leave-in { font-size: calc(15px * var(--fs)); opacity: .92; }
+.vc-leave.is-boat { background: linear-gradient(135deg, #7E2516 0%, #B23A26 100%); box-shadow: 0 6px 16px rgb(178 58 38 / 25%); }
+.vc-leave.is-boat .vc-leave-label { font-size: calc(18px * var(--fs)); letter-spacing: .02em; text-transform: none; opacity: 1; }
+.vc-leave-help { margin: 4px 0 0; font-size: calc(14px * var(--fs)); line-height: 1.4; opacity: .95; }
+
+.vc-facts { display: grid; gap: 10px; margin: 0; }
+.vc-facts > div { padding: 10px 12px; border-radius: 10px; background: var(--grad-side); }
+.vc-facts dt { font-size: calc(12px * var(--fs)); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.vc-facts dd { margin: 4px 0 0; display: flex; flex-direction: column; }
+.vc-facts dd strong { font-size: calc(18px * var(--fs)); color: var(--ink); line-height: 1.25; }
+.vc-facts dd span { font-size: calc(14px * var(--fs)); color: var(--muted); }
+.vc-depth dd { flex-direction: row; align-items: flex-end; gap: 12px; }
+.vc-depth dd > span { display: flex; flex-direction: column; }
+.depth-figure { width: 40px; height: 86px; flex: none; }
+.depth-person { fill: var(--ink); opacity: .85; }
+.depth-line { stroke: #fff; stroke-width: 1.5; }
+
+.vc-advisory { padding: 12px 14px; border-radius: 12px; background: linear-gradient(180deg, rgb(168 220 247 / 35%), rgb(201 225 232 / 45%)); }
+.vc-advisory-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.vc-play { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; font-size: calc(14px * var(--fs)); }
+.vc-play svg { width: 13px; height: 13px; fill: currentColor; }
+.vc-advisory-text { margin: 8px 0 0; font-size: calc(16px * var(--fs)); line-height: 1.55; color: var(--ink); }
+
+.vc-chart { margin: 0; }
+.vc-chart figcaption { margin-bottom: 6px; }
+.depth-chart { width: 100%; height: auto; display: block; }
+.chart-grid line { stroke: var(--line); }
+.chart-grid text, .chart-tick { font: 600 9px var(--font-ui); fill: var(--muted); }
+.chart-line { fill: none; stroke: var(--flood-4); stroke-width: 2; }
+.chart-wet { fill: var(--flood-3); opacity: .7; }
+.chart-leave { stroke: var(--evacuate); stroke-width: 2; stroke-dasharray: 4 3; }
+.chart-eta { stroke: var(--flood-5); stroke-width: 1.5; }
+
+.vc-facilities summary { cursor: pointer; font-weight: 600; font-size: calc(14px * var(--fs)); color: var(--ink); }
+.vc-facilities ul { list-style: none; margin: 8px 0 0; padding: 0; }
+.vc-facilities li {
+  display: flex; justify-content: space-between; gap: 12px; padding: 6px 0;
+  border-bottom: 1px solid var(--line); font-size: calc(14px * var(--fs));
+}
+.vc-facilities li span:last-child { color: var(--muted); }
+
+/* Shelter at the end of the evacuation route */
+.shelter-pin {
+  position: relative; max-width: 180px; padding: 4px 9px; border-radius: 8px;
+  background: linear-gradient(135deg, #2A5238, #3F7552); color: #fff;
+  font: 700 12px/1.3 var(--font-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
+}
+.shelter-pin::before { content: "⛑ "; }
+
+@media (max-width: 860px) {
+  .village-card { left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; max-height: 62dvh; }  /* sheet over the gauge */
+}

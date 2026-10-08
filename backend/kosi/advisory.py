@@ -11,7 +11,7 @@ import re
 from functools import lru_cache
 
 from . import cloud
-from .lang import LANGS, T, clock
+from .lang import LANGS, T, clock, walk_time
 
 
 @lru_cache(maxsize=4096)
@@ -48,7 +48,7 @@ def template(card):
         else:
             when = T["now"][l] if card["leave_now"] else T["before"][l].format(clock=clock(card["leave_by_time"], l))
             parts.append(T["leave"][l].format(when=when, shelter=shelters[l], km=route["distance_km"],
-                                              minutes=route["walk_min"]))
+                                              walk=walk_time(route["walk_min"], l)))
         parts.append(T["elderly"][l])
         out[l] = " ".join(parts)
     return out

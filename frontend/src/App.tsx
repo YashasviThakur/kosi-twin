@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, layerPrefix, riseFor, statsAt } from './api'
-import type { Lang, Meta, Replay, Risk, Scenario, Village } from './api'
+import type { Lang, Meta, Replay, Risk, Scenario, ScenarioRef, Village, VillageCard as Card } from './api'
 import { Gauge } from './components/Gauge'
 import { MapView } from './components/MapView'
 import { Panel } from './components/Panel'
 import type { Basemap } from './components/MapView'
 import { ReplayBar } from './components/ReplayBar'
 import { SummaryPanel } from './components/SummaryPanel'
+import { VillageCard } from './components/VillageCard'
 import { T } from './i18n'
 import './App.css'
 
@@ -71,6 +72,30 @@ export default function App() {
     return () => ctrl.abort()
   }, [qExtent, meta, replay])
 
+  // Village card (Screen 2): refetch when the village or the flood scenario changes.
+  const scenarioRef: ScenarioRef = useMemo(() => (replay ? { replay: replay.name } : { discharge }), [replay, discharge])
+  const [card, setCard] = useState<Card | null>(null)
+  const [cardLoading, setCardLoading] = useState(false)
+  const [cardFailed, setCardFailed] = useState(false)
+  useEffect(() => {
+    if (selectedId == null) return            // shownCard below already hides a card for another village
+    const ctrl = new AbortController()
+    setCardLoading(true)
+    setCardFailed(false)
+    const timer = window.setTimeout(() => {
+      api.village(selectedId, scenarioRef, ctrl.signal)
+        .then((c) => { setCard(c); setCardLoading(false) })
+        .catch((e) => { if (e.name !== 'AbortError') { setCardFailed(true); setCardLoading(false) } })
+    }, 150)
+    return () => { ctrl.abort(); window.clearTimeout(timer) }
+  }, [selectedId, scenarioRef])
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedId(null) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+  const shownCard = card && card.id === selectedId ? card : null
+
   const risk = useMemo(() => {
     const m = new Map<number, Risk>()
     if (replay && replayFrame) {
@@ -107,7 +132,8 @@ export default function App() {
   return (
     <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang}>
       <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} layer={layerPrefix(extentRise)}
-        basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId} />
+        basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId}
+        focus={shownCard ? { villageId: shownCard.id, route: shownCard.route ?? null } : null} />
 
       <header className="topbar">
         <div className="brand">
@@ -150,8 +176,13 @@ export default function App() {
         {!replay && <button className="btn btn-primary" onClick={startReplay}>{t.replay}</button>}
       </Panel>
 
-      <SummaryPanel lang={lang} discharge={qExtent} stats={stats} top={scenario?.top_villages ?? []}
-        selectedId={selectedId} onSelect={setSelectedId} />
+      {selectedId == null ? (
+        <SummaryPanel lang={lang} discharge={qExtent} stats={stats} top={scenario?.top_villages ?? []}
+          selectedId={selectedId} onSelect={setSelectedId} />
+      ) : (
+        <VillageCard card={shownCard} loading={cardLoading} failed={cardFailed} lang={lang} scenario={scenarioRef}
+          onClose={() => setSelectedId(null)} />
+      )}
 
       {replay && (
         <ReplayBar lang={lang} replay={replay} frame={frame} playing={playing}
