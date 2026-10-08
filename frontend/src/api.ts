@@ -15,7 +15,8 @@ export interface StageStats {
 }
 
 export interface Meta {
-  grid: { bounds: [number, number, number, number] } // west, south, east, north
+  // bounds and each flood overlay tile: [west, south, east, north]
+  grid: { bounds: [number, number, number, number]; layer_tiles: [number, number, number, number][] }
   stage_stats: StageStats[]
   rating_curve: { q0_lakh: number; d0_m: number; exponent: number }
   discharge_range_lakh: [number, number]
@@ -90,8 +91,9 @@ export function statsAt(rise: number, stages: StageStats[]): StageStats | null {
   return found
 }
 
-export function layerUrl(rise: number): string | null {
+// Flood overlay for a rise, as a file prefix: tiles are `${prefix}_0.png` … `${prefix}_3.png`.
+export function layerPrefix(rise: number): string | null {
   const step = Math.round(rise * 2) / 2
   if (step < 0.5) return null
-  return `/layers/flood_${Math.min(step, 10).toFixed(1)}.png`
+  return `/layers/flood_${Math.min(step, 10).toFixed(1)}`
 }

@@ -27,11 +27,12 @@ def stats_at(rise):
 
 
 def layer_url(rise):
-    """Nearest precomputed overlay (0.5 m steps); None when the river is in its normal channel."""
+    """Nearest precomputed overlay (0.5 m steps) as a file prefix — tiles are <prefix>_0.png … _3.png
+    (see grid.json layer_tiles); None when the river is in its normal channel."""
     step = round(rise * 2) / 2
     if step < 0.5:
         return None
-    return f"{LAYER_BASE_URL}/flood_{min(step, 10.0):.1f}.png"
+    return f"{LAYER_BASE_URL}/flood_{min(step, 10.0):.1f}"
 
 
 def scenario(discharge_lakh):

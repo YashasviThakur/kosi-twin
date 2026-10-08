@@ -1,0 +1,27 @@
+dem: 17.7 .. 205.4, nan=0.0%
+pop: 0.0 .. 523.1, nan=0.0%
+elderly: 0.0 .. 31.6, nan=0.0%
+children: 0.0 .. 47.2, nan=0.0%
+C:\Users\lenovo\Downloads\claude skills plugin\kosi-twin\backend\prep\build_model.py:154: RuntimeWarning: invalid value encountered in cast
+  rgba[..., ch] = np.interp(depth, stops, [c[ch] for _, c in DEPTH_RAMP]).astype(np.uint8)
+C:\Users\lenovo\Downloads\claude skills plugin\kosi-twin\backend\prep\build_model.py:155: RuntimeWarning: invalid value encountered in cast
+  rgba[..., 3] = np.where(wet, np.interp(depth, [0, 4], [170, 225]), 0).astype(np.uint8)
+embankments: none (data/raw/embankments.geojson not found)
+river: 187214 cells, 283 km long, water surface 77.8 m -> 24.0 m
+HAND: 13% of the region drains to the Kosi
+villages: 479, shelters: 984, road nodes: 540540, edges: 545827
+{'rise_m': 0.5, 'area_km2': 340.5, 'people': 66804, 'elderly': 4370, 'children': 8938, 'villages': 9, 'road_km_cut': 84.3, 'shelters_flooded': 2}
+{'rise_m': 1.5, 'area_km2': 563.2, 'people': 125053, 'elderly': 8167, 'children': 16729, 'villages': 13, 'road_km_cut': 191.4, 'shelters_flooded': 4}
+{'rise_m': 2.5, 'area_km2': 845.7, 'people': 242814, 'elderly': 15823, 'children': 32520, 'villages': 19, 'road_km_cut': 365.5, 'shelters_flooded': 5}
+{'rise_m': 3.5, 'area_km2': 1119.3, 'people': 447805, 'elderly': 29203, 'children': 59958, 'villages': 24, 'road_km_cut': 530.7, 'shelters_flooded': 8}
+{'rise_m': 4.5, 'area_km2': 1405.8, 'people': 733512, 'elderly': 47919, 'children': 98323, 'villages': 31, 'road_km_cut': 742.3, 'shelters_flooded': 16}
+{'rise_m': 5.5, 'area_km2': 1643.5, 'people': 1058664, 'elderly': 69305, 'children': 141942, 'villages': 32, 'road_km_cut': 923.7, 'shelters_flooded': 19}
+{'rise_m': 6.5, 'area_km2': 1817.0, 'people': 1382049, 'elderly': 90521, 'children': 185312, 'villages': 37, 'road_km_cut': 1082.4, 'shelters_flooded': 20}
+{'rise_m': 7.5, 'area_km2': 1940.5, 'people': 1693250, 'elderly': 111036, 'children': 226782, 'villages': 38, 'road_km_cut': 1223.6, 'shelters_flooded': 22}
+{'rise_m': 8.5, 'area_km2': 2033.5, 'people': 1941576, 'elderly': 127398, 'children': 259857, 'villages': 40, 'road_km_cut': 1324.1, 'shelters_flooded': 23}
+{'rise_m': 9.5, 'area_km2': 2098.3, 'people': 2106633, 'elderly': 138416, 'children': 281618, 'villages': 40, 'road_km_cut': 1399.5, 'shelters_flooded': 24}
+translated 447 names, 32 already had Hindi names from OSM
+
+real	7m35.362s
+user	0m0.046s
+sys	0m0.045s

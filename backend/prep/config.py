@@ -1,11 +1,13 @@
 """Shared settings for the offline data-prep scripts."""
+import os
 from pathlib import Path
 
 # Kosi region in Bihar: Birpur barrage (north) down to the Ganga confluence near Kursela (south).
 WEST, SOUTH, EAST, NORTH = 86.2, 25.3, 87.5, 26.6
 
-# Analysis grid: 3 arc-seconds (~90 m). Fine enough for village-level depth, small enough to stay fast.
-RES = 1 / 1200
+# Analysis grid in arc-seconds: 1 (~30 m, the DEM's native resolution) by default, 3 (~90 m) for quick runs.
+ARCSEC = float(os.environ.get("KOSI_RES_ARCSEC", "1"))
+RES = ARCSEC / 3600
 WIDTH = round((EAST - WEST) / RES)
 HEIGHT = round((NORTH - SOUTH) / RES)
 

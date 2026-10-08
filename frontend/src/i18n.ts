@@ -26,6 +26,9 @@ type Strings = {
   exitReplay: string
   replayNote: string
   legend: string
+  mapStyle: string
+  satellite: string
+  plainMap: string
   clickHint: string
   loading: string
   error: string
@@ -57,6 +60,9 @@ export const T: Record<Lang, Strings> = {
     exitReplay: 'Back to the gauge',
     replayNote: 'Approximate curve — only the peak is from reports.',
     legend: 'Column height = people · colour = risk',
+    mapStyle: 'Map style',
+    satellite: 'Satellite',
+    plainMap: 'Map',
     clickHint: 'Select a village to see when to leave',
     loading: 'Loading the Kosi…',
     error: 'Couldn’t reach the flood model. Check that the API is running, then reload.',
@@ -86,6 +92,9 @@ export const T: Record<Lang, Strings> = {
     exitReplay: 'गेज पर लौटें',
     replayNote: 'अनुमानित वक्र — केवल उच्चतम स्तर रिपोर्ट से है।',
     legend: 'स्तंभ की ऊँचाई = आबादी · रंग = ख़तरा',
+    mapStyle: 'नक्शे का प्रकार',
+    satellite: 'सैटेलाइट',
+    plainMap: 'नक्शा',
     clickHint: 'कब निकलना है, जानने के लिए गाँव चुनें',
     loading: 'कोसी लोड हो रही है…',
     error: 'बाढ़ मॉडल से संपर्क नहीं हुआ। API चालू है या नहीं देखें, फिर रीलोड करें।',
@@ -115,6 +124,9 @@ export const T: Record<Lang, Strings> = {
     exitReplay: 'गेज पर लवटीं',
     replayNote: 'अंदाजा वाला वक्र — खाली सबसे ऊँच स्तर रिपोर्ट से बा।',
     legend: 'खंभा के ऊँचाई = आबादी · रंग = खतरा',
+    mapStyle: 'नक्सा के किसिम',
+    satellite: 'सैटेलाइट',
+    plainMap: 'नक्सा',
     clickHint: 'कब निकले के बा, जाने खातिर गाँव चुनीं',
     loading: 'कोसी लोड हो रहल बा…',
     error: 'बाढ़ मॉडल से संपर्क ना भइल। API चालू बा कि ना देखीं, फेर रीलोड करीं।',
@@ -144,6 +156,9 @@ export const T: Record<Lang, Strings> = {
     exitReplay: 'गेज पर घुरू',
     replayNote: 'अनुमानित वक्र — मात्र सभसँ ऊँच स्तर रिपोर्ट सँ अछि।',
     legend: 'खाम्हक ऊँचाई = आबादी · रंग = खतरा',
+    mapStyle: 'नक्शाक प्रकार',
+    satellite: 'सैटेलाइट',
+    plainMap: 'नक्शा',
     clickHint: 'कखन निकलबाक अछि, जानबाक लेल गाम चुनू',
     loading: 'कोसी लोड भ रहल अछि…',
     error: 'बाढ़ि मॉडल सँ संपर्क नहि भेल। API चालू अछि कि नहि देखू, फेर रीलोड करू।',

@@ -2,6 +2,7 @@
 
 Usage: python preview.py OUT.png [rise ...]
 """
+import json
 import sys
 
 import numpy as np
@@ -12,14 +13,25 @@ from config import OUT, RAW
 
 path = sys.argv[1]
 rises = [float(x) for x in sys.argv[2:]] or [1.0, 2.5, 5.0]
+grid = json.loads((OUT / "grid.json").read_text())
 
 dem = rasterio.open(RAW / "dem.tif").read(1)
 shade = np.clip((dem - 20) / 80, 0, 1)
 base = Image.fromarray((np.stack([shade] * 3, -1) * 180 + 50).astype("uint8")).convert("RGBA")
 
+
+def overlay(h):
+    """Stitch the overlay tiles for one rise back into a full-size image."""
+    full = Image.new("RGBA", base.size)
+    for i, (w, s, e, n) in enumerate(grid["layer_tiles"]):
+        tile = Image.open(OUT / "layers" / f"flood_{h:.1f}_{i}.png").convert("RGBA")
+        full.paste(tile, (round((w - grid["west"]) / grid["res"]), round((grid["north"] - n) / grid["res"])))
+    return full
+
+
 tiles = []
 for h in rises:
-    tile = Image.alpha_composite(base, Image.open(OUT / "layers" / f"flood_{h:.1f}.png")).convert("RGB").resize((520, 520))
+    tile = Image.alpha_composite(base, overlay(h)).convert("RGB").resize((520, 520))
     ImageDraw.Draw(tile).text((10, 10), f"+{h} m", fill=(255, 255, 0))
     tiles.append(tile)
 sheet = Image.new("RGB", (520 * len(tiles), 520))

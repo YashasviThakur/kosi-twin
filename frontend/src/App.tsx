@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { api, layerUrl, riseFor, statsAt } from './api'
+import { api, layerPrefix, riseFor, statsAt } from './api'
 import type { Lang, Meta, Replay, Risk, Scenario, Village } from './api'
 import { Gauge } from './components/Gauge'
 import { MapView } from './components/MapView'
+import type { Basemap } from './components/MapView'
 import { ReplayBar } from './components/ReplayBar'
 import { SummaryPanel } from './components/SummaryPanel'
 import { T } from './i18n'
@@ -15,6 +16,7 @@ const FRAME_MS = 220
 
 export default function App() {
   const [lang, setLang] = useState<Lang>('en')
+  const [basemap, setBasemap] = useState<Basemap>('satellite')
   const [meta, setMeta] = useState<Meta | null>(null)
   const [villages, setVillages] = useState<Village[]>([])
   const [failed, setFailed] = useState(false)
@@ -88,8 +90,8 @@ export default function App() {
 
   return (
     <div className="app" lang={lang === 'en' ? 'en' : lang}>
-      <MapView bounds={meta.grid.bounds} villages={villages} risk={risk} layerUrl={layerUrl(extentRise)}
-        selectedId={selectedId} lang={lang} onSelect={setSelectedId} />
+      <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} layer={layerPrefix(extentRise)}
+        basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId} />
 
       <header className="topbar">
         <div className="brand">
@@ -137,7 +139,16 @@ export default function App() {
           onSeek={(f) => { setFrame(f); setPlaying(false) }} onExit={exitReplay} />
       )}
 
-      <p className="legend">{t.legend}</p>
+      <div className="map-tools">
+        <nav className="basemap" aria-label={t.mapStyle}>
+          {(['satellite', 'map'] as Basemap[]).map((b) => (
+            <button key={b} className={b === basemap ? 'is-active' : ''} aria-pressed={b === basemap} onClick={() => setBasemap(b)}>
+              {b === 'satellite' ? t.satellite : t.plainMap}
+            </button>
+          ))}
+        </nav>
+        <p className="legend">{t.legend}</p>
+      </div>
     </div>
   )
 }

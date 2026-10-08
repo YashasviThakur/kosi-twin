@@ -26,8 +26,14 @@ if not hasattr(np, "in1d"):  # pysheds still calls np.in1d, removed in NumPy 2.x
     np.in1d = np.isin
 
 STAGES = np.round(np.arange(0.25, 10.01, 0.25), 2)   # rise above normal river level, metres
-CELL_KM = RES * 111.0 * np.cos(np.radians(26.0))      # ~0.083 km east-west; north-south is ~0.0925
-CELL_AREA_KM2 = RES * 111.0 * CELL_KM
+ROW_KM = RES * 111.0                                  # north-south size of a cell
+CELL_KM = RES * 111.0 * np.cos(np.radians(26.0))      # east-west size of a cell
+CELL_AREA_KM2 = ROW_KM * CELL_KM
+
+
+def cells(km):
+    """A distance in km as a whole number of grid cells (at least 1), so the model works at any resolution."""
+    return max(1, round(km / ROW_KM))
 MAIN_KOSI = {"koshi river", "kosi river", "koshi"}
 
 
@@ -49,7 +55,7 @@ def river_mask(shape, transform):
     kosi = json.loads((RAW / "osm_kosi.json").read_text())
     main = [e for e in kosi if e["tags"].get("name", "").lower() in MAIN_KOSI]
     mask = rasterize(line_geoms(main), out_shape=shape, transform=transform, all_touched=True) > 0
-    mask = ndimage.binary_dilation(mask, iterations=2)          # close gaps between OSM ways
+    mask = ndimage.binary_dilation(mask, iterations=cells(0.18))   # close gaps between OSM ways
     labels, n = ndimage.label(mask, structure=np.ones((3, 3)))
     sizes = ndimage.sum(mask, labels, range(1, n + 1))
     return labels == (np.argmax(sizes) + 1)                     # keep the main connected channel
@@ -63,7 +69,7 @@ def chainage(river):
     dist = np.full(river.shape, np.inf)
     dist[rr[start], cc[start]] = 0.0
     heap = [(0.0, rr[start], cc[start])]
-    steps = [(dr, dc, np.hypot(dr * 0.0925, dc * CELL_KM)) for dr in (-1, 0, 1) for dc in (-1, 0, 1) if dr or dc]
+    steps = [(dr, dc, np.hypot(dr * ROW_KM, dc * CELL_KM)) for dr in (-1, 0, 1) for dc in (-1, 0, 1) if dr or dc]
     while heap:
         d, r, c = heapq.heappop(heap)
         if d > dist[r, c]:
@@ -91,9 +97,10 @@ def river_profile(dem, river, chain):
     return prof
 
 
-def local_water_level(dem, river, size=25):
+def local_water_level(dem, river, size=None):
     """Water surface per river cell = mean DEM of river cells within ~2 km, with sandbars/trees
     (cells > 2 m above that mean) dropped and the mean recomputed. Local, so side channels get their own level."""
+    size = size or (cells(2.2) | 1)
     w = river.astype("float32")
     for _ in range(2):
         mean = ndimage.uniform_filter(np.where(w > 0, dem, 0), size) / np.maximum(ndimage.uniform_filter(w, size), 1e-6)
@@ -135,7 +142,10 @@ def flood_stage(hand, river):
 DEPTH_RAMP = [(0.0, (0xC9, 0xE1, 0xE8)), (1.0, (0x7F, 0xAF, 0xC2)), (2.5, (0x2F, 0x6B, 0x80)), (4.0, (0x1B, 0x43, 0x52))]
 
 
-def overlay_png(stage, hand, h, path):
+TILES = 2   # each overlay is split TILES x TILES: many GPUs can't show one image wider than 4096 px
+
+
+def overlay_tiles(stage, hand, h, folder):
     wet = stage <= h
     depth = np.where(wet, np.clip(h - hand, 0, None), 0)
     stops = np.array([d for d, _ in DEPTH_RAMP])
@@ -143,8 +153,22 @@ def overlay_png(stage, hand, h, path):
     for ch in range(3):
         rgba[..., ch] = np.interp(depth, stops, [c[ch] for _, c in DEPTH_RAMP]).astype(np.uint8)
     rgba[..., 3] = np.where(wet, np.interp(depth, [0, 4], [170, 225]), 0).astype(np.uint8)
-    # 64-colour palette keeps the depth gradient and makes layers ~5x smaller for slow connections.
-    Image.fromarray(rgba, "RGBA").quantize(colors=64, method=Image.Quantize.FASTOCTREE).save(path, optimize=True)
+    for i, (rs, cs) in enumerate(tile_slices(stage.shape)):
+        # 64-colour palette keeps the depth gradient and makes layers ~5x smaller for slow connections.
+        Image.fromarray(rgba[rs, cs], "RGBA").quantize(colors=64, method=Image.Quantize.FASTOCTREE).save(
+            folder / f"flood_{h:.1f}_{i}.png", optimize=True)
+
+
+def tile_slices(shape):
+    rows = np.linspace(0, shape[0], TILES + 1).astype(int)
+    cols = np.linspace(0, shape[1], TILES + 1).astype(int)
+    return [(slice(rows[i], rows[i + 1]), slice(cols[j], cols[j + 1])) for i in range(TILES) for j in range(TILES)]
+
+
+def tile_bounds(shape):
+    """[west, south, east, north] of each overlay tile, in the same order as tile_slices."""
+    return [[WEST + cs.start * RES, NORTH - rs.stop * RES, WEST + cs.stop * RES, NORTH - rs.start * RES]
+            for rs, cs in tile_slices(shape)]
 
 
 def window_sum(arr, r, c, radius):
@@ -176,7 +200,7 @@ def main():
     ir, ic = np.unravel_index(np.where(drain >= 0, drain, 0), dem.shape)
     rows, cols = np.indices(dem.shape)
     near_chain = np.where(drain >= 0, chain[ir, ic], np.nan)
-    dist_km = np.where(drain >= 0, np.hypot((rows - ir) * 0.0925, (cols - ic) * CELL_KM), np.nan).astype("float32")
+    dist_km = np.where(drain >= 0, np.hypot((rows - ir) * ROW_KM, (cols - ic) * CELL_KM), np.nan).astype("float32")
     print(f"HAND: {np.isfinite(hand).mean():.0%} of the region drains to the Kosi")
 
     stage = flood_stage(hand, river)
@@ -203,8 +227,9 @@ def main():
         if not rc or not name:
             continue
         r, c = rc
-        r0, c0 = max(r - 3, 0), max(c - 3, 0)
-        local = stage[r0:r + 4, c0:c + 4]                                   # ~600 m around the village point
+        k = cells(0.3)
+        r0, c0 = max(r - k, 0), max(c - k, 0)
+        local = stage[r0:r + k + 1, c0:c + k + 1]                           # ~600 m around the village point
         # Reference cell for depth/timing: the village point if it drains to the Kosi,
         # otherwise the first cell around it that the Kosi floods (village edge gets wet first).
         if np.isfinite(hand[r, c]):
@@ -224,9 +249,9 @@ def main():
             "first_wet_stage_m": None if np.all(np.isnan(local)) else float(np.nanmin(local)),
             "chainage_km": round(float(near_chain[rr, rc_]), 1) if ref_ok else None,
             "dist_river_km": round(float(dist_km[rr, rc_]), 2) if ref_ok else None,
-            "pop": round(window_sum(pop, r, c, 6)),                           # ~1 km radius
-            "elderly": round(window_sum(elderly, r, c, 6)),
-            "children": round(window_sum(children, r, c, 6)),
+            "pop": round(window_sum(pop, r, c, cells(0.55))),                 # ~1 km box around the village
+            "elderly": round(window_sum(elderly, r, c, cells(0.55))),
+            "children": round(window_sum(children, r, c, cells(0.55))),
         })
 
     shelters = []
@@ -278,8 +303,10 @@ def main():
 
     layers = OUT / "layers"
     layers.mkdir(exist_ok=True)
+    for old in layers.glob("flood_*.png"):
+        old.unlink()
     for h in STAGES[1::2]:                                              # every 0.5 m
-        overlay_png(stage, hand, h, layers / f"flood_{h:.1f}.png")
+        overlay_tiles(stage, hand, h, layers)
 
     write = lambda name, obj: (OUT / name).write_text(json.dumps(obj, ensure_ascii=False), encoding="utf-8")
     write("villages.json", villages)
@@ -292,7 +319,8 @@ def main():
                         length_km=e[:, 2].astype("float32"), cut_stage_m=e[:, 3].astype("float32"),
                         chainage_km=e[:, 4].astype("float32"), dist_river_km=e[:, 5].astype("float32"))
     write("grid.json", {"west": WEST, "north": NORTH, "res": RES, "width": dem.shape[1], "height": dem.shape[0],
-                        "bounds": [WEST, NORTH - RES * dem.shape[0], WEST + RES * dem.shape[1], NORTH]})
+                        "bounds": [WEST, NORTH - RES * dem.shape[0], WEST + RES * dem.shape[1], NORTH],
+                        "layer_tiles": tile_bounds(dem.shape)})
 
     print(f"villages: {len(villages)}, shelters: {len(shelters)}, road nodes: {len(nodes)}, edges: {len(edges)}")
     for s in stats[1::4]:
