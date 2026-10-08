@@ -1,0 +1,7 @@
+# Runtime (Lambda)
+fastapi
+mangum
+python-multipart
+numpy
+scipy
+pillow

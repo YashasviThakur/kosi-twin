@@ -1,0 +1,16 @@
+{
+  "name": "2024",
+  "title": "Kosi floods, 27–30 Sept 2024",
+  "note": "APPROXIMATE. Only the peak (~6.61 lakh cusecs at Birpur barrage, early 29 Sept 2024) is from news reports; every other point is an interpolated shape. Replace with Bihar WRD hourly barrage readings before quoting numbers.",
+  "series": [
+    {"time": "2024-09-27T18:00", "discharge_lakh": 2.0},
+    {"time": "2024-09-28T06:00", "discharge_lakh": 3.0},
+    {"time": "2024-09-28T18:00", "discharge_lakh": 4.6},
+    {"time": "2024-09-29T00:00", "discharge_lakh": 5.8},
+    {"time": "2024-09-29T05:00", "discharge_lakh": 6.61},
+    {"time": "2024-09-29T12:00", "discharge_lakh": 5.6},
+    {"time": "2024-09-29T20:00", "discharge_lakh": 4.2},
+    {"time": "2024-09-30T06:00", "discharge_lakh": 3.2},
+    {"time": "2024-09-30T18:00", "discharge_lakh": 2.4}
+  ]
+}

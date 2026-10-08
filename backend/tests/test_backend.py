@@ -1,0 +1,94 @@
+"""Behavioural tests against the real precomputed model (run `python prep/build_model.py` first)."""
+import io
+import math
+
+import pytest
+from fastapi.testclient import TestClient
+from PIL import Image
+
+from kosi import mirror, store
+from kosi.api import app
+from kosi.hydro import Hydrograph, rise_for
+from kosi.village import card
+
+client = TestClient(app)
+
+
+def flooding_villages(q):
+    return client.get(f"/api/scenario?discharge={q}").json()["top_villages"]
+
+
+def test_rating_curve_rises_with_discharge():
+    assert rise_for(1.0) == 0.0
+    rises = [rise_for(q) for q in (2, 3, 4, 5, 6.61, 8)]
+    assert rises == sorted(rises) and rises[0] > 0
+    assert 4.0 < rise_for(6.61) < 6.0          # Sept 2024 peak calibrated to ~5 m
+
+
+def test_more_water_never_floods_less():
+    prev = None
+    for q in (1.5, 2.5, 4, 6.61, 9):
+        stats = client.get(f"/api/scenario?discharge={q}").json()["stats"]
+        if prev:
+            for key in ("area_km2", "people", "villages", "road_km_cut"):
+                assert stats[key] >= prev[key], key
+        prev = stats
+
+
+def test_village_cards_are_internally_consistent():
+    for v in flooding_villages(6.61)[:8]:
+        c = card(v["id"], Hydrograph.constant(6.61))
+        assert c["risk"] in ("WATCH", "EVACUATE")
+        assert c["eta_h"] >= 0 and not math.isinf(c["eta_h"])
+        if c["needs_boat"]:
+            assert c["route"] is None and c["leave_by_h"] is None
+        else:
+            assert c["leave_by_h"] < c["eta_h"]            # must leave before the water arrives
+            assert c["route"]["path"][0] == [c["lon"], c["lat"]]
+
+
+def test_route_crosses_every_road_before_it_floods():
+    from kosi.routing import safe_route
+    hg = Hydrograph.constant(6.61)
+    for v in flooding_villages(6.61)[:8]:
+        route = safe_route(v["lon"], v["lat"], hg)
+        if route:
+            assert route["slack_h"] > 0
+
+
+def test_villages_off_the_kosi_are_safe():
+    off = next(v for v in store.villages().values() if v["chainage_km"] is None)
+    assert client.get(f"/api/villages/{off['id']}?discharge=8").json()["risk"] == "SAFE"
+
+
+def test_replay_runs_and_peaks_near_2024_level():
+    frames = client.get("/api/replay/2024").json()["frames"]
+    assert max(f["discharge_lakh"] for f in frames) == pytest.approx(6.61)
+
+
+def test_advisory_is_bilingual():
+    v = flooding_villages(6.61)[0]
+    a = client.get(f"/api/villages/{v['id']}/advisory?discharge=6.61").json()
+    assert a["en"] and a["hi"] and any("ऀ" <= ch <= "ॿ" for ch in a["hi"])
+
+
+def test_unknown_ids_404():
+    assert client.get("/api/villages/1").status_code == 404
+    assert client.get("/api/replay/1999").status_code == 404
+
+
+def test_waterline_geometry():
+    # 2.1 m door spanning rows 260..470 -> 100 px per metre; 1.2 m of water sits at row 350.
+    assert mirror.waterline_y(470, 260, 2.1, 1.2) == 350
+    with pytest.raises(ValueError):
+        mirror.waterline_y(260, 470, 2.1, 1.2)
+
+
+def test_mirror_endpoint_returns_watermarked_jpeg():
+    buf = io.BytesIO()
+    Image.new("RGB", (400, 300), (180, 160, 120)).save(buf, "JPEG")
+    r = client.post("/api/mirror", files={"photo": ("s.jpg", buf.getvalue(), "image/jpeg")},
+                    data={"depth_m": 1.0, "ground_y": 250, "top_y": 40, "ref_height_m": 2.1})
+    assert r.status_code == 200 and r.headers["content-type"] == "image/jpeg"
+    assert r.headers["x-waterline-y"] == "150"
+    assert Image.open(io.BytesIO(r.content)).size == (400, 300)

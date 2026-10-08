@@ -1,0 +1,6 @@
+# Offline data prep (laptop only)
+-r requirements.txt
+rasterio
+pysheds
+requests
+uvicorn
