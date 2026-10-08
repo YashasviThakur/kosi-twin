@@ -78,6 +78,13 @@ export interface VillageCard {
     walk_min: number
     path: [number, number][]
   } | null
+  options?: Partial<Record<'hospital' | 'school' | 'high_ground', {
+    shelter: { name: string; name_hi: string; kind: string; lon: number; lat: number }
+    distance_km: number
+    walk_min: number
+    path: [number, number][]
+    leave_by_h: number
+  }>>
   facilities_at_risk?: { name: string; kind: string; km: number; floods_at_rise_m: number }[]
   timeline?: { hours: number; time: string; depth_m: number; wet: boolean }[]
 }

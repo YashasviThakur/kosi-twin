@@ -348,3 +348,68 @@
 @media (max-width: 860px) {
   .village-card { left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; max-height: 62dvh; }  /* sheet over the gauge */
 }
+
+/* ---------- card extras: depth comparison, destinations, SOS, weather, voice ---------- */
+.depth-scale { margin: 6px 0 0; }
+.ds-plot {
+  position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 4px;
+  height: 150px; padding: 0 2px 0 26px; border-bottom: 2px solid var(--ink);
+}
+.ds-grid { position: absolute; left: 26px; right: 0; border-top: 1px dashed var(--line); }
+.ds-grid span { position: absolute; left: -26px; top: -7px; font-size: 10px; color: var(--muted); }
+.ds-col { position: relative; flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; z-index: 1; }
+.ds-bar {
+  position: relative; width: 70%; border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, #E4E1D8, #CFCAC0);
+}
+.ds-icon { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 18px; line-height: 1; }
+.ds-col.is-under .ds-bar { background: linear-gradient(180deg, #CFCAC0, #A9A399); }
+.ds-water {
+  position: absolute; left: 26px; right: 0; bottom: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(180deg, rgb(108 184 236 / 55%), rgb(18 53 122 / 55%));
+  border-top: 2px solid var(--flood-4);
+}
+.ds-level {
+  position: absolute; right: 4px; top: -20px; padding: 1px 6px; border-radius: 6px;
+  background: var(--flood-5); color: #fff; font-size: 11px; font-weight: 700;
+}
+.ds-labels { display: flex; justify-content: space-between; gap: 4px; padding-left: 26px; margin-top: 4px; }
+.ds-labels span { flex: 1; text-align: center; font-size: calc(10px * var(--fs)); color: var(--muted); line-height: 1.2; }
+
+.vc-dest ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
+.dest {
+  width: 100%; display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; text-align: left;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; cursor: pointer;
+}
+.dest:hover { border-color: var(--flood-2); }
+.dest.is-active { border-color: #22A05A; box-shadow: 0 0 0 2px rgb(74 222 128 / 45%); }
+.dest-icon { font-size: 22px; }
+.dest-main { display: flex; flex-direction: column; min-width: 0; }
+.dest-cat { font-size: calc(11px * var(--fs)); font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.dest-cat em {
+  margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-style: normal;
+  background: linear-gradient(135deg, #2A5238, #3F7552); color: #fff; letter-spacing: .03em;
+}
+.dest-main strong { font-size: calc(15px * var(--fs)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dest-eta { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 3px; font-size: calc(13px * var(--fs)); color: var(--ink); }
+.dest-km { font-weight: 700; color: var(--flood-5); font-size: calc(14px * var(--fs)); }
+
+.sos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+.sos {
+  display: flex; flex-direction: column; padding: 9px 12px; border-radius: 12px; text-decoration: none; color: #fff;
+  background: linear-gradient(135deg, #7E2516 0%, #B23A26 100%);
+}
+.sos strong { font-size: calc(22px * var(--fs)); line-height: 1.1; }
+.sos span { font-size: calc(12px * var(--fs)); opacity: .92; }
+.sos:hover { filter: brightness(1.08); }
+
+.rain { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.rain th { font-size: calc(12px * var(--fs)); color: var(--muted); font-weight: 600; text-align: left; padding: 4px; }
+.rain thead th { text-align: center; }
+.rain td { text-align: center; vertical-align: bottom; padding: 4px; font-size: calc(12px * var(--fs)); }
+.rain-bar { display: block; width: 18px; margin: 0 auto 3px; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--flood-2), var(--flood-4)); }
+.src { font-size: 11px; opacity: .8; }
+
+.voice-pick { display: flex; margin-left: auto; padding: 2px; border-radius: 999px; background: rgb(30 47 54 / 8%); }
+.voice-pick button { border: 0; background: none; padding: 4px 10px; border-radius: 999px; cursor: pointer; font-size: calc(13px * var(--fs)); color: var(--muted); }
+.voice-pick button.is-active { background: var(--grad-deep); color: #fff; }

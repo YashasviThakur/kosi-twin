@@ -46,8 +46,13 @@ export function dayTime(iso: string, lang: Lang = 'en'): string {
 
 export function duration(h: number, lang: Lang): string {
   const total = Math.max(0, Math.round(h * 60))
+  if (total < 1) return lang === 'en' ? '< 1 min' : '< 1 मि'
   const hh = Math.floor(total / 60)
   const mm = total % 60
-  const [hu, mu] = lang === 'en' ? ['h', 'm'] : ['घं', 'मि']
+  const [hu, mu] = lang === 'en' ? ['h', 'min'] : ['घं', 'मि']   // "min", not "m": metres are everywhere else
   return hh ? `${hh} ${hu} ${mm} ${mu}` : `${mm} ${mu}`
+}
+
+export function km(d: number): string {
+  return d < 0.1 ? '< 0.1 km' : `${d.toFixed(1)} km`
 }

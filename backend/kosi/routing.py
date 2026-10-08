@@ -48,20 +48,29 @@ def _dry_nodes(peak_key):
     return lowest >= peak_key + SHELTER_DRY_MARGIN_M
 
 
+CATEGORY = {"hospital": "hospital", "clinic": "hospital", "school": "school", "college": "school"}
+
+
 def _dry_shelters(peak_rise):
-    """Main-network node -> (shelter, off-road km) for shelters that stay dry at the peak."""
-    best = {}
+    """Category -> {main-network node -> (shelter, off-road km)} for shelters that stay dry at the peak."""
+    best = {"hospital": {}, "school": {}}
     for s in store.shelters():
         if s["flood_stage_m"] is not None and s["flood_stage_m"] < peak_rise + SHELTER_DRY_MARGIN_M:
             continue
+        cat = CATEGORY.get(s["kind"], "school")
         node, km = _nearest_main_node(s["lon"], s["lat"])
-        if node not in best or km < best[node][1]:
-            best[node] = (s, km)
+        if node not in best[cat] or km < best[cat][node][1]:
+            best[cat][node] = (s, km)
     return best
 
 
-def safe_route(lon, lat, hydrograph):
-    """Route dict, or None when no dry place is reachable on foot before the water (=> boat rescue)."""
+def safe_routes(lon, lat, hydrograph):
+    """Nearest dry hospital, school/college and raised road, reachable on foot before the water.
+
+    Returns {"best": route or None, "options": {category: route}}; best is None (=> boat rescue)
+    when nothing dry is reachable. The recommendation is a mapped shelter if it is at most
+    SHELTER_DETOUR_H further on foot than the nearest raised road, otherwise the raised road.
+    """
     r = store.roads()
     cut, chain, dist = r["cut_stage_m"], r["chainage_km"], r["dist_river_km"]
     indptr, nbr, eid, length = r["indptr"], r["nbr"], r["eid"], r["length_km"]
@@ -79,25 +88,22 @@ def safe_route(lon, lat, hydrograph):
         return flood_cache[k]
 
     src, snap_km = _nearest_main_node(lon, lat)
-    start_t = snap_km / WALK_KMH
     max_t = ROUTE_MAX_KM / WALK_KMH
     best = {src: 0.0}                      # search cost (penalised km)
-    arrive_at = {src: start_t}             # actual walking time (h)
+    arrive_at = {src: snap_km / WALK_KMH}  # actual walking time (h)
     prev = {src: (None, None)}
     heap = [(0.0, src)]
-    ground = shelter = None                # (node, arrival h) of the first dry road point / dry shelter reached
-    while heap:
+    found = {}                             # category -> end node, first reached
+    while heap and len(found) < 3:
         cost, u = heapq.heappop(heap)
         if cost > best.get(u, math.inf):
             continue
+        for cat in ("hospital", "school"):
+            if cat not in found and u in shelters[cat]:
+                found[cat] = u
+        if "high_ground" not in found and dry[u]:
+            found["high_ground"] = u
         t = arrive_at[u]
-        if u in shelters and shelter is None:
-            shelter = (u, t)
-            break
-        if dry[u] and ground is None:
-            ground = (u, t)
-        if ground and t > ground[1] + SHELTER_DETOUR_H:
-            break                          # no shelter within the allowed detour: use the dry ground
         for j in range(indptr[u], indptr[u + 1]):
             k, v = eid[j], nbr[j]
             arrive = t + float(length[k]) / WALK_KMH
@@ -110,22 +116,38 @@ def safe_route(lon, lat, hydrograph):
                 prev[v] = (u, k)
                 heapq.heappush(heap, (cost + step, v))
 
-    if shelter:
-        end, place, end_snap = shelter[0], shelters[shelter[0]][0], shelters[shelter[0]][1]
-    elif ground:
-        end, end_snap = ground[0], 0.0
-        elon, elat = r["lonlat"][end]
-        place = {**HIGH_GROUND, "lon": round(float(elon), 6), "lat": round(float(elat), 6)}
-    else:
-        return None
+    def route_to(end, place, end_snap):
+        nodes, slack, node = [end], math.inf, end
+        while prev[node][0] is not None:
+            p, k = prev[node]
+            slack = min(slack, floods_at(k) - arrive_at[node])   # how much later we could have crossed k
+            nodes.append(p)
+            node = p
+        walk_h = arrive_at[end] + end_snap / WALK_KMH
+        coords = [[round(float(x), 5), round(float(y), 5)] for x, y in r["lonlat"][nodes[::-1]]]
+        return {"shelter": place, "distance_km": round(walk_h * WALK_KMH, 2), "walk_h": walk_h,
+                "slack_h": slack, "path": [[lon, lat]] + coords + [[place["lon"], place["lat"]]]}
 
-    nodes, slack, node = [end], math.inf, end
-    while prev[node][0] is not None:
-        p, k = prev[node]
-        slack = min(slack, floods_at(k) - arrive_at[node])   # how much later we could have crossed k
-        nodes.append(p)
-        node = p
-    walk_h = arrive_at[end] + end_snap / WALK_KMH
-    coords = [[round(float(x), 5), round(float(y), 5)] for x, y in r["lonlat"][nodes[::-1]]]
-    return {"shelter": place, "distance_km": round(walk_h * WALK_KMH, 2), "walk_h": walk_h,
-            "slack_h": slack, "path": [[lon, lat]] + coords + [[place["lon"], place["lat"]]]}
+    options = {}
+    for cat in ("hospital", "school"):
+        if cat in found:
+            s, km = shelters[cat][found[cat]]
+            options[cat] = route_to(found[cat], s, km)
+    if "high_ground" in found:
+        elon, elat = r["lonlat"][found["high_ground"]]
+        options["high_ground"] = route_to(
+            found["high_ground"], {**HIGH_GROUND, "lon": round(float(elon), 6), "lat": round(float(elat), 6)}, 0.0)
+
+    if not options:
+        return {"best": None, "options": {}}
+    nearest_shelter = min((options[c] for c in ("hospital", "school") if c in options),
+                          key=lambda o: o["walk_h"], default=None)
+    ground = options.get("high_ground")
+    if nearest_shelter and (ground is None or nearest_shelter["walk_h"] <= ground["walk_h"] + SHELTER_DETOUR_H):
+        return {"best": nearest_shelter, "options": options}
+    return {"best": ground, "options": options}
+
+
+def safe_route(lon, lat, hydrograph):
+    """The recommended route only (see safe_routes)."""
+    return safe_routes(lon, lat, hydrograph)["best"]

@@ -35,7 +35,8 @@ interface Props {
   layer: string | null                        // flood layer prefix, e.g. /layers/flood_3.0
   basemap: Basemap
   selectedId: number | null
-  focus: { villageId: number; route: VillageCard['route'] } | null   // loaded card: draw its route, fit once
+  // Loaded card: draw the shown route; frame it once per village + destination (not on gauge changes).
+  focus: { villageId: number; key: string; route: VillageCard['route'] } | null
   lang: Lang
   onSelect: (id: number) => void
 }
@@ -66,7 +67,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
   const roadLayers = useRef<{ id: string; color: unknown; opacity: unknown }[]>([])
   const districtLabels = useRef<HTMLDivElement[]>([])
   const shelterPin = useRef<maplibregl.Marker | null>(null)
-  const fittedFor = useRef<number | null>(null)
+  const fittedFor = useRef<string | null>(null)
 
   // Hide labels that would overlap a more important one: evacuate > watch > selected > town > district >
   // larger villages. Hidden labels keep their size (visibility: hidden), so every label can be measured.
@@ -339,8 +340,9 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
         .setLngLat([route.shelter.lon, route.shelter.lat]).addTo(map)
     }
     if (selectedId == null) { fittedFor.current = null; return }
-    if (!focus || focus.villageId !== selectedId || fittedFor.current === selectedId) return
-    fittedFor.current = selectedId
+    const fitKey = `${selectedId}:${focus?.key}`
+    if (!focus || focus.villageId !== selectedId || fittedFor.current === fitKey) return
+    fittedFor.current = fitKey
     const v = byId.current.get(selectedId)
     const pts: [number, number][] = route ? route.path : v ? [[v.lon, v.lat]] : []
     if (!pts.length) return

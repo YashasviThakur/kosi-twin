@@ -8,6 +8,7 @@ import type { Basemap } from './components/MapView'
 import { ReplayBar } from './components/ReplayBar'
 import { SummaryPanel } from './components/SummaryPanel'
 import { VillageCard } from './components/VillageCard'
+import type { Category } from './i18n-extra'
 import { T } from './i18n'
 import './App.css'
 
@@ -95,6 +96,15 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
   const shownCard = card && card.id === selectedId ? card : null
+  const [routeCategory, setRouteCategory] = useState<Category | null>(null)
+  const [routeFor, setRouteFor] = useState<number | null>(null)
+  if (routeFor !== selectedId) {             // new village: back to the recommended route
+    setRouteFor(selectedId)
+    setRouteCategory(null)
+  }
+  const shownRoute = shownCard
+    ? (routeCategory && shownCard.options?.[routeCategory]) || shownCard.route || null
+    : null
 
   const risk = useMemo(() => {
     const m = new Map<number, Risk>()
@@ -133,7 +143,7 @@ export default function App() {
     <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang}>
       <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} layer={layerPrefix(extentRise)}
         basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId}
-        focus={shownCard ? { villageId: shownCard.id, route: shownCard.route ?? null } : null} />
+        focus={shownCard ? { villageId: shownCard.id, key: routeCategory ?? 'best', route: shownRoute } : null} />
 
       <header className="topbar">
         <div className="brand">
@@ -181,7 +191,7 @@ export default function App() {
           selectedId={selectedId} onSelect={setSelectedId} />
       ) : (
         <VillageCard card={shownCard} loading={cardLoading} failed={cardFailed} lang={lang} scenario={scenarioRef}
-          onClose={() => setSelectedId(null)} />
+          routeCategory={routeCategory} onRouteCategory={setRouteCategory} onClose={() => setSelectedId(null)} />
       )}
 
       {replay && (

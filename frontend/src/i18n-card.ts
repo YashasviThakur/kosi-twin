@@ -15,9 +15,6 @@ type CardStrings = {
   arrivesIn: (h: string) => string
   depth: string
   outskirts: string
-  shelter: string
-  walk: (km: string, time: string) => string
-  routeTo: (name: string) => string
   advisory: string
   play: string
   stop: string
@@ -48,9 +45,6 @@ export const C: Record<Lang, CardStrings> = {
     arrivesIn: (h) => `in ${h}`,
     depth: 'Expected depth',
     outskirts: 'Village edge only',
-    shelter: 'Nearest dry place',
-    walk: (km, time) => `${km} km · ${time} walk`,
-    routeTo: (name) => `Route to ${name}`,
     advisory: 'Advisory',
     play: 'Play',
     stop: 'Stop',
@@ -79,9 +73,6 @@ export const C: Record<Lang, CardStrings> = {
     arrivesIn: (h) => `${h} में`,
     depth: 'अनुमानित गहराई',
     outskirts: 'सिर्फ़ गाँव के किनारे तक',
-    shelter: 'सबसे पास सूखी जगह',
-    walk: (km, time) => `${km} किमी · ${time} पैदल`,
-    routeTo: (name) => `${name} तक का रास्ता`,
     advisory: 'सूचना',
     play: 'सुनें',
     stop: 'रोकें',
@@ -110,9 +101,6 @@ export const C: Record<Lang, CardStrings> = {
     arrivesIn: (h) => `${h} में`,
     depth: 'अंदाजा गहराई',
     outskirts: 'खाली गाँव के किनारा ले',
-    shelter: 'सबसे लगे सूखल जगह',
-    walk: (km, time) => `${km} किमी · ${time} पैदल`,
-    routeTo: (name) => `${name} ले रास्ता`,
     advisory: 'सूचना',
     play: 'सुनीं',
     stop: 'रोकीं',
@@ -141,9 +129,6 @@ export const C: Record<Lang, CardStrings> = {
     arrivesIn: (h) => `${h} मे`,
     depth: 'अनुमानित गहराइ',
     outskirts: 'मात्र गामक किनार धरि',
-    shelter: 'सभसँ लगक सुखायल स्थान',
-    walk: (km, time) => `${km} किमी · ${time} पैदल`,
-    routeTo: (name) => `${name} धरिक बाट`,
     advisory: 'सूचना',
     play: 'सुनू',
     stop: 'रोकू',
