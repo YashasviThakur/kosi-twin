@@ -2,12 +2,11 @@
 import { useEffect, useState } from 'react'
 import type { Lang, VillageCard } from '../api'
 import { duration, km } from '../format'
-import { X } from '../i18n-extra'
+import { CATEGORY_ICON, X } from '../i18n-extra'
 import type { Category, Mode } from '../i18n-extra'
 
 const SPEED_KMH: Record<Mode, number> = { walk: 4, cycle: 12, motorbike: 25 }
 const MODE_ICON: Record<Mode, string> = { walk: '🚶', cycle: '🚲', motorbike: '🏍️' }
-const CATEGORY_ICON: Record<Category, string> = { hospital: '🏥', school: '🏫', high_ground: '🛣️' }
 const ORDER: Category[] = ['high_ground', 'school', 'hospital']
 
 const placeName = (p: { name: string; name_hi: string }, lang: Lang) =>

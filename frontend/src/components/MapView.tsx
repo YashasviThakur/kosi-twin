@@ -9,7 +9,7 @@ import { int } from '../format'
 
 export type Basemap = 'map' | 'satellite'
 
-const STYLE = 'https://tiles.openfreemap.org/styles/positron'
+const STYLE = 'https://tiles.openfreemap.org/styles/liberty'   // colourful, with 3D buildings
 const TERRARIUM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'
 const SATELLITE = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2023_3857/default/g/{z}/{y}/{x}.jpg'
 const BLANK = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
@@ -24,7 +24,7 @@ const BIHAR_LIMITS: [[number, number], [number, number]] = [[82.6, 23.8], [89.0,
 // labels (which also follow the language switch), so they are always hidden; road names only on satellite.
 const PLACE_LABELS = ['label_village', 'label_other', 'label_town', 'label_city', 'label_city_capital']
 const ROAD_LABELS = ['highway-name-path', 'highway-name-minor', 'highway-name-major',
-  'highway-shield-non-us', 'highway-shield-us-interstate', 'road_shield_us']
+  'highway-shield-non-us', 'highway-shield-us-interstate', 'road_shield_us', 'poi_r20', 'poi_r7', 'poi_r1', 'poi_transit']
 
 const RISK_COLOR: Record<Risk, string> = { EVACUATE: '#B23A26', WATCH: '#9A6512', SAFE: '#CFCAC0' }
 
@@ -35,8 +35,14 @@ interface Props {
   layer: string | null                        // flood layer prefix, e.g. /layers/flood_3.0
   basemap: Basemap
   selectedId: number | null
-  // Loaded card: draw the shown route; frame it once per village + destination (not on gauge changes).
-  focus: { villageId: number; key: string; route: VillageCard['route'] } | null
+  // Loaded card: draw the shown route and destination pins; frame once per village + destination.
+  focus: {
+    villageId: number
+    key: string
+    route: VillageCard['route']
+    eta: string                                                       // travel time shown on the route
+    pins: { cat: string; icon: string; lon: number; lat: number; name: string; active: boolean }[]
+  } | null
   lang: Lang
   onSelect: (id: number) => void
 }
@@ -66,7 +72,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
   const labels = useRef(new Map<number, HTMLDivElement>())
   const roadLayers = useRef<{ id: string; color: unknown; opacity: unknown }[]>([])
   const districtLabels = useRef<HTMLDivElement[]>([])
-  const shelterPin = useRef<maplibregl.Marker | null>(null)
+  const pins = useRef<maplibregl.Marker[]>([])
   const fittedFor = useRef<string | null>(null)
 
   // Hide labels that would overlap a more important one: evacuate > watch > selected > town > district >
@@ -163,13 +169,13 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
 
       for (const id of PLACE_LABELS) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none')
 
-      // Evacuation route of the selected village: dark casing under a bright green dashed line.
+      // Evacuation route, map-app style: white casing under a solid safety-green line (green, not blue,
+      // so it never reads as floodwater).
       map.addSource('route', { type: 'geojson', data: EMPTY })
       map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#0B1A20', 'line-width': 9, 'line-opacity': 0.55 } })
-      // Bright safety green so the route reads on both satellite fields and the light map.
+        paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 6, 15, 12] } })
       map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#4ADE80', 'line-width': 5, 'line-dasharray': [1.4, 1] } })
+        paint: { 'line-color': '#16A34A', 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 3.5, 15, 8] } })
 
       map.addSource('villages', { type: 'geojson', data: columns(villages), promoteId: 'id' })
       map.addLayer({
@@ -330,14 +336,22 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
     const route = focus && focus.villageId === selectedId ? focus.route : null
     ;(map.getSource('route') as maplibregl.GeoJSONSource).setData(route
       ? { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: route.path } } : EMPTY)
-    shelterPin.current?.remove()
-    shelterPin.current = null
-    if (route) {
-      const pin = document.createElement('div')
-      pin.className = 'shelter-pin'
-      pin.textContent = lang === 'en' ? route.shelter.name : route.shelter.name_hi
-      shelterPin.current = new maplibregl.Marker({ element: pin, anchor: 'bottom' })
-        .setLngLat([route.shelter.lon, route.shelter.lat]).addTo(map)
+    for (const p of pins.current) p.remove()
+    pins.current = []
+    if (focus && focus.villageId === selectedId) {
+      for (const p of focus.pins) {
+        const el = document.createElement('div')
+        el.className = `dest-pin${p.active ? ' is-active' : ''}`
+        el.innerHTML = `<span class="dest-pin-icon"><i>${p.icon}</i></span>${p.active ? `<span class="dest-pin-name">${escapeHtml(p.name)}</span>` : ''}`
+        pins.current.push(new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([p.lon, p.lat]).addTo(map))
+      }
+      if (route && route.path.length > 1) {
+        const mid = route.path[Math.floor(route.path.length / 2)]
+        const bubble = document.createElement('div')
+        bubble.className = 'eta-bubble'
+        bubble.textContent = focus.eta
+        pins.current.push(new maplibregl.Marker({ element: bubble, anchor: 'bottom', offset: [0, -6] }).setLngLat(mid).addTo(map))
+      }
     }
     if (selectedId == null) { fittedFor.current = null; return }
     const fitKey = `${selectedId}:${focus?.key}`

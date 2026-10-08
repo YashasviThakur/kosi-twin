@@ -36,6 +36,11 @@ export function clock(iso: string): string {
   return `${day}, ${time}`
 }
 
+// An API time moved by some hours, still as a zone-less local time string.
+export function shiftIso(iso: string, hours: number): string {
+  return new Date(asUtc(iso).getTime() + hours * 3600e3).toISOString().slice(0, 16)
+}
+
 export function dayTime(iso: string, lang: Lang = 'en'): string {
   const d = asUtc(iso)
   const locale = lang === 'en' ? 'en-IN' : 'hi-IN'      // Bhojpuri/Maithili readers use Hindi date names

@@ -6,8 +6,11 @@ import { MapView } from './components/MapView'
 import { Panel } from './components/Panel'
 import type { Basemap } from './components/MapView'
 import { ReplayBar } from './components/ReplayBar'
+import { SearchBox } from './components/SearchBox'
 import { SummaryPanel } from './components/SummaryPanel'
 import { VillageCard } from './components/VillageCard'
+import { duration } from './format'
+import { CATEGORY_ICON } from './i18n-extra'
 import type { Category } from './i18n-extra'
 import { T } from './i18n'
 import './App.css'
@@ -143,7 +146,16 @@ export default function App() {
     <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang}>
       <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} layer={layerPrefix(extentRise)}
         basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId}
-        focus={shownCard ? { villageId: shownCard.id, key: routeCategory ?? 'best', route: shownRoute } : null} />
+        focus={shownCard ? {
+          villageId: shownCard.id, key: routeCategory ?? 'best', route: shownRoute,
+          eta: shownRoute ? `🚶 ${duration(shownRoute.distance_km / 4, lang)}` : '',
+          pins: (Object.entries(shownCard.options ?? {}) as [Category, NonNullable<Card['options']>[Category]][])
+            .map(([cat, o]) => ({
+              cat, icon: CATEGORY_ICON[cat], lon: o!.shelter.lon, lat: o!.shelter.lat,
+              name: lang === 'en' ? o!.shelter.name : o!.shelter.name_hi,
+              active: !!shownRoute && o!.shelter.lon === shownRoute.shelter.lon && o!.shelter.lat === shownRoute.shelter.lat,
+            })),
+        } : null} />
 
       <header className="topbar">
         <div className="brand">
@@ -151,6 +163,7 @@ export default function App() {
           <span className="brand-name">{t.title}</span>
         </div>
         <span className="badge" title={t.replayNote}>{t.estimate}</span>
+        <SearchBox villages={villages} lang={lang} onPick={setSelectedId} />
         <nav className="text-size" aria-label={t.textSize}>
           {TEXT_SIZES.map((s) => (
             <button key={s} className={`ts-${s}${s === textSize ? ' is-active' : ''}`} aria-pressed={s === textSize}

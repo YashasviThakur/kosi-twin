@@ -4,6 +4,7 @@ import type { Lang } from './api'
 
 export type Category = 'hospital' | 'school' | 'high_ground'
 export type Mode = 'walk' | 'cycle' | 'motorbike'
+export const CATEGORY_ICON: Record<Category, string> = { hospital: '🏥', school: '🏫', high_ground: '🛣️' }
 export type DepthObject = 'charpai' | 'goat' | 'motorbike' | 'cow' | 'adult' | 'door' | 'house'
 
 type Strings = {

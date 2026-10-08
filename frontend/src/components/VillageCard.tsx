@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../api'
 import type { Advisory, Lang, ScenarioRef, VillageCard as Card } from '../api'
-import { dayTime, duration, int, people } from '../format'
+import { dayTime, duration, int, people, shiftIso } from '../format'
 import { C } from '../i18n-card'
 import { X } from '../i18n-extra'
 import type { Category } from '../i18n-extra'
@@ -67,6 +67,11 @@ function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory }: 
 }) {
   const c = C[lang]
   const depth = card.max_depth_m ?? 0
+  // "Leave by" follows the destination shown on the map: each route has its own safe departure time.
+  const option = routeCategory ? card.options?.[routeCategory] : undefined
+  const leaveH = option ? option.leave_by_h : card.leave_by_h ?? 0
+  const leaveTime = option && card.eta_time ? shiftIso(card.eta_time, leaveH - (card.eta_h ?? 0)) : card.leave_by_time
+  const leaveNow = option ? leaveH <= 0 : card.leave_now
 
   return (
     <>
@@ -78,11 +83,11 @@ function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory }: 
         </div>
       ) : (
         <div className="vc-leave">
-          <span className="vc-leave-label">{card.leave_now ? c.leaveNow : c.leaveBy}</span>
-          {!card.leave_now && card.leave_by_time && (
+          <span className="vc-leave-label">{leaveNow ? c.leaveNow : c.leaveBy}</span>
+          {!leaveNow && leaveTime && (
             <>
-              <strong className="num">{dayTime(card.leave_by_time, lang)}</strong>
-              <span className="vc-leave-in num">{c.leaveIn(duration(card.leave_by_h ?? 0, lang))}</span>
+              <strong className="num">{dayTime(leaveTime, lang)}</strong>
+              <span className="vc-leave-in num">{c.leaveIn(duration(leaveH, lang))}</span>
             </>
           )}
         </div>
