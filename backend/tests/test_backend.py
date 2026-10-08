@@ -126,3 +126,18 @@ def test_advisory_guardrail_rejects_changed_numbers(monkeypatch):
     cloud._down_until.clear()
     monkeypatch.setattr(cloud, "client", lambda _: FakeBedrock('{"en": "Please leave before 3 PM; it is 2.5 km.", "hi": "3 बजे से पहले निकल जाएँ, 2.5 किमी।"}'))
     assert advisory._rewrite(draft)["source"] == "bedrock:fake"
+
+
+def test_village_on_isolated_road_fragment_still_gets_a_route():
+    # Regression: Sahugarh's nearest OSM road is an unconnected fragment; it used to come out as
+    # "boat rescue needed" although dry ground is under a kilometre away and water is ~2 days off.
+    v = next(x for x in store.villages().values() if x["name"] == "Sahugarh")
+    c = card(v["id"], Hydrograph.constant(4.0))
+    assert not c["needs_boat"] and c["route"]["distance_km"] < 5
+
+
+def test_boat_rescue_is_rare_when_water_is_days_away():
+    hg = Hydrograph.constant(4.0)
+    cards = [card(a["id"], hg) for a in client.get("/api/scenario?discharge=4").json()["affected"]]
+    late = [c for c in cards if c["eta_h"] > 24]
+    assert late and sum(c["needs_boat"] for c in late) <= len(late) // 10
