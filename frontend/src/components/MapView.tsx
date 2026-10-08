@@ -299,11 +299,12 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, lan
     const map = mapRef.current
     if (!ready || !map || selectedId == null) return
     map.setFeatureState({ source: 'villages', id: selectedId }, { selected: true })
-    labels.current.get(selectedId)?.classList.add('is-selected')
+    const label = labels.current.get(selectedId)
+    label?.classList.add('is-selected')
     requestAnimationFrame(declutter)
     return () => {
       map.setFeatureState({ source: 'villages', id: selectedId }, { selected: false })
-      labels.current.get(selectedId)?.classList.remove('is-selected')
+      label?.classList.remove('is-selected')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, selectedId])
