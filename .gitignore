@@ -5,3 +5,4 @@ backend/data/raw/
 backend/data/out/
 .env
 infra/.build/
+backend/data/*.log
