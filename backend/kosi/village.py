@@ -20,6 +20,27 @@ def _nearby_facilities(v, peak_rise, radius_km=2.0):
     return sorted(out, key=lambda f: f["km"])[:8]
 
 
+def status(v, hydrograph):
+    """Quick risk for one village (no routing): None if it stays dry, else eta/depth/risk.
+    Shared by the map colouring and the village card so both always agree."""
+    peak_rise = rise_for(hydrograph.peak())
+    if v["chainage_km"] is None or v["first_wet_stage_m"] is None or v["first_wet_stage_m"] > peak_rise:
+        return None
+    lag = lag_hours(v["chainage_km"], v["dist_river_km"])
+    eta_h = hydrograph.wet_time(v["first_wet_stage_m"], lag)
+    max_depth = max(0.0, peak_rise - v["hand_m"])
+    risk = "EVACUATE" if max_depth > 0.5 and eta_h < URGENT_H else "WATCH"
+    return {"id": v["id"], "risk": risk, "eta_h": round(eta_h, 1), "depth_m": round(max_depth, 2), "lag_h": lag}
+
+
+def affected(hydrograph):
+    """Every village that floods, most urgent first (EVACUATE, then by population)."""
+    rows = [s for v in store.villages().values() if (s := status(v, hydrograph))]
+    for s in rows:
+        s.pop("lag_h")
+    return sorted(rows, key=lambda s: (s["risk"] != "EVACUATE", -store.villages()[s["id"]]["pop"]))
+
+
 def card(village_id, hydrograph):
     v = store.villages().get(village_id)
     if v is None:
@@ -27,21 +48,17 @@ def card(village_id, hydrograph):
     base = {k: v[k] for k in ("id", "name", "name_hi", "type", "lon", "lat", "pop", "elderly", "children", "ground_m")}
     peak_rise = rise_for(hydrograph.peak())
 
-    if v["chainage_km"] is None or v["first_wet_stage_m"] > peak_rise:
+    st = status(v, hydrograph)
+    if st is None:
         return {**base, "risk": "SAFE", "peak_rise_m": round(peak_rise, 2),
                 "reason": "outside_kosi_floodplain" if v["chainage_km"] is None else "above_peak_water"}
-
-    lag = lag_hours(v["chainage_km"], v["dist_river_km"])
-    eta_h = hydrograph.wet_time(v["first_wet_stage_m"], lag)
+    lag, eta_h, max_depth, risk = st["lag_h"], st["eta_h"], st["depth_m"], st["risk"]
 
     timeline = []
     for t in range(TIMELINE_H + 1):
         rise = rise_for(hydrograph.at(t - lag)) if t >= lag else 0.0
         timeline.append({"hours": t, "time": hydrograph.clock(t).isoformat(timespec="minutes"),
                          "depth_m": round(max(0.0, rise - v["hand_m"]), 2), "wet": t >= eta_h})
-    max_depth = max(0.0, peak_rise - v["hand_m"])
-    risk = "EVACUATE" if max_depth > 0.5 and eta_h < URGENT_H else "WATCH"
-
     route = safe_route(v["lon"], v["lat"], hydrograph)
     if route:
         # Latest departure: before water reaches the village, and before any road on the route floods.

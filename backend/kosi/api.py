@@ -8,7 +8,7 @@ from mangum import Mangum
 from . import advisory, cloud, hydro, mirror, speech, store
 from .config import D0_M, DATA_DIR, EXPONENT, Q0_LAKH
 from .lang import LANGS
-from .village import card
+from .village import affected, card
 
 app = FastAPI(title="Kosi Twin API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
@@ -33,14 +33,17 @@ def health():
 
 @app.get("/api/meta")
 def meta():
-    return {"grid": store.grid(), "stages_m": [s["rise_m"] for s in store.stage_stats()],
+    return {"grid": store.grid(), "stage_stats": store.stage_stats(),
             "rating_curve": {"q0_lakh": Q0_LAKH, "d0_m": D0_M, "exponent": EXPONENT},
             "discharge_range_lakh": [0.5, 10.0], "replays": ["2024"], "languages": LANGS}
 
 
 @app.get("/api/scenario")
 def scenario(discharge: float = DISCHARGE):
-    return hydro.scenario(discharge)
+    rows = affected(hydro.Hydrograph.constant(discharge))
+    vs = store.villages()
+    top = [{**r, **{k: vs[r["id"]][k] for k in ("name", "name_hi", "pop", "lon", "lat")}} for r in rows[:10]]
+    return {**hydro.scenario(discharge), "affected": rows, "top_villages": top}
 
 
 @app.get("/api/villages")
@@ -80,9 +83,12 @@ def village_audio(village_id: int, lang: str = Query("hi", pattern="^(en|hi|bho|
 @app.get("/api/replay/{name}")
 def replay(name: str):
     try:
-        return hydro.replay_frames(name)
+        data = hydro.replay_frames(name)
     except FileNotFoundError:
         raise HTTPException(404, f"unknown replay '{name}'")
+    # Hour each village gets wet during the replay, so the map colours them in sequence.
+    data["village_wet_h"] = {r["id"]: r["eta_h"] for r in affected(hydro.Hydrograph.from_replay(name))}
+    return data
 
 
 MAX_PHOTO = 4 * 1024 * 1024   # Lambda caps request bodies at 6 MB; the UI downsizes photos first

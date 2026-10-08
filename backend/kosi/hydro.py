@@ -34,20 +34,10 @@ def layer_url(rise):
     return f"{LAYER_BASE_URL}/flood_{min(step, 10.0):.1f}.png"
 
 
-def scenario(discharge_lakh, top_n=10):
+def scenario(discharge_lakh):
     rise = rise_for(discharge_lakh)
-    stats = stats_at(rise)
-    hit = [v for v in store.villages().values()
-           if v["first_wet_stage_m"] is not None and v["first_wet_stage_m"] <= rise]
-    hit.sort(key=lambda v: -v["pop"])
-    return {
-        "discharge_lakh": discharge_lakh,
-        "rise_m": round(rise, 2),
-        "layer_url": layer_url(rise),
-        "stats": stats,
-        "top_villages": [{"id": v["id"], "name": v["name"], "pop": v["pop"], "lon": v["lon"], "lat": v["lat"],
-                          "eta_h": round(lag_hours(v["chainage_km"], v["dist_river_km"]), 1)} for v in hit[:top_n]],
-    }
+    return {"discharge_lakh": discharge_lakh, "rise_m": round(rise, 2), "layer_url": layer_url(rise),
+            "stats": stats_at(rise)}
 
 
 class Hydrograph:

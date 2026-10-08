@@ -1,0 +1,158 @@
+.app { position: relative; height: 100dvh; overflow: hidden; }
+.map { position: absolute; inset: 0; }
+
+.state-screen {
+  display: grid; place-items: center; height: 100dvh; padding: 24px;
+  color: var(--muted); font-size: 18px; text-align: center;
+}
+
+/* ---------- shared ---------- */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.eyebrow {
+  margin: 0;
+  font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted);
+}
+.btn {
+  border: 0; border-radius: 8px; padding: 10px 14px;
+  font-weight: 600; cursor: pointer; line-height: 1.2;
+}
+.btn-primary { background: var(--water-3); color: #fff; }
+.btn-primary:hover { background: var(--water-4); }
+.btn-quiet { background: none; color: var(--water-3); padding: 6px 0; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: absolute; top: 16px; left: 16px; right: 16px;
+  display: flex; align-items: center; gap: 12px;
+  pointer-events: none;
+}
+.topbar > * { pointer-events: auto; }
+.brand {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 6px 14px 4px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.brand-mark { font-family: var(--font-display); font-size: 28px; line-height: 1; color: var(--water-4); }
+.brand-name { font-weight: 600; letter-spacing: .02em; }
+.badge {
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--water-1); color: var(--water-4); font-size: 13px; font-weight: 600;
+}
+.langs {
+  margin-left: auto; display: flex; padding: 3px; gap: 2px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+}
+.langs button {
+  border: 0; background: none; padding: 6px 12px; border-radius: 999px; cursor: pointer; color: var(--muted);
+}
+.langs button.is-active { background: var(--water-3); color: #fff; }
+
+/* ---------- gauge panel (signature) ---------- */
+.gauge-panel {
+  position: absolute; left: 16px; top: 78px; bottom: 16px; width: 236px;
+  display: flex; flex-direction: column; gap: 6px; padding: 16px 16px 14px;
+}
+.readout { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
+.readout strong { font-size: 46px; font-weight: 600; line-height: 1; letter-spacing: -.01em; }
+.readout span { color: var(--muted); font-weight: 500; }
+.rise { margin: 0 0 6px; color: var(--water-3); font-weight: 600; }
+
+.gauge { flex: 1; min-height: 0; width: 100%; cursor: ns-resize; touch-action: none; overflow: visible; }
+.gauge.is-disabled { cursor: default; }
+.gauge-num { font: 600 11px var(--font-ui); fill: var(--ink); paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+.gauge-water, .gauge-handle { transition: transform 140ms ease-out; }
+.gauge-wave { animation: gauge-wave 2.8s linear infinite; }
+@keyframes gauge-wave { to { transform: translateX(-20px); } }
+.gauge-handle path { fill: var(--ink); }
+.gauge-mark line { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.gauge-mark text { font: 600 11px var(--font-ui); fill: var(--muted); }
+.gauge-mark.tone-danger line { stroke: var(--evacuate); stroke-width: 2; stroke-dasharray: none; }
+.gauge-mark.tone-danger text { fill: var(--evacuate); }
+
+/* ---------- summary ---------- */
+.summary {
+  position: absolute; right: 16px; top: 78px; width: 330px; max-height: calc(100% - 170px);
+  overflow: auto; padding: 18px;
+}
+.summary-lede {
+  margin: 0 0 14px;
+  font-family: var(--font-display); font-size: 22px; line-height: 1.35; color: var(--ink);
+}
+.facts {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin: 0 0 18px; padding: 14px 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.facts div { margin: 0; }
+.facts dt { font-size: 20px; font-weight: 600; line-height: 1.1; }
+.facts dd { margin: 2px 0 0; font-size: 13px; color: var(--muted); line-height: 1.3; }
+
+.path-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.path-item {
+  width: 100%; display: grid; grid-template-columns: 10px 1fr auto; grid-template-rows: auto auto;
+  column-gap: 10px; align-items: center; text-align: left;
+  padding: 9px 8px; border: 0; border-radius: 8px; background: none; cursor: pointer;
+}
+.path-item:hover { background: var(--bg); }
+.path-item.is-selected { background: var(--water-1); }
+.risk-dot { grid-row: span 2; width: 10px; height: 10px; border-radius: 50%; }
+.path-name { font-weight: 600; }
+.path-meta { grid-column: 2; font-size: 13px; color: var(--muted); }
+.risk-tag { grid-row: 1 / span 2; grid-column: 3; font-size: 12px; font-weight: 600; }
+.risk-evacuate { color: var(--evacuate); }
+.risk-watch { color: var(--watch); }
+.risk-dot.risk-evacuate { background: var(--evacuate); }
+.risk-dot.risk-watch { background: var(--watch); }
+.empty, .hint { color: var(--muted); font-size: 14px; }
+.hint { margin: 12px 0 0; }
+
+/* ---------- replay ---------- */
+.replay {
+  position: absolute; left: 268px; right: 362px; bottom: 36px;   /* clears the map credits line */
+  display: grid; grid-template-columns: auto auto 1fr auto; gap: 16px; align-items: center;
+  padding: 10px 14px;
+}
+.replay-clock { display: flex; flex-direction: column; min-width: 128px; }
+.replay-clock strong { font-size: 18px; }
+.replay-clock span { font-size: 13px; color: var(--muted); }
+.replay-curve { width: 100%; height: 56px; cursor: pointer; }
+.replay-area { fill: var(--water-1); }
+.replay-line { fill: none; stroke: var(--water-3); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.replay-head { stroke: var(--evacuate); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.replay-side { display: flex; flex-direction: column; align-items: flex-end; max-width: 190px; text-align: right; }
+.replay-side small { color: var(--muted); font-size: 12px; line-height: 1.3; }
+
+/* ---------- map extras ---------- */
+.legend {
+  position: absolute; left: 268px; bottom: 16px; margin: 0;
+  padding: 4px 10px; border-radius: 999px; background: rgb(247 249 248 / 85%);
+  font-size: 13px; color: var(--muted);
+}
+.replay ~ .legend { display: none; }
+.village-pop .maplibregl-popup-content {
+  display: flex; gap: 10px; align-items: baseline; padding: 6px 10px; border-radius: 8px;
+  font-family: var(--font-ui); color: var(--ink); box-shadow: var(--shadow);
+}
+.village-pop span { color: var(--muted); font-size: 13px; }
+
+/* ---------- small screens ---------- */
+@media (max-width: 860px) {
+  .topbar { left: 8px; right: 8px; top: 8px; flex-wrap: wrap; }
+  .badge { display: none; }
+  .langs button { padding: 4px 9px; font-size: 14px; }
+  .gauge-panel { left: 8px; top: auto; bottom: 8px; height: 52dvh; width: 128px; padding: 10px; gap: 2px; }
+  .gauge-panel .eyebrow { display: none; }
+  .readout { flex-direction: column; gap: 0; margin: 0; }
+  .readout strong { font-size: 30px; }
+  .readout span, .rise { font-size: 13px; }
+  .gauge-panel .btn { padding: 8px; font-size: 13px; }
+  .summary { left: 144px; right: 8px; top: auto; bottom: 8px; width: auto; height: 52dvh; max-height: none; padding: 14px; }
+  .summary-lede { font-size: 18px; }
+  .replay { left: 8px; right: 8px; top: 100px; bottom: auto; grid-template-columns: auto 1fr; }
+  .replay-curve, .replay-side { grid-column: 1 / -1; }
+  .legend { display: none; }
+}

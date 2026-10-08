@@ -131,16 +131,20 @@ def flood_stage(hand, river):
     return stage
 
 
+# Flood depth ramp from the design tokens: shallow -> deep.
+DEPTH_RAMP = [(0.0, (0xC9, 0xE1, 0xE8)), (1.0, (0x7F, 0xAF, 0xC2)), (2.5, (0x2F, 0x6B, 0x80)), (4.0, (0x1B, 0x43, 0x52))]
+
+
 def overlay_png(stage, hand, h, path):
     wet = stage <= h
-    depth = np.where(wet, h - hand, 0)
+    depth = np.where(wet, np.clip(h - hand, 0, None), 0)
+    stops = np.array([d for d, _ in DEPTH_RAMP])
     rgba = np.zeros(stage.shape + (4,), dtype=np.uint8)
-    t = np.clip(depth / 4.0, 0, 1)                              # 0 -> light blue, 4 m+ -> deep blue
-    rgba[..., 0] = (120 * (1 - t) + 10 * t).astype(np.uint8)
-    rgba[..., 1] = (190 * (1 - t) + 60 * t).astype(np.uint8)
-    rgba[..., 2] = (255 * (1 - t) + 160 * t).astype(np.uint8)
-    rgba[..., 3] = np.where(wet, 150 + 80 * t, 0).astype(np.uint8)
-    Image.fromarray(rgba, "RGBA").save(path, optimize=True)
+    for ch in range(3):
+        rgba[..., ch] = np.interp(depth, stops, [c[ch] for _, c in DEPTH_RAMP]).astype(np.uint8)
+    rgba[..., 3] = np.where(wet, np.interp(depth, [0, 4], [170, 225]), 0).astype(np.uint8)
+    # 64-colour palette keeps the depth gradient and makes layers ~5x smaller for slow connections.
+    Image.fromarray(rgba, "RGBA").quantize(colors=64, method=Image.Quantize.FASTOCTREE).save(path, optimize=True)
 
 
 def window_sum(arr, r, c, radius):

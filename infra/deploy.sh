@@ -38,6 +38,11 @@ echo "==> uploading flood layers"
 aws s3 sync "$OUT/layers" "s3://$(output SiteBucket)/layers" --region "$REGION" --only-show-errors \
     --cache-control "public, max-age=86400"
 
+echo "==> building and uploading the web app"
+(cd "$ROOT/frontend" && npm ci --silent && npm run build --silent)
+aws s3 sync "$ROOT/frontend/dist" "s3://$(output SiteBucket)" --region "$REGION" --only-show-errors     --delete --exclude "layers/*" --exclude "audio/*"
+aws cloudfront create-invalidation --distribution-id "$(output DistributionId)" --paths "/index.html" "/"     --query "Invalidation.Id" --output text >/dev/null
+
 echo
 echo "Site:   $(output Url)"
 echo "API:    $(output ApiUrl)/api/health"

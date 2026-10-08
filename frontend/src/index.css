@@ -1,0 +1,43 @@
+/* Design tokens — locked palette (contrast-checked against --bg). */
+:root {
+  --bg: #F8F6F1;          /* silt-white page */
+  --card: #F7F9F8;        /* panels */
+  --line: #E4E1D8;        /* card borders, dividers */
+  --water-1: #C9E1E8;     /* shallow water, selection fill */
+  --water-2: #7FAFC2;     /* mid water, highlights (not for text) */
+  --water-3: #2F6B80;     /* deep water, primary actions, links */
+  --water-4: #1B4352;     /* deepest water */
+  --ink: #1E2F36;         /* text */
+  --muted: #5A6B71;       /* secondary text */
+  --evacuate: #B23A26;
+  --watch: #9A6512;
+  --safe: #3F7552;
+  --dry: #CFCAC0;         /* villages the water does not reach */
+
+  --font-ui: "Hind", system-ui, sans-serif;
+  --font-display: "Tiro Devanagari Hindi", Georgia, serif;
+
+  --radius: 10px;
+  --shadow: 0 1px 2px rgb(30 47 54 / 6%), 0 8px 24px rgb(30 47 54 / 8%);
+
+  color-scheme: light;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--bg); }
+
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--water-3); outline-offset: 2px; }
+
+.num { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
