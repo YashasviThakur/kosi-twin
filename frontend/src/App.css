@@ -808,3 +808,133 @@
 .gauge-mark.tone-danger line { stroke: #8E2A1A; }
 .gauge-mark text { font: 600 11px var(--font-ui); fill: var(--ink); paint-order: stroke; stroke: rgb(252 249 242 / 90%); stroke-width: 3px; }
 .gauge-mark.tone-danger text { fill: #8E2A1A; }
+
+/* =====================================================================================
+   v5 — top bar as floating pieces (brand chip, big search pill, round buttons, language pop-up) and
+   a dark charcoal summary panel: one big number, then ruled stat rows.
+   ===================================================================================== */
+.topbar {
+  top: 14px; left: 14px; right: 14px; padding: 0; gap: 12px; justify-content: space-between;
+  background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none;
+}
+.topbar > * { pointer-events: auto; }
+.brand {
+  gap: 10px; padding: 5px 18px 5px 5px; border-radius: 999px; color: var(--ink);
+  background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--lift);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+}
+.brand-badge {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--grad-deep); color: #F4C46A; font-family: var(--font-display); font-size: calc(17px * var(--fs)); line-height: 1;
+}
+.brand-name { font-size: calc(16px * var(--fs)); font-weight: 700; color: var(--ink); }
+.brand .badge { color: var(--muted); }
+.search { flex: 1 1 auto; max-width: 520px; margin: 0 auto; }
+.search input {
+  padding: 14px 22px 14px 48px; border: 0; background: rgb(255 255 255 / 94%); box-shadow: var(--lift); font-size: calc(16px * var(--fs));
+}
+.search-icon { left: 18px; }
+.topbar-right { margin-left: 0; display: flex; align-items: center; gap: 10px; }
+.pop-wrap { position: relative; }
+.pill, .round-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border: 0; cursor: pointer;
+  background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--lift); color: var(--ink);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+  font-weight: 700; font-size: calc(15px * var(--fs)); white-space: nowrap;
+}
+.pill { padding: 0 20px; border-radius: 999px; }
+.round-btn { width: 46px; padding: 0; border-radius: 50%; }
+.pill:hover, .round-btn:hover, .round-btn.is-open, .pill.is-open { background: #fff; }
+.pill svg, .round-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round; }
+.pill-accent { background: #F4C46A; border-color: #F4C46A; color: #2B1D07; }
+.pill-accent:hover { background: #F8D184; }
+.pop-menu {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 12;
+  background: var(--glass-solid); border: 1px solid var(--glass-edge); border-radius: 20px; box-shadow: var(--lift);
+  -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+}
+.lang-menu { list-style: none; margin: 0; padding: 8px; min-width: 170px; }
+.lang-menu button {
+  width: 100%; text-align: left; padding: 11px 14px; border: 0; border-radius: 12px; background: none; cursor: pointer;
+  font-size: calc(16px * var(--fs)); color: var(--ink);
+}
+.lang-menu button:hover { background: rgb(60 45 20 / 8%); }
+.lang-menu button.is-active { background: var(--grad-deep); color: #fff; }
+
+/* Summary: a dark panel against the map. */
+.summary {
+  background: rgb(27 37 41 / 93%); color: #F5EFE3; border-color: rgb(255 255 255 / 10%);
+}
+.summary .panel-head { background: none; padding: 22px 16px 8px 24px; }
+.summary .panel-toggle { background: rgb(255 255 255 / 12%); color: #fff; }
+.summary .panel-body { padding: 4px 24px 18px; }
+.hero-num { display: block; font-family: var(--font-display); font-weight: 400; font-size: calc(62px * var(--fs)); line-height: 1; color: #F4C46A; }
+.hero-sub { margin: 10px 0 0; color: rgb(245 239 227 / 80%); font-size: calc(15px * var(--fs)); line-height: 1.45; }
+.summary .summary-lede { color: #F5EFE3; font-size: calc(21px * var(--fs)); }
+.stat-rows { list-style: none; margin: 4px 0 20px; padding: 0; border-top: 1px solid rgb(255 255 255 / 12%); }
+.stat-rows li {
+  display: grid; grid-template-columns: 30px 1fr auto; column-gap: 12px; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+.stat-icon { font-size: calc(20px * var(--fs)); }
+.stat-label { color: rgb(245 239 227 / 75%); font-size: calc(14px * var(--fs)); line-height: 1.3; }
+.stat-n { font-size: calc(21px * var(--fs)); font-weight: 700; color: #F5EFE3; }
+.stat-bar { grid-column: 2 / 4; height: 4px; margin-top: 8px; border-radius: 2px; background: rgb(255 255 255 / 12%); overflow: hidden; }
+.stat-bar i { display: block; height: 100%; border-radius: 2px; background: #F4C46A; }
+.summary .eyebrow { color: rgb(245 239 227 / 60%); }
+.summary .hint, .summary .empty { color: rgb(245 239 227 / 60%); }
+.summary .path-name { color: #F5EFE3; }
+.summary .path-meta { color: rgb(245 239 227 / 62%); }
+.summary .path-item:hover { background: rgb(255 255 255 / 8%); }
+.summary .path-item.is-selected { background: rgb(244 196 106 / 18%); }
+.summary .path-open { stroke: rgb(245 239 227 / 55%); }
+.summary .path-item:hover .path-open { stroke: #F4C46A; }
+
+@media (max-width: 860px) {
+  .app { --top: 112px; }
+  .topbar { flex-wrap: wrap; top: 8px; left: 8px; right: 8px; gap: 8px; padding: 0; background: none; border-radius: 0; }
+  .topbar-right { display: flex; order: 2; margin-left: auto; gap: 8px; }
+  .brand { order: 1; padding: 4px; }
+  .brand-text { display: none; }
+  .brand-badge { width: 42px; height: 42px; }
+  .search { order: 3; flex: 1 1 100%; max-width: none; margin: 0; }
+  .search input { padding: 12px 18px 12px 44px; }
+  .pill, .round-btn { height: 44px; }
+  .pill { padding: 0 14px; }
+  .pill-accent .pill-label { display: none; }
+  .pill-accent { width: 44px; padding: 0; }
+  .pop-menu { right: 0; width: min(270px, calc(100vw - 32px)); }
+  .lang-menu { width: 170px; }
+  .summary .panel-head { padding: 22px 14px 6px 20px; }
+  .hero-num { font-size: 44px; }
+}
+
+/* Village card: dark like the summary, so the right-hand side reads as one system. */
+.village-card {
+  --ink: #F5EFE3; --muted: rgb(245 239 227 / 66%); --line: rgb(255 255 255 / 13%); --sand: rgb(255 255 255 / 7%);
+  --grad-side: linear-gradient(90deg, rgb(255 255 255 / 8%), rgb(255 255 255 / 4%));
+  background: rgb(27 37 41 / 94%); color: var(--ink); border-color: rgb(255 255 255 / 10%);
+}
+.village-card .vc-leave { background: linear-gradient(135deg, #F4C46A, #D9902B); color: #2B1D07; box-shadow: 0 8px 22px rgb(217 144 43 / 30%); }
+.village-card .vc-leave.is-boat { background: linear-gradient(135deg, #7E2516, #D64533); color: #fff; }
+.village-card .btn-primary, .village-card .mirror-open { background: #F4C46A; color: #2B1D07; box-shadow: none; }
+.village-card .btn-quiet { color: #F4C46A; }
+.village-card .dest { background: rgb(255 255 255 / 6%); border-color: rgb(255 255 255 / 12%); color: var(--ink); }
+.village-card .dest-km, .village-card .vc-facts dd strong, .village-card .dest-main strong { color: var(--ink); }
+.village-card .dest-eta { color: var(--ink); }
+.village-card .vc-advisory { background: rgb(244 196 106 / 12%); }
+.village-card .vc-advisory-text { color: var(--ink); }
+.village-card .voice-pick { background: rgb(255 255 255 / 10%); }
+.village-card .voice-pick button.is-active { background: #F4C46A; color: #2B1D07; }
+.village-card .vc-facts dd strong { font-size: calc(17px * var(--fs)); }
+.village-card .fact-bar { background: rgb(255 255 255 / 12%); }
+.village-card .ds-plot { border-bottom-color: rgb(245 239 227 / 70%); }
+.village-card .chart-grid text, .village-card .chart-tick { fill: rgb(245 239 227 / 65%); }
+.village-card .chart-line { stroke: #8EC9F0; }
+.village-card .vc-facilities li { border-bottom-color: rgb(255 255 255 / 12%); }
+.village-card .panel-toggle, .village-card .vc-close { color: #fff; }
+.village-card .sos { box-shadow: none; }
+@media (max-width: 860px) {
+  .peak-share { display: none; }
+  .gauge-panel { height: 44dvh; }
+}

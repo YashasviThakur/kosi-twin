@@ -55,7 +55,8 @@ export default function App() {
   const [reportMode, setReportMode] = useState(false)
   const [draft, setDraft] = useState<{ lon: number; lat: number } | null>(null)
   const [mirror, setMirror] = useState<MirrorTarget | null>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [menu, setMenu] = useState<'layers' | 'lang' | null>(null)
+  const menuOpen = menu === 'layers'
   const menuRef = useRef<HTMLDivElement>(null)
   const [meta, setMeta] = useState<Meta | null>(null)
   const [villages, setVillages] = useState<Village[]>([])
@@ -70,13 +71,13 @@ export default function App() {
 
   useEffect(() => { api.reports().then(setReports).catch(() => {}) }, [])
   useEffect(() => {                                   // the layers menu closes on an outside tap or Escape
-    if (!menuOpen) return
-    const away = (e: PointerEvent) => { if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false) }
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
+    if (!menu) return
+    const away = (e: PointerEvent) => { if (!menuRef.current?.contains(e.target as Node)) setMenu(null) }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(null) }
     document.addEventListener('pointerdown', away)
     document.addEventListener('keydown', esc)
     return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', esc) }
-  }, [menuOpen])
+  }, [menu])
 
   useEffect(() => {
     Promise.all([api.meta(), api.villages()])
@@ -197,9 +198,9 @@ export default function App() {
             })),
         } : null} />
 
-      <header className="topbar">
+      <header className="topbar" ref={menuRef}>
         <div className="brand" title={t.replayNote}>
-          <span className="brand-mark" aria-hidden>कोसी</span>
+          <span className="brand-badge" aria-hidden>कोसी</span>
           <span className="brand-text">
             <span className="brand-name">{t.title}</span>
             <span className="badge">{t.estimate}</span>
@@ -207,15 +208,16 @@ export default function App() {
         </div>
         <SearchBox villages={villages} lang={lang} onPick={setSelectedId} />
         <div className="topbar-right">
-          <button className="topbar-mirror" onClick={openMirror}><span aria-hidden>🖼️</span><span className="mm-label">{M[lang].title}</span></button>
-          <div className="layers" ref={menuRef}>
-            <button className={`layers-btn${menuOpen ? ' is-open' : ''}`} aria-expanded={menuOpen} aria-haspopup="true"
-              onClick={() => setMenuOpen(!menuOpen)}>
+          <button className="pill pill-accent" onClick={openMirror}>
+            <span aria-hidden>🖼️</span><span className="pill-label">{M[lang].title}</span>
+          </button>
+          <div className="pop-wrap">
+            <button className={`round-btn${menuOpen ? ' is-open' : ''}`} aria-expanded={menuOpen} aria-haspopup="true"
+              aria-label={X[lang].layers} title={X[lang].layers} onClick={() => setMenu(menuOpen ? null : 'layers')}>
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3l7 3.5-7 3.5-7-3.5L10 3zM3 10l7 3.5 7-3.5M3 13.5L10 17l7-3.5" /></svg>
-              <span>{X[lang].layers}</span>
             </button>
             {menuOpen && (
-              <div className="layers-menu" role="menu">
+              <div className="pop-menu layers-menu" role="menu">
                 <p className="eyebrow">{t.mapStyle}</p>
                 <nav className="basemap" aria-label={t.mapStyle}>
                   {(['satellite', 'map'] as Basemap[]).map((b) => (
@@ -229,7 +231,7 @@ export default function App() {
                   {X[lang].embankments}
                 </button>
                 <button className={`tool-btn tool-report${reportMode ? ' is-active' : ''}`} aria-pressed={reportMode}
-                  onClick={() => { setReportMode(!reportMode); setDraft(null); setMenuOpen(false) }}>
+                  onClick={() => { setReportMode(!reportMode); setDraft(null); setMenu(null) }}>
                   {X[lang].reportLeak}
                 </button>
                 <p className="eyebrow">{t.textSize}</p>
@@ -242,13 +244,23 @@ export default function App() {
               </div>
             )}
           </div>
-          <nav className="langs" aria-label="Language">
-            {(Object.keys(meta.languages) as Lang[]).map((l) => (
-              <button key={l} className={l === lang ? 'is-active' : ''} aria-pressed={l === lang} onClick={() => setLang(l)}>
-                {meta.languages[l]}
-              </button>
-            ))}
-          </nav>
+          <div className="pop-wrap">
+            <button className={`pill pill-lang${menu === 'lang' ? ' is-open' : ''}`} aria-expanded={menu === 'lang'} aria-haspopup="listbox"
+              onClick={() => setMenu(menu === 'lang' ? null : 'lang')}>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" /><path d="M3 10h14M10 3c2.4 2.2 2.4 11.8 0 14M10 3c-2.4 2.2-2.4 11.8 0 14" /></svg>
+              <span>{meta.languages[lang]}</span>
+            </button>
+            {menu === 'lang' && (
+              <ul className="pop-menu lang-menu" role="listbox" aria-label="Language">
+                {(Object.keys(meta.languages) as Lang[]).map((l) => (
+                  <li key={l}>
+                    <button role="option" aria-selected={l === lang} className={l === lang ? 'is-active' : ''}
+                      onClick={() => { setLang(l); setMenu(null) }}>{meta.languages[l]}</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </header>
 

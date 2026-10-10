@@ -20,27 +20,29 @@ export function SummaryPanel({ lang, discharge, stats, top, selectedId, onSelect
 
   return (
     <Panel id="summary" className="summary" collapseLabel={t.collapse} expandLabel={t.expand}
-      title={<p className="summary-lede" aria-live="polite">
-        {dry ? t.summaryDry(q) : t.summary(q, int(stats.villages), people(stats.people, lang))}
-      </p>}>
+      title={dry ? <p className="summary-lede" aria-live="polite">{t.summaryDry(q)}</p> : (
+        <div className="hero" aria-live="polite">
+          <strong className="hero-num num">{people(stats.people, lang)}</strong>
+          <p className="hero-sub">{t.summary(q, int(stats.villages), people(stats.people, lang))}</p>
+        </div>
+      )}>
 
       {!dry && (
-        <dl className="facts num">
+        <ul className="stat-rows num">
           {([
             { icon: '👵', n: people(stats.elderly, lang), label: t.elderly, share: stats.elderly / stats.people },
             { icon: '🧒', n: people(stats.children, lang), label: t.children, share: stats.children / stats.people },
             { icon: '🛣️', n: int(stats.road_km_cut), label: t.roads, share: null },
             { icon: '🏥', n: int(stats.shelters_flooded), label: t.shelters, share: null },
           ]).map((f) => (
-            <div key={f.label}>
-              <span className="fact-icon" aria-hidden>{f.icon}</span>
-              <dt>{f.n}</dt><dd>{f.label}</dd>
-              {f.share != null && (
-                <span className="fact-bar" title={`${Math.round(f.share * 100)}%`}><i style={{ width: `${Math.max(4, Math.min(100, f.share * 100 * 2.5))}%` }} /></span>
-              )}
-            </div>
+            <li key={f.label}>
+              <span className="stat-icon" aria-hidden>{f.icon}</span>
+              <span className="stat-label">{f.label}</span>
+              <strong className="stat-n">{f.n}</strong>
+              {f.share != null && <span className="stat-bar" title={`${Math.round(f.share * 100)}%`}><i style={{ width: `${Math.max(4, Math.min(100, f.share * 250))}%` }} /></span>}
+            </li>
           ))}
-        </dl>
+        </ul>
       )}
 
       <h2 className="eyebrow">{t.pathTitle}</h2>
