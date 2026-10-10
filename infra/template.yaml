@@ -82,6 +82,23 @@ Resources:
           KOSI_LAYER_BASE_URL: /layers
           KOSI_REPORTS_TABLE: !Ref ReportsTable
 
+  # Every 5 minutes: keeps the function warm and the live barrage reading fresh (see handler in kosi/api.py).
+  WarmRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: rate(5 minutes)
+      State: ENABLED
+      Targets:
+        - { Arn: !GetAtt ApiFunction.Arn, Id: warm }
+
+  WarmPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ApiFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt WarmRule.Arn
+
   HttpApi:
     Type: AWS::ApiGatewayV2::Api
     Properties:

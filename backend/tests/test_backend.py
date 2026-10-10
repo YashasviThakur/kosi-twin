@@ -211,3 +211,11 @@ def test_replay_is_built_from_the_recorded_readings(monkeypatch):
     import pytest
     with pytest.raises(FileNotFoundError):
         barrage.replay_data("wrd:2020-01-01")
+
+
+def test_lambda_warmup_event_does_not_need_an_http_request(monkeypatch):
+    from kosi import api, barrage
+    calls = []
+    monkeypatch.setattr(barrage, "live_counter", lambda: calls.append(1))
+    assert api.handler({"source": "aws.events", "detail-type": "Scheduled Event"}, None) == {"warmed": True}
+    assert calls == [1]

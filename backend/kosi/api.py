@@ -178,4 +178,16 @@ store.villages()
 store.shelters()
 store.roads()
 
-handler = Mangum(app)
+_asgi = Mangum(app)
+
+
+def handler(event, context):
+    """Lambda entry. A scheduled event (every 5 minutes, infra/template.yaml) only warms the function and refreshes the live
+    barrage reading, so a visitor after a quiet spell does not wait for a cold start and a fetch from the department."""
+    if isinstance(event, dict) and event.get("source") == "aws.events":
+        try:
+            barrage.live_counter()
+        except Exception:
+            pass                                    # the next real request retries
+        return {"warmed": True}
+    return _asgi(event, context)
