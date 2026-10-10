@@ -37,6 +37,8 @@ const radius = (k: number, extra: unknown = 0) => ['interpolate', ['linear'], ['
   8, ['+', ['*', k * 0.7, SIZE, CALM, PICKED], extra], 12, ['+', ['*', k * 1.5, SIZE, CALM, PICKED], extra]] as unknown as maplibregl.ExpressionSpecification
 const riskColor = (evac: string, watch: string, safe: string) =>
   ['match', ['feature-state', 'risk'], 'EVACUATE', evac, 'WATCH', watch, safe] as unknown as maplibregl.ExpressionSpecification
+const dotColor = (accent: string) => ['case', ['boolean', ['feature-state', 'selected'], false], accent,
+  riskColor('#D64533', '#E8A317', '#FFFFFF')] as unknown as maplibregl.ExpressionSpecification
 
 interface Props {
   tiles: [number, number, number, number][]   // flood overlay tiles: west, south, east, north
@@ -56,6 +58,7 @@ interface Props {
   } | null
   lang: Lang
   onSelect: (id: number) => void
+  accent: string                            // theme accent: the selected village's dot
   showEmbankments: boolean
   reports: Report[]
   reportMode: boolean                       // next map click places a report
@@ -79,7 +82,7 @@ function villagePoints(villages: Village[]): FeatureCollection {
 
 const villageName = (v: Village, lang: Lang) => (lang === 'en' ? v.name : (v.name_hi ?? v.name))
 
-export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId, focus, lang, onSelect,
+export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId, focus, lang, onSelect, accent,
   showEmbankments, reports, reportMode, draft, onPick }: Props) {
   const el = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -247,8 +250,7 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
       map.addLayer({ id: 'village-dot', type: 'circle', source: 'villages',
         paint: {
           'circle-radius': radius(0.62),
-          'circle-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#2DD4BF',
-            riskColor('#D64533', '#E8A317', '#FFFFFF')],
+          'circle-color': dotColor(accent),
           'circle-stroke-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#FFFFFF',
             riskColor('#FFFFFF', '#FFFFFF', '#2F6B80')],
           'circle-stroke-width': ['case', ['boolean', ['feature-state', 'selected'], false], 3, ['match', ['feature-state', 'risk'], 'EVACUATE', 2, 'WATCH', 2, 1.2]],
@@ -443,6 +445,12 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
     for (const p of pts) b.extend(p)
     map.fitBounds(b, { padding: framePadding(), maxZoom: 13, duration: 900 })
   }, [ready, focus, selectedId, lang])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    map.setPaintProperty('village-dot', 'circle-color', dotColor(accent))
+  }, [ready, accent])
 
   useEffect(() => {
     const map = mapRef.current

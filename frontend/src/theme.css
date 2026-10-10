@@ -1,0 +1,29 @@
+/* Colour themes. Every dark panel, accent and logo colour in App.css reads these variables, so the theme can be
+   switched at runtime (<html data-theme="…">). Risk colours (red, amber, green) and the flood blues are NOT themed. */
+:root, :root[data-theme="ocean"] {          /* default: deep ocean + coral */
+  --p0: #0c2a36;  --p1: #143b4a;  --pd: #081d26;
+  --p0-rgb: 12 42 54;  --p1-rgb: 20 59 74;  --pd-rgb: 5 20 28;
+  --txt: #e4f4f6;  --txt-rgb: 228 244 246;
+  --acc: #ff7a66;  --acc2: #ff6a55;  --accl: #ffb4a8;
+  --acc-rgb: 255 122 102;  --acc2-rgb: 255 106 85;
+  --on-acc: #3a0c04;  --on-acc-rgb: 58 12 4;
+  --twin: #7fe0ee;
+}
+:root[data-theme="forest"] {
+  --p0: #10261f;  --p1: #1a382e;  --pd: #0a1a15;
+  --p0-rgb: 16 38 31;  --p1-rgb: 26 56 46;  --pd-rgb: 6 16 12;
+  --txt: #f2e9d8;  --txt-rgb: 242 233 216;
+  --acc: #b7e36b;  --acc2: #9fd44f;  --accl: #d9f2a8;
+  --acc-rgb: 183 227 107;  --acc2-rgb: 159 212 79;
+  --on-acc: #1d2a05;  --on-acc-rgb: 29 42 5;
+  --twin: #e6d5a8;
+}
+:root[data-theme="indigo"] {
+  --p0: #141a33;  --p1: #232b55;  --pd: #101528;
+  --p0-rgb: 20 26 51;  --p1-rgb: 30 37 71;  --pd-rgb: 8 11 26;
+  --txt: #e8eaf6;  --txt-rgb: 232 234 246;
+  --acc: #5eead4;  --acc2: #2dd4bf;  --accl: #a7f3e6;
+  --acc-rgb: 94 234 212;  --acc2-rgb: 45 212 191;
+  --on-acc: #052e2a;  --on-acc-rgb: 5 46 42;
+  --twin: #b8b5ff;
+}

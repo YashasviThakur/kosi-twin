@@ -42,6 +42,7 @@ type Strings = {
   reportLeak: string
   layers: string
   all: string
+  theme: string
   reached: string
   reportPick: string
   reportKinds: Record<'seepage' | 'crack' | 'breach', string>
@@ -91,6 +92,7 @@ export const X: Record<Lang, Strings> = {
     reportLeak: 'Report a leak',
     layers: 'Map & text',
     all: 'All',
+    theme: 'Colour',
     reached: 'villages reached',
     reportPick: 'Tap the map where the embankment is leaking',
     reportKinds: { seepage: 'Seepage', crack: 'Crack', breach: 'Breach' },
@@ -138,6 +140,7 @@ export const X: Record<Lang, Strings> = {
     reportLeak: 'रिसाव की सूचना दें',
     layers: 'नक्शा और अक्षर',
     all: 'सभी',
+    theme: 'रंग',
     reached: 'गाँव में पानी पहुँचा',
     reportPick: 'नक्शे पर वह जगह छुएँ जहाँ तटबंध रिस रहा है',
     reportKinds: { seepage: 'रिसाव', crack: 'दरार', breach: 'टूटन' },
@@ -185,6 +188,7 @@ export const X: Record<Lang, Strings> = {
     reportLeak: 'रिसाव के सूचना दीं',
     layers: 'नक्सा आ अक्षर',
     all: 'सब',
+    theme: 'रंग',
     reached: 'गाँव में पानी पहुँचल',
     reportPick: 'नक्शा पर ऊ जगह छूईं जहाँ तटबंध रिस रहल बा',
     reportKinds: { seepage: 'रिसाव', crack: 'दरार', breach: 'टूटन' },
@@ -232,6 +236,7 @@ export const X: Record<Lang, Strings> = {
     reportLeak: 'रिसावक सूचना दिअ',
     layers: 'नक्शा आ अक्षर',
     all: 'सभ',
+    theme: 'रंग',
     reached: 'गाम मे पानि पहुँचल',
     reportPick: 'नक्शा पर ओ ठाम छुबू जतय तटबंध रिस रहल अछि',
     reportKinds: { seepage: 'रिसाव', crack: 'दरार', breach: 'टूटन' },

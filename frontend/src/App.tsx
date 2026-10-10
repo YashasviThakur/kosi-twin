@@ -23,6 +23,7 @@ import { Logo } from './components/Logo'
 import { M } from './i18n-mirror'
 import type { Category } from './i18n-extra'
 import { T } from './i18n'
+import './theme.css'
 import './App.css'
 
 const LEVELS: Record<Lang, [string, string, string, string]> = {
@@ -33,6 +34,22 @@ const LEVELS: Record<Lang, [string, string, string, string]> = {
 }
 const levelOf = (q: number) => (q < 1.5 ? 0 : q < 4 ? 1 : q < 6 ? 2 : 3)
 
+// Colour themes (variables live in theme.css); `accent` is the hex used by the map's selected village dot.
+const THEMES = [
+  { id: 'ocean', name: 'Ocean', swatch: ['#0c2a36', '#ff7a66'], accent: '#ff7a66' },
+  { id: 'forest', name: 'Forest', swatch: ['#10261f', '#b7e36b'], accent: '#9fd44f' },
+  { id: 'indigo', name: 'Midnight', swatch: ['#141a33', '#5eead4'], accent: '#2dd4bf' },
+] as const
+type ThemeId = (typeof THEMES)[number]['id']
+function loadTheme(): ThemeId {
+  try {
+    const v = localStorage.getItem('kosi.theme')
+    return THEMES.some((t) => t.id === v) ? (v as ThemeId) : 'ocean'
+  } catch {
+    return 'ocean'
+  }
+}
+document.documentElement.dataset.theme = loadTheme()      // before the first paint, so the loading screen is themed too
 const SHEETS = ['peek', 'half', 'full'] as const
 // First-visit tour: what each step points at, in order.
 const TOUR_TARGETS = ['.gauge-panel .gauge', '.gauge-panel .btn-primary', '.vlist', '.tl-card', '.round-accent']
@@ -71,6 +88,7 @@ export default function App() {
   const [draft, setDraft] = useState<{ lon: number; lat: number } | null>(null)
   const [mirror, setMirror] = useState<MirrorTarget | null>(null)
   const [menu, setMenu] = useState<'layers' | 'lang' | null>(null)
+  const [theme, setTheme] = useState<ThemeId>(loadTheme)
   const [info, setInfo] = useState(false)
   const [tour, setTour] = useState(false)
   const [sheet, setSheet] = useState<(typeof SHEETS)[number]>('half')   // phone bottom-sheet height
@@ -89,6 +107,10 @@ export default function App() {
   const [playing, setPlaying] = useState(false)
   const t = T[lang]
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    try { localStorage.setItem('kosi.theme', theme) } catch { /* the choice just isn't remembered */ }
+  }, [theme])
   useEffect(() => { api.reports().then(setReports).catch(() => {}) }, [])
   useEffect(() => { sbScroll.current?.scrollTo({ top: 0 }) }, [selectedId])       // each view starts at its top
   useEffect(() => {                                   // the layers menu closes on an outside tap or Escape
@@ -225,6 +247,7 @@ export default function App() {
     <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang}>
       <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} eta={eta} layer={layerPrefix(extentRise)}
         basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId}
+        accent={THEMES.find((t) => t.id === theme)!.accent}
         showEmbankments={showEmbankments} reports={reports} reportMode={reportMode} draft={draft}
         onPick={(lon, lat) => setDraft({ lon, lat })}
         focus={shownCard ? {
@@ -334,6 +357,16 @@ export default function App() {
                   onClick={() => { setReportMode(!reportMode); setDraft(null); setMenu(null) }}>
                   {X[lang].reportLeak}
                 </button>
+                <p className="eyebrow">{X[lang].theme}</p>
+                <div className="theme-pick" role="group" aria-label={X[lang].theme}>
+                  {THEMES.map((th) => (
+                    <button key={th.id} className={th.id === theme ? 'is-active' : ''} aria-pressed={th.id === theme}
+                      title={th.name} onClick={() => setTheme(th.id)}>
+                      <i style={{ background: `linear-gradient(135deg, ${th.swatch[0]} 50%, ${th.swatch[1]} 50%)` }} />
+                      <span>{th.name}</span>
+                    </button>
+                  ))}
+                </div>
                 <p className="eyebrow">{t.textSize}</p>
                 <nav className="text-size" aria-label={t.textSize}>
                   {TEXT_SIZES.map((s) => (

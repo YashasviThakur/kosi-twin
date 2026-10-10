@@ -48,8 +48,8 @@ export function ReplayBar({ lang, replay, frame, playing, onToggle, onSeek, onEx
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <linearGradient id="rp-fill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor="#5EEAD4" stopOpacity=".55" />
-              <stop offset="1" stopColor="#5EEAD4" stopOpacity="0" />
+              <stop offset="0" style={{ stopColor: 'var(--acc)' }} stopOpacity=".55" />
+              <stop offset="1" style={{ stopColor: 'var(--acc)' }} stopOpacity="0" />
             </linearGradient>
           </defs>
           <path d={`${line} V${H} H0 Z`} fill="url(#rp-fill)" />
