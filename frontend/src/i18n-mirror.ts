@@ -41,6 +41,11 @@ type Strings = {
   dry: string
   whatIf: string
   useForecast: string
+  oneTap: string
+  oneTapHint: string
+  oneTapLow: string
+  oneTapNote: string
+  backToRef: string
 }
 
 export const M: Record<Lang, Strings> = {
@@ -82,6 +87,11 @@ export const M: Record<Lang, Strings> = {
     dry: 'No water reaches the streets of this village at this time, so there is nothing to show.',
     whatIf: 'Try a what-if depth instead',
     useForecast: 'Use the forecast for this village',
+    oneTap: 'No door or person? Tap just the ground instead',
+    oneTapHint: 'Tap where a wall or wheel meets the ground. Hold the phone level, at about chest height.',
+    oneTapLow: 'Tap lower, on the ground below the dashed line.',
+    oneTapNote: 'Approximate: assumes the phone was held level at about 1.5 m.',
+    backToRef: 'Mark a door or person instead',
   },
   hi: {
     open: 'अपनी गली में देखें',
@@ -121,6 +131,11 @@ export const M: Record<Lang, Strings> = {
     dry: 'इस समय इस गाँव की गलियों में पानी नहीं पहुँचता, इसलिए दिखाने को कुछ नहीं है।',
     whatIf: 'कोई और गहराई आज़माएँ',
     useForecast: 'इस गाँव का अनुमान इस्तेमाल करें',
+    oneTap: 'दरवाज़ा या इंसान नहीं है? बस ज़मीन छुएँ',
+    oneTapHint: 'जहाँ दीवार या पहिया ज़मीन से मिलता है वहाँ छुएँ। फ़ोन सीधा, लगभग छाती की ऊँचाई पर रखें।',
+    oneTapLow: 'और नीचे, बिंदीदार रेखा के नीचे की ज़मीन पर छुएँ।',
+    oneTapNote: 'अनुमानित: मानकर चला गया है कि फ़ोन सीधा, लगभग 1.5 मी की ऊँचाई पर था।',
+    backToRef: 'दरवाज़ा या इंसान चिह्नित करें',
   },
   bho: {
     open: 'आपन गली में देखीं',
@@ -160,6 +175,11 @@ export const M: Record<Lang, Strings> = {
     dry: 'एह समय एह गाँव के गली में पानी ना पहुँचेला, एहसे देखावे के कुछ नइखे।',
     whatIf: 'कवनो दोसर गहराई आजमाईं',
     useForecast: 'एह गाँव के अंदाजा इस्तेमाल करीं',
+    oneTap: 'दरवाजा भा आदमी नइखे? खाली जमीन छूईं',
+    oneTapHint: 'जहाँ देवाल भा पहिया जमीन से मिलेला उहाँ छूईं। फोन सीधा, लगभग छाती के ऊँचाई पर राखीं।',
+    oneTapLow: 'आउर नीचे, बिंदी वाला रेखा के नीचे जमीन पर छूईं।',
+    oneTapNote: 'अंदाजा: मानल गइल बा कि फोन सीधा, लगभग 1.5 मी के ऊँचाई पर रहे।',
+    backToRef: 'दरवाजा भा आदमी चिन्हित करीं',
   },
   mai: {
     open: 'अपन गली मे देखू',
@@ -199,5 +219,10 @@ export const M: Record<Lang, Strings> = {
     dry: 'एहि समय एहि गामक गली मे पानि नहि पहुँचैत अछि, तेँ देखाबक लेल किछु नहि अछि।',
     whatIf: 'कोनो आन गहराइ आजमाउ',
     useForecast: 'एहि गामक अनुमान उपयोग करू',
+    oneTap: 'केबाड़ वा लोक नहि अछि? मात्र जमीन छुबू',
+    oneTapHint: 'जतय देबाल वा पहिया जमीन सँ मिलैत अछि ततय छुबू। फोन सीधा, लगभग छातीक ऊँचाई पर राखू।',
+    oneTapLow: 'आओर नीचाँ, बिन्दीदार रेखाक नीचाँक जमीन पर छुबू।',
+    oneTapNote: 'अनुमानित: मानल गेल अछि जे फोन सीधा, लगभग 1.5 मीक ऊँचाई पर छल।',
+    backToRef: 'केबाड़ वा लोक चिह्नित करू',
   },
 }

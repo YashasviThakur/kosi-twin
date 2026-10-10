@@ -581,3 +581,6 @@
 .mm-time { display: flex; align-items: center; gap: 14px; margin: 8px 0 4px; }
 .mm-time input[type=range] { flex: 1; accent-color: var(--flood-4); height: 28px; }
 .mm-readout { margin: 0 0 6px; font-size: calc(16px * var(--fs)); }
+
+/* Flood Mirror: assumed eye level for the one-tap method */
+.mm-horizon { position: absolute; left: 0; right: 0; border-top: 2px dashed rgba(255,255,255,.85); filter: drop-shadow(0 0 2px rgba(0,0,0,.6)); pointer-events: none; }

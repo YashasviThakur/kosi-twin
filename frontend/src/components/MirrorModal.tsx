@@ -28,6 +28,14 @@ type Stage = 'photo' | 'scale' | 'working' | 'result'
 type Detect = { status: 'idle' | 'loading' | 'error' } | { status: 'done'; found: MirrorDetect | null }
 interface Result { url: string; blob: Blob; engine: string }
 
+// One-tap scale: a level phone held about 1.5 m high puts the horizon mid-picture, and a ground point
+// that far below it sits 1.5 m / (its distance below the horizon) metres per picture-height away.
+const HORIZON = 0.5
+const CAMERA_M = 1.5
+const groundScale = (ground: number) => ({
+  ground, top: ground - (2.1 * (ground - HORIZON)) / CAMERA_M, refHeight: 2.1,   // a virtual 2.1 m door at that spot
+})
+
 const PRESETS = [0.5, 1.0, 1.4, 2.0] as const
 const PRESET_KEYS = ['knee', 'waist', 'chest', 'head'] as const
 
@@ -38,6 +46,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
   const [detect, setDetect] = useState<Detect>({ status: 'idle' })
   const [taps, setTaps] = useState<{ x: number; y: number }[]>([])      // 0–1 of the displayed photo
   const [refHeight, setRefHeight] = useState(2.1)
+  const [oneTap, setOneTap] = useState(false)       // no door or person: scale from where the ground is tapped
   // With a village forecast the picture shows the depth forecast at that village for the chosen time;
   // choosing a depth by hand ("what-if") is opt-in, and the default when there is no forecast to use.
   const forecast = target.displayName && target.timeline?.length ? target.timeline : null
@@ -92,7 +101,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
   }
 
   const detected = detect.status === 'done' ? detect.found : null
-  const marked = taps.length === 2
+  const marked = oneTap ? taps.length === 1 && taps[0].y > HORIZON + 0.05 : taps.length === 2
   const canShow = !!photo && depth > 0 && (marked || !!detected)
 
   const show = async () => {
@@ -100,7 +109,9 @@ export function MirrorModal({ lang, target, onClose }: Props) {
     setStage('working')
     setFailed(false)
     try {
-      const mark = marked
+      const mark = marked && oneTap
+        ? groundScale(taps[0].y)
+        : marked
         ? { ground: Math.max(taps[0].y, taps[1].y), top: Math.min(taps[0].y, taps[1].y), refHeight }
         : { ground: detected!.reference_frac.ground, top: detected!.reference_frac.top, refHeight: detected!.reference.ref_height_m }
       const out = await api.mirror(photo.blob, {
@@ -140,7 +151,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
   const tap = (e: React.PointerEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
     const p = { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }
-    setTaps((t) => (t.length >= 2 ? [p] : [...t, p]))
+    setTaps((t) => (oneTap || t.length >= 2 ? [p] : [...t, p]))
   }
 
   const refText: Record<'door' | 'person', string> = { door: m.refDoor, person: m.refPerson }
@@ -187,7 +198,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
           <div className="mm-body">
             <div className="mm-photo" style={fit(photo.width, photo.height, 40)}>
               <img src={photo.url} alt="" />
-              {detected && !marked && (
+              {detected && !marked && !oneTap && (
                 <span className="mm-box" style={{
                   left: `${(detected.reference.box[0] / detectSize(detected).w) * 100}%`,
                   top: `${(detected.reference.box[1] / detectSize(detected).h) * 100}%`,
@@ -195,7 +206,8 @@ export function MirrorModal({ lang, target, onClose }: Props) {
                   height: `${((detected.reference.box[3] - detected.reference.box[1]) / detectSize(detected).h) * 100}%`,
                 }} />
               )}
-              {taps.length === 2 && (
+              {oneTap && <span className="mm-horizon" style={{ top: `${HORIZON * 100}%` }} aria-hidden />}
+              {taps.length === 2 && !oneTap && (
                 <svg className="mm-mark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
                   <line x1={taps[0].x * 100} y1={taps[0].y * 100} x2={taps[1].x * 100} y2={taps[1].y * 100} />
                 </svg>
@@ -211,15 +223,22 @@ export function MirrorModal({ lang, target, onClose }: Props) {
             </div>
 
             <p className={`mm-status${detected && !marked ? ' is-good' : ''}`} role="status">
-              {marked ? m.marked
+              {oneTap ? (marked ? m.marked : taps.length === 1 ? m.oneTapLow : m.oneTapHint)
+                : marked ? m.marked
                 : detect.status === 'loading' ? m.detecting
                 : detected ? m.found(m.refKinds[detected.reference.kind as RefKind] ?? detected.reference.kind)
                 : m.none}
-              {!marked && !detected && detect.status !== 'loading' && <> {m.tapHint}</>}
-              {!marked && detected && <span className="mm-sub"> {m.tapHint}</span>}
+              {!oneTap && !marked && !detected && detect.status !== 'loading' && <> {m.tapHint}</>}
+              {!oneTap && !marked && detected && <span className="mm-sub"> {m.tapHint}</span>}
             </p>
+            {oneTap && marked && <p className="vc-note">{m.oneTapNote}</p>}
+            {detect.status !== 'loading' && !detected && (
+              <button className="btn btn-quiet" onClick={() => { setTaps([]); setOneTap((o) => !o) }}>
+                {oneTap ? m.backToRef : m.oneTap}
+              </button>
+            )}
 
-            {marked && (
+            {marked && !oneTap && (
               <div className="mm-ref" role="group" aria-label={m.refIs}>
                 <span>{m.refIs}</span>
                 {([2.1, 1.6] as const).map((h) => (
