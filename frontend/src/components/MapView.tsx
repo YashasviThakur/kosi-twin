@@ -10,6 +10,9 @@ import { X } from '../i18n-extra'
 import { iconSvg } from '../icons'
 import type { IconName } from '../icons'
 
+// In production the worker file is served from our own domain (vite.config.ts copies it there).
+if (import.meta.env.PROD) maplibregl.setWorkerUrl(`${window.location.origin}/maplibre/maplibre-gl-worker.mjs`)
+
 export type Basemap = 'map' | 'satellite'
 
 const FLOOD_V = 'v3'   // bump when the flood overlay images are re-rendered (same file names)
