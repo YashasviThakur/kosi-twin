@@ -164,6 +164,12 @@ export function MirrorModal({ lang, target, onClose }: Props) {
             <h2>{m.title}</h2>
             <p>{target.displayName && <>{target.displayName} · </>}{m.intro}</p>
           </div>
+          <ol className="mm-steps" aria-hidden>
+            {['📷', '📏', '🌊'].map((icon, i) => {
+              const at = stage === 'photo' ? 0 : stage === 'result' ? 2 : 1
+              return <li key={icon} className={i < at ? 'is-done' : i === at ? 'is-now' : ''}><span>{icon}</span></li>
+            })}
+          </ol>
           <button ref={closeBtn} className="vc-close mm-close" onClick={onClose} aria-label={m.close} title={m.close}>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>
           </button>
@@ -195,8 +201,9 @@ export function MirrorModal({ lang, target, onClose }: Props) {
         )}
 
         {(stage === 'scale' || stage === 'working') && photo && (
-          <div className="mm-body">
-            <div className="mm-photo" style={fit(photo.width, photo.height, 40)}>
+          <div className="mm-body mm-split">
+            <div className="mm-main">
+            <div className="mm-photo" style={fit(photo.width, photo.height, 62)}>
               <img src={photo.url} alt="" />
               {detected && !marked && !oneTap && (
                 <span className="mm-box" style={{
@@ -231,6 +238,8 @@ export function MirrorModal({ lang, target, onClose }: Props) {
               {!oneTap && !marked && !detected && detect.status !== 'loading' && <> {m.tapHint}</>}
               {!oneTap && !marked && detected && <span className="mm-sub"> {m.tapHint}</span>}
             </p>
+            </div>
+            <div className="mm-side">
             {oneTap && marked && <p className="vc-note">{m.oneTapNote}</p>}
             {detect.status !== 'loading' && !detected && (
               <button className="btn btn-quiet" onClick={() => { setTaps([]); setOneTap((o) => !o) }}>
@@ -257,10 +266,11 @@ export function MirrorModal({ lang, target, onClose }: Props) {
                     onChange={(e) => setTimeIdx(Number(e.target.value))} />
                   <button className="btn btn-quiet" onClick={() => setTimeIdx(peakIdx)}>{m.peak}</button>
                 </div>
-                <p className="mm-readout num">
-                  <strong>{dayTime(forecast[timeIdx].time, lang)}</strong>
-                  {' · '}{depth > 0 ? `${depth.toFixed(1)} m · ${depthSentence(depth, lang)}` : m.dry}
-                </p>
+                <div className="mm-bigcard num">
+                  <small>{dayTime(forecast[timeIdx].time, lang)}</small>
+                  <strong className="mm-big">{depth > 0 ? `${depth.toFixed(1)} m` : '—'}</strong>
+                  <span>{depth > 0 ? depthSentence(depth, lang) : m.dry}</span>
+                </div>
                 <button className="btn btn-quiet" onClick={() => { setPresetDepth(depth > 0 ? depth : 1.0); setWhatIf(true) }}>{m.whatIf}</button>
               </div>
             ) : (
@@ -274,7 +284,11 @@ export function MirrorModal({ lang, target, onClose }: Props) {
                     </button>
                   ))}
                 </div>
-                <p className="vc-note">{m.depthPick} · {depthSentence(depth, lang)}</p>
+                <div className="mm-bigcard num">
+                  <strong className="mm-big">{depth.toFixed(1)} m</strong>
+                  <span>{depthSentence(depth, lang)}</span>
+                </div>
+                <p className="vc-note">{m.depthPick}</p>
                 {forecast && <button className="btn btn-quiet" onClick={() => setWhatIf(false)}>{m.useForecast}</button>}
               </div>
             )}
@@ -284,21 +298,27 @@ export function MirrorModal({ lang, target, onClose }: Props) {
               <button className="btn btn-primary" disabled={!canShow || stage === 'working'} onClick={() => void show()}>{m.show}</button>
               <button className="btn btn-quiet" onClick={() => { setStage('photo'); setPhoto(null); setTaps([]) }}>{m.another}</button>
             </div>
+            </div>
           </div>
         )}
 
         {stage === 'result' && result && photo && (
-          <div className="mm-body">
-            <BeforeAfter before={photo.url} after={result.url} labels={[m.before, m.after]} hint={m.compare} width={photo.width} height={photo.height} />
-            <p className="mm-caption num">
-              {target.displayName && <><strong>{target.displayName}</strong> · </>}{depth.toFixed(1)} m · {depthSentence(depth, lang)}
-              {when && <> · {when}</>}
-            </p>
-            <p className="vc-note">{m.simulation}{result.engine === 'fallback' && <> {m.basic}</>}</p>
-            <div className="mm-actions">
-              <button className="btn btn-primary" onClick={() => void share()}>{m.share}</button>
-              <button className="btn btn-quiet" onClick={save}>{m.save}</button>
-              <button className="btn btn-quiet" onClick={() => { setStage('photo'); setPhoto(null); setResult(null); setTaps([]) }}>{m.another}</button>
+          <div className="mm-body mm-split">
+            <div className="mm-main">
+              <BeforeAfter before={photo.url} after={result.url} labels={[m.before, m.after]} hint={m.compare} width={photo.width} height={photo.height} />
+            </div>
+            <div className="mm-side">
+              <div className="mm-bigcard num">
+                <small>{target.displayName}{target.displayName && when ? ' · ' : ''}{when}</small>
+                <strong className="mm-big">{depth.toFixed(1)} m</strong>
+                <span>{depthSentence(depth, lang)}</span>
+              </div>
+              <p className="vc-note">{m.simulation}{result.engine === 'fallback' && <> {m.basic}</>}</p>
+              <div className="mm-actions">
+                <button className="btn btn-primary" onClick={() => void share()}>{m.share}</button>
+                <button className="btn btn-quiet" onClick={save}>{m.save}</button>
+                <button className="btn btn-quiet" onClick={() => { setStage('photo'); setPhoto(null); setResult(null); setTaps([]) }}>{m.another}</button>
+              </div>
             </div>
           </div>
         )}
@@ -320,7 +340,7 @@ function BeforeAfter({ before, after, labels, hint, width, height }: {
 }) {
   const [pos, setPos] = useState(50)
   return (
-    <div className="ba" style={fit(width, height, 50)}>
+    <div className="ba" style={fit(width, height, 64)}>
       <img src={after} alt="" />
       <img className="ba-before" src={before} alt="" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }} />
       <span className="ba-handle" style={{ left: `${pos}%` }} aria-hidden><i /></span>
