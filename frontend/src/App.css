@@ -1557,3 +1557,9 @@
   .im-body { padding: 16px; }
   .tour-card { padding: 14px 14px 10px; }
 }
+
+/* Dark scrollbars inside the dark windows. */
+.im-body, .mm-body, .search-list, .info-modal, .mirror { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 28%) transparent; }
+.im-body::-webkit-scrollbar, .mm-body::-webkit-scrollbar, .search-list::-webkit-scrollbar { width: 8px; }
+.im-body::-webkit-scrollbar-thumb, .mm-body::-webkit-scrollbar-thumb, .search-list::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 28%); border-radius: 4px; }
+.im-body::-webkit-scrollbar-track, .mm-body::-webkit-scrollbar-track, .search-list::-webkit-scrollbar-track { background: transparent; }

@@ -1,4 +1,4 @@
-// "How this works": the model in plain words, how sure we are (honestly), and the AWS architecture, with the
+// "How this works": the model in plain words, the limits (honestly), and the AWS architecture, with the
 // live status of the AWS features. Written in English only for now: it needs native review before translating.
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../api'
@@ -12,19 +12,19 @@ interface Props {
 type Status = { aws: boolean; region: string; bucket: boolean; text_models: string[]; image_model: string } | null | 'error'
 
 const STEPS = [
-  ['River flow to river level', 'The gauge sets the flow released at the Birpur barrage. A rating curve turns flow into a rise in the river level.'],
-  ['River level to flooded land', 'A HAND model (height above the nearest drainage) on a 30 m Copernicus terrain model says which land the water reaches, and how deep, at each level.'],
-  ['When the water arrives', 'The flood wave travels down the river at about 5 km/h and spreads over land at about 1 km/h. That gives each village an arrival time and a leave-by time.'],
-  ['Where to go', 'Routes follow OpenStreetMap roads on foot, avoid roads that flood, and end at the nearest dry school, hospital or raised road.'],
+  ['Start with the river', 'You set how much water the Birpur barrage lets through. We turn that flow into how high the river rises.'],
+  ['See where the water goes', 'Using a 30 m map of how high the land is, we work out which ground sits low enough to flood, and how deep the water gets there.'],
+  ['Work out the timing', 'Flood water moves down the river at about walking pace (5 km/h) and creeps over fields at about 1 km/h. That gives every village a "water arrives" time and a "leave by" time.'],
+  ['Find a safe way out', 'We trace walking routes along real roads, steer clear of roads that go under water, and point to the nearest dry school, hospital or raised road.'],
 ]
 
 const LIMITS = [
-  ['River level from flow', 'A simple rating curve, an uncalibrated estimate. Only the 2024 peak (6.61 lakh cusecs) is a reported figure.'],
-  ['Flood extent', 'Shows where water can run on the terrain. It does not model embankment breaches, drains, or water that ponds locally.'],
-  ['Arrival times', 'A rule of thumb for wave speed, not a measured travel time.'],
-  ['People and places', 'Population, villages, roads and shelters come from open data. Coverage is partial and some places are missing.'],
-  ['Embankments', 'Only the mapped part is shown. The ranking says who is exposed behind a stretch, not where a breach will happen.'],
-  ['Flood Mirror', 'A simulation, not a real photo. Water is drawn from the forecast depth, and the scale comes from a door, a person, or an approximate one-tap guess.'],
+  ['River height', 'We use a simple rule to turn flow into river height. It is our best estimate, not a calibrated one. The only real number we have is the 2024 peak of 6.61 lakh cusecs.'],
+  ['Flooded area', 'It shows where water can flow across the land. It cannot predict embankment breaks, blocked drains, or puddles that stay behind.'],
+  ['Timing', 'Arrival times come from a rule of thumb for how fast a flood moves, not from measured travel times.'],
+  ['People and places', 'Villages, roads and shelters come from open data, so a few places are missing.'],
+  ['Embankments', 'We only show the stretches that are mapped. The colours show how many people live behind them, not where a break will happen.'],
+  ['Flood Mirror', 'It is a simulation, not a real photo. The depth comes from the forecast, and the scale comes from a door, a person, or a rough guess from one tap.'],
 ]
 
 export function InfoModal({ onClose, onTour }: Props) {
@@ -48,7 +48,7 @@ export function InfoModal({ onClose, onTour }: Props) {
           <Logo className="im-logo" />
           <div>
             <h2>How Kosi Twin works</h2>
-            <p>A planning tool for the Kosi floodplain in Bihar. It is an estimate, not an official warning.</p>
+            <p>A flood-planning tool for the Kosi river in Bihar. It shows who gets water, when, and how deep, so families can decide when to leave. It is a planning aid, not an official warning.</p>
           </div>
           <button ref={closeBtn} className="vc-close im-close" onClick={onClose} aria-label="Close" title="Close">
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>
@@ -57,7 +57,7 @@ export function InfoModal({ onClose, onTour }: Props) {
 
         <div className="im-body">
           <section>
-            <h3 className="eyebrow">From river to village</h3>
+            <h3 className="eyebrow">From river to village, in four steps</h3>
             <ol className="im-steps">
               {STEPS.map(([t, d], i) => (
                 <li key={t}><span className="im-n num">{i + 1}</span><div><strong>{t}</strong><p>{d}</p></div></li>
@@ -66,26 +66,26 @@ export function InfoModal({ onClose, onTour }: Props) {
           </section>
 
           <section>
-            <h3 className="eyebrow">How sure we are</h3>
+            <h3 className="eyebrow">What to keep in mind (we are upfront about the limits)</h3>
             <ul className="im-limits">
               {LIMITS.map(([t, d]) => <li key={t}><strong>{t}</strong><p>{d}</p></li>)}
             </ul>
-            <p className="im-warn">Use it to plan and to talk with your community. For warnings and orders, follow the district administration.</p>
+            <p className="im-warn">Use Kosi Twin to plan, and to talk things through with your family and village. When an official warning or order comes, follow the district administration.</p>
           </section>
 
           <section>
-            <h3 className="eyebrow">Built on AWS</h3>
+            <h3 className="eyebrow">Built on AWS: how the pieces fit together</h3>
             <Architecture />
             <p className={`im-status${live ? ' is-live' : ''}`} role="status">
               <i aria-hidden />
-              {status === null ? 'Checking AWS services…'
-                : status === 'error' ? 'Could not reach the API.'
-                : status.aws ? `AWS integration is on (${status.region}): Translate, Polly and Rekognition. Bedrock image painting is used when the account allows it; otherwise the app draws the water itself.`
-                : 'Running without AWS credentials: text, voice and photo detection use built-in fallbacks.'}
+              {status === null ? 'Checking the AWS services…'
+                : status === 'error' ? 'Could not reach the server just now.'
+                : status.aws ? `AWS is switched on (${status.region}): Translate for languages, Polly for voice, Rekognition for photos. Bedrock paints realistic water when the account allows it; otherwise the app draws the water itself.`
+                : 'Running without AWS keys, so languages, voice and photo detection use built-in backups.'}
             </p>
           </section>
 
-          <button className="btn im-tour" onClick={() => { onClose(); onTour() }}>Replay the guided tour</button>
+          <button className="btn im-tour" onClick={() => { onClose(); onTour() }}>Take the quick tour again</button>
         </div>
       </section>
     </div>
