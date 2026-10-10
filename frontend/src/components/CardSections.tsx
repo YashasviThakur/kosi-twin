@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react'
 import type { Lang, VillageCard } from '../api'
 import { duration, km } from '../format'
 import { CATEGORY_ICON, X } from '../i18n-extra'
+import { Icon } from '../icons'
+import type { IconName } from '../icons'
 import type { Category, Mode } from '../i18n-extra'
 
 const SPEED_KMH: Record<Mode, number> = { walk: 4, cycle: 12, motorbike: 25 }
-const MODE_ICON: Record<Mode, string> = { walk: '🚶', cycle: '🚲', motorbike: '🏍️' }
+const MODE_ICON: Record<Mode, IconName> = { walk: 'walk', cycle: 'bike', motorbike: 'motorbike' }
 const ORDER: Category[] = ['high_ground', 'school', 'hospital']
 
 const placeName = (p: { name: string; name_hi: string }, lang: Lang) =>
@@ -32,13 +34,13 @@ export function Destinations({ card, lang, active, onPick }: {
           return (
             <li key={c}>
               <button className={`dest${shown ? ' is-active' : ''}`} onClick={() => onPick(c)} aria-pressed={shown}>
-                <span className="dest-icon" aria-hidden>{CATEGORY_ICON[c]}</span>
+                <span className="dest-icon"><Icon name={CATEGORY_ICON[c]} /></span>
                 <span className="dest-main">
                   <span className="dest-cat">{x.category[c]}{c === recommended && <em>{x.recommended}</em>}</span>
                   <strong>{placeName(o.shelter, lang)}</strong>
                   <span className="dest-eta num">
                     {(Object.keys(SPEED_KMH) as Mode[]).map((m) => (
-                      <span key={m} title={x.mode[m]}>{MODE_ICON[m]} {duration(o.distance_km / SPEED_KMH[m], lang)}</span>
+                      <span key={m} title={x.mode[m]}><Icon name={MODE_ICON[m]} /> {duration(o.distance_km / SPEED_KMH[m], lang)}</span>
                     ))}
                   </span>
                 </span>

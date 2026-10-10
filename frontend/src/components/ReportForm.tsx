@@ -3,9 +3,11 @@ import { useState } from 'react'
 import { api } from '../api'
 import type { Lang, Report, ReportKind } from '../api'
 import { X } from '../i18n-extra'
+import { Icon } from '../icons'
+import type { IconName } from '../icons'
 
-const KINDS: { kind: ReportKind; icon: string }[] = [
-  { kind: 'seepage', icon: '💧' }, { kind: 'crack', icon: '⚠️' }, { kind: 'breach', icon: '🚨' },
+const KINDS: { kind: ReportKind; icon: IconName }[] = [
+  { kind: 'seepage', icon: 'drop' }, { kind: 'crack', icon: 'alert' }, { kind: 'breach', icon: 'siren' },
 ]
 
 interface Props {
@@ -52,7 +54,7 @@ export function ReportForm({ lang, draft, onClose, onSent }: Props) {
             {KINDS.map((k) => (
               <button key={k.kind} className={k.kind === kind ? 'is-active' : ''} aria-pressed={k.kind === kind}
                 onClick={() => setKind(k.kind)}>
-                <span aria-hidden>{k.icon}</span> {x.reportKinds[k.kind]}
+                <Icon name={k.icon} /> {x.reportKinds[k.kind]}
               </button>
             ))}
           </div>

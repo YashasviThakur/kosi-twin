@@ -2,6 +2,7 @@
 import type { Lang } from '../api'
 import { OBJECTS, depthSentence } from '../depth'
 import { X } from '../i18n-extra'
+import { Icon } from '../icons'
 
 const TOP = 3.2   // metres shown
 
@@ -17,7 +18,7 @@ export function DepthScale({ depth, lang }: { depth: number; lang: Lang }) {
         {OBJECTS.map((o) => (
           <div key={o.key} className={`ds-col${o.h <= depth ? ' is-under' : ''}`}>
             <div className="ds-bar" style={{ height: pct(o.h) }}>
-              <span className="ds-icon" aria-hidden>{o.icon}</span>
+              <span className="ds-icon"><Icon name={o.icon} /></span>
             </div>
           </div>
         ))}

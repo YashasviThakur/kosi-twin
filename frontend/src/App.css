@@ -1374,3 +1374,41 @@
   .replay { grid-template-columns: auto 1fr auto; }
   .rp-exit { top: 8px; right: -56px; width: 44px; height: 44px; }
 }
+
+/* =====================================================================================
+   v13 — one line-icon set instead of emoji (see icons.tsx). Each place gives the icon a size and a tint.
+   ===================================================================================== */
+.icon { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.14em; }
+
+.stat-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; font-size: 20px; background: rgb(244 196 106 / 14%); color: #F4C46A; }
+.stat-rows li { grid-template-columns: 36px 1fr auto; }
+.vc-depthline .fact-icon { display: grid; place-items: center; width: 46px; height: 46px; margin: 0; border-radius: 15px; font-size: 26px; background: rgb(142 201 240 / 16%); color: #8EC9F0; flex: none; }
+.dest-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; font-size: 23px; background: rgb(244 196 106 / 13%); color: #F4C46A; }
+.dest.is-active .dest-icon { background: rgb(74 222 128 / 16%); color: #8FD6A4; }
+.dest { grid-template-columns: 42px 1fr auto; }
+.dest-eta .icon { font-size: 15px; opacity: .85; margin-right: 1px; }
+.ds-icon { top: -28px; font-size: 21px; color: #F5EFE3; display: grid; line-height: 1; }
+.village-card .ds-icon, .sidebar .ds-icon { color: #F5EFE3; }
+.mm-drop-icon { font-size: 46px; color: #F4C46A; }
+.mm-steps li { color: #F5EFE3; font-size: 18px; }
+.mm-steps li.is-now { color: #2B1D07; }
+.round-accent { color: #2B1D07; }
+.round-accent .icon { width: 22px; height: 22px; }
+.mirror-open .icon { font-size: 20px; margin-right: 4px; }
+.rf-kinds .icon { font-size: 22px; display: block; margin: 0 auto 4px; }
+.rf-kinds button[class] .icon { color: var(--ink); }
+.dest-pin-icon { color: #16A34A; }
+.dest-pin.is-active .dest-pin-icon { color: #fff; }
+.dest-pin-icon i { display: grid; place-items: center; }
+.dest-pin-icon .icon { stroke-width: 2; }
+.eta-bubble .icon { margin-right: 3px; vertical-align: -2px; stroke-width: 2; }
+.village-pop .icon { vertical-align: -2px; opacity: .8; }
+
+.report-pin {
+  display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #fff; font-size: 20px;
+  border: 3px solid currentColor; box-shadow: 0 4px 12px rgb(0 0 0 / 40%); filter: none; cursor: help;
+}
+.report-pin.kind-seepage { color: #1D56B0; }
+.report-pin.kind-crack { color: #D9902B; }
+.report-pin.kind-breach { color: #D64533; }
+.report-pin.is-draft { width: 44px; height: 44px; color: #1F2B30; border-color: #F4C46A; background: #F4C46A; font-size: 26px; cursor: default; }

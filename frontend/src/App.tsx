@@ -14,6 +14,7 @@ import { SummaryPanel } from './components/SummaryPanel'
 import { VillageCard } from './components/VillageCard'
 import { duration } from './format'
 import { CATEGORY_ICON, X } from './i18n-extra'
+import { Icon } from './icons'
 import { M } from './i18n-mirror'
 import type { Category } from './i18n-extra'
 import { T } from './i18n'
@@ -201,7 +202,7 @@ export default function App() {
         onPick={(lon, lat) => setDraft({ lon, lat })}
         focus={shownCard ? {
           villageId: shownCard.id, key: routeCategory ?? 'best', route: shownRoute,
-          eta: shownRoute ? `🚶 ${duration(shownRoute.distance_km / 4, lang)}` : '',
+          eta: shownRoute ? duration(shownRoute.distance_km / 4, lang) : '',
           pins: (Object.entries(shownCard.options ?? {}) as [Category, NonNullable<Card['options']>[Category]][])
             .map(([cat, o]) => ({
               cat, icon: CATEGORY_ICON[cat], lon: o!.shelter.lon, lat: o!.shelter.lat,
@@ -278,7 +279,7 @@ export default function App() {
 
         <div className="map-controls" ref={menuRef}>
           <button className="round-btn round-accent" onClick={openMirror} aria-label={M[lang].title} title={M[lang].title}>
-            <span aria-hidden>🖼️</span>
+            <Icon name="image" />
           </button>
           <div className="pop-wrap">
             <button className={`round-btn${menuOpen ? ' is-open' : ''}`} aria-expanded={menuOpen} aria-haspopup="true"

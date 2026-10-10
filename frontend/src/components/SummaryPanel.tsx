@@ -5,6 +5,8 @@ import type { Affected, Lang, Scenario, StageStats, Village } from '../api'
 import { int, people } from '../format'
 import { T } from '../i18n'
 import { X } from '../i18n-extra'
+import { Icon } from '../icons'
+import type { IconName } from '../icons'
 import { Panel } from './Panel'
 
 interface Props {
@@ -49,13 +51,13 @@ export function SummaryPanel({ lang, discharge, stats, affected, villages, selec
         {!dry && (
           <ul className="stat-rows num">
             {([
-              { icon: '👵', n: people(stats.elderly, lang), label: t.elderly, share: stats.elderly / stats.people },
-              { icon: '🧒', n: people(stats.children, lang), label: t.children, share: stats.children / stats.people },
-              { icon: '🛣️', n: int(stats.road_km_cut), label: t.roads, share: null },
-              { icon: '🏥', n: int(stats.shelters_flooded), label: t.shelters, share: null },
+              { icon: 'elder' as IconName, n: people(stats.elderly, lang), label: t.elderly, share: stats.elderly / stats.people },
+              { icon: 'child' as IconName, n: people(stats.children, lang), label: t.children, share: stats.children / stats.people },
+              { icon: 'road' as IconName, n: int(stats.road_km_cut), label: t.roads, share: null },
+              { icon: 'hospital' as IconName, n: int(stats.shelters_flooded), label: t.shelters, share: null },
             ]).map((f) => (
               <li key={f.label}>
-                <span className="stat-icon" aria-hidden>{f.icon}</span>
+                <span className="stat-icon"><Icon name={f.icon} /></span>
                 <span className="stat-label">{f.label}</span>
                 <strong className="stat-n">{f.n}</strong>
                 {f.share != null && <span className="stat-bar" title={`${Math.round(f.share * 100)}%`}><i style={{ width: `${Math.max(4, Math.min(100, f.share * 250))}%` }} /></span>}

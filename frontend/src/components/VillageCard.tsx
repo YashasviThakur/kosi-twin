@@ -10,6 +10,7 @@ import type { Category } from '../i18n-extra'
 import { Destinations, SosBlock, WeatherBlock } from './CardSections'
 import { DepthChart } from './DepthChart'
 import { depthSentence } from '../depth'
+import { Icon } from '../icons'
 import { M } from '../i18n-mirror'
 import { DepthScale } from './DepthScale'
 
@@ -115,7 +116,7 @@ function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory, on
       )}
 
       <div className="vc-depthline num">
-        <span className="fact-icon" aria-hidden>🌊</span>
+        <span className="fact-icon"><Icon name="wave" /></span>
         <span className="vc-depthline-text">
           <small>{c.depth}</small>
           <strong>{card.edge_only ? c.outskirts : `${depth.toFixed(1)} m · ${card.max_depth_band?.[lang] ?? ''}`}</strong>
@@ -151,7 +152,7 @@ function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory, on
               <DepthChart timeline={card.timeline} leaveByH={card.leave_by_h ?? null} etaH={card.eta_h ?? null} nowLabel={c.now} />
             </figure>
           )}
-          <button className="btn mirror-open" onClick={onMirror}><span aria-hidden>🖼️</span> {M[lang].open}</button>
+          <button className="btn mirror-open" onClick={onMirror}><Icon name="image" /> {M[lang].open}</button>
           {!!card.facilities_at_risk?.length && (
             <details className="vc-facilities">
               <summary>{c.facilities(card.facilities_at_risk.length)}</summary>

@@ -7,6 +7,7 @@ import { depthSentence } from '../depth'
 import { dayTime } from '../format'
 import { preparePhoto } from '../image'
 import type { Photo } from '../image'
+import { Icon } from '../icons'
 import { M } from '../i18n-mirror'
 import type { RefKind } from '../i18n-mirror'
 
@@ -165,9 +166,9 @@ export function MirrorModal({ lang, target, onClose }: Props) {
             <p>{target.displayName && <>{target.displayName} · </>}{m.intro}</p>
           </div>
           <ol className="mm-steps" aria-hidden>
-            {['📷', '📏', '🌊'].map((icon, i) => {
+            {(['camera', 'ruler', 'wave'] as const).map((icon, i) => {
               const at = stage === 'photo' ? 0 : stage === 'result' ? 2 : 1
-              return <li key={icon} className={i < at ? 'is-done' : i === at ? 'is-now' : ''}><span>{icon}</span></li>
+              return <li key={icon} className={i < at ? 'is-done' : i === at ? 'is-now' : ''}><Icon name={icon} /></li>
             })}
           </ol>
           <button ref={closeBtn} className="vc-close mm-close" onClick={onClose} aria-label={m.close} title={m.close}>
@@ -180,7 +181,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
             <label className="mm-drop">
               <input type="file" accept="image/*" capture="environment" hidden
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) void load(f) }} />
-              <span className="mm-drop-icon" aria-hidden>📷</span>
+              <Icon name="camera" className="mm-drop-icon" />
               <strong>{m.choose}</strong>
               <span>{m.tip}</span>
             </label>

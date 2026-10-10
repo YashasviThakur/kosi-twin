@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { Lang, Report, Risk, Village, VillageCard } from '../api'
 import { ago, int } from '../format'
 import { X } from '../i18n-extra'
+import { iconSvg } from '../icons'
+import type { IconName } from '../icons'
 
 export type Basemap = 'map' | 'satellite'
 
@@ -61,7 +63,7 @@ interface Props {
   onPick: (lon: number, lat: number) => void
 }
 
-const REPORT_ICON = { seepage: '💧', crack: '⚠️', breach: '🚨' } as const
+const REPORT_ICON = { seepage: 'drop', crack: 'alert', breach: 'siren' } as const satisfies Record<string, IconName>
 
 function villagePoints(villages: Village[]): FeatureCollection {
   return {
@@ -303,7 +305,7 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
         const v = byId.current.get(Number(ev.features?.[0]?.id))
         if (!v) return
         map.getCanvas().style.cursor = 'pointer'
-        popup.setLngLat([v.lon, v.lat]).setHTML(`<strong>${escapeHtml(villageName(v, langRef.current))}</strong><span>${int(v.pop)} 👤</span>`).addTo(map)
+        popup.setLngLat([v.lon, v.lat]).setHTML(`<strong>${escapeHtml(villageName(v, langRef.current))}</strong><span>${int(v.pop)} ${iconSvg('user', '13px')}</span>`).addTo(map)
       })
       map.on('mouseleave', 'village-halo', () => {
         map.getCanvas().style.cursor = ''
@@ -419,14 +421,14 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
       for (const p of focus.pins) {
         const el = document.createElement('div')
         el.className = `dest-pin${p.active ? ' is-active' : ''}`
-        el.innerHTML = `<span class="dest-pin-icon"><i>${p.icon}</i></span>${p.active ? `<span class="dest-pin-name">${escapeHtml(p.name)}</span>` : ''}`
+        el.innerHTML = `<span class="dest-pin-icon"><i>${iconSvg(p.icon as IconName, '18px')}</i></span>${p.active ? `<span class="dest-pin-name">${escapeHtml(p.name)}</span>` : ''}`
         pins.current.push(new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([p.lon, p.lat]).addTo(map))
       }
       if (route && route.path.length > 1) {
         const mid = route.path[Math.floor(route.path.length / 2)]
         const bubble = document.createElement('div')
         bubble.className = 'eta-bubble'
-        bubble.textContent = focus.eta
+        bubble.innerHTML = `${iconSvg('walk', '14px')} ${escapeHtml(focus.eta)}`
         pins.current.push(new maplibregl.Marker({ element: bubble, anchor: 'bottom', offset: [0, -6] }).setLngLat(mid).addTo(map))
       }
     }
@@ -459,7 +461,7 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
     reportMarkers.current = reports.map((r) => {
       const pin = document.createElement('div')
       pin.className = `report-pin kind-${r.kind}`
-      pin.textContent = REPORT_ICON[r.kind]
+      pin.innerHTML = iconSvg(REPORT_ICON[r.kind], '20px')
       pin.title = `${x.reportKinds[r.kind]} · ${ago(r.time, lang)} · ${x.reportUnverified}${r.note ? `\n${r.note}` : ''}`
       return new maplibregl.Marker({ element: pin }).setLngLat([r.lon, r.lat]).addTo(map)
     })
@@ -473,7 +475,7 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
     if (reportMode && draft) {
       const pin = document.createElement('div')
       pin.className = 'report-pin is-draft'
-      pin.textContent = '📍'
+      pin.innerHTML = iconSvg('pin', '26px')
       draftMarker.current = new maplibregl.Marker({ element: pin, anchor: 'bottom' }).setLngLat([draft.lon, draft.lat]).addTo(map)
     }
   }, [ready, reportMode, draft])

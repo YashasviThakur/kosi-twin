@@ -1,10 +1,11 @@
 // Wording for the village card's extra sections: destinations + travel times, SOS, weather, depth
 // comparison and voice. Bhojpuri and Maithili need native-speaker review, like the rest.
 import type { Lang } from './api'
+import type { IconName } from './icons'
 
 export type Category = 'hospital' | 'school' | 'high_ground'
 export type Mode = 'walk' | 'cycle' | 'motorbike'
-export const CATEGORY_ICON: Record<Category, string> = { hospital: '🏥', school: '🏫', high_ground: '🛣️' }
+export const CATEGORY_ICON: Record<Category, IconName> = { hospital: 'hospital', school: 'school', high_ground: 'highground' }
 export type DepthObject = 'charpai' | 'goat' | 'motorbike' | 'cow' | 'adult' | 'door' | 'house'
 
 type Strings = {
