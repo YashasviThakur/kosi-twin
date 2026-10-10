@@ -19,6 +19,14 @@ import type { Category } from './i18n-extra'
 import { T } from './i18n'
 import './App.css'
 
+const LEVELS: Record<Lang, [string, string, string, string]> = {
+  en: ['Normal', 'Rising', 'High', 'Extreme'],
+  hi: ['सामान्य', 'बढ़ता', 'ऊँचा', 'अति गंभीर'],
+  bho: ['सामान्य', 'बढ़त बा', 'ऊँच', 'बहुत गंभीर'],
+  mai: ['सामान्य', 'बढ़ैत', 'ऊँच', 'अति गंभीर'],
+}
+const levelOf = (q: number) => (q < 1.5 ? 0 : q < 4 ? 1 : q < 6 ? 2 : 3)
+
 const GAUGE_MIN = 0.5
 const GAUGE_MAX = 8
 const PEAK_2024 = 6.61
@@ -251,7 +259,12 @@ export default function App() {
           <strong>{q.toFixed(2)}</strong>
           <span>{t.unit}</span>
         </div>
+        <span className={`level level-${levelOf(q)}`}>{LEVELS[lang][levelOf(q)]}</span>
         <p className="rise num">{t.rise(rise.toFixed(1))}</p>
+        <div className="peak-share num" title={t.peak2024}>
+          <span className="fact-bar"><i style={{ width: `${Math.min(100, (q / PEAK_2024) * 100)}%` }} /></span>
+          <small>{Math.round((q / PEAK_2024) * 100)}% · {t.peak2024}</small>
+        </div>
         <Gauge
           value={q} min={GAUGE_MIN} max={GAUGE_MAX} disabled={!!replay}
           label={t.gaugeTitle} valueText={`${q.toFixed(2)} ${t.unit}`}

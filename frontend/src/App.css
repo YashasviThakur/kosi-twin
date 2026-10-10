@@ -762,3 +762,34 @@
 .mirror, .report-form { background: var(--glass-solid); }
 .rf-note:focus { border-color: var(--accent); }
 .eta-bubble { background: #16A34A; }
+
+/* =====================================================================================
+   v4 — the numbers: icon stat cards with share bars, a level chip and "% of the 2024 peak" on the gauge,
+   icon metric tiles with a depth bar on the village card.
+   ===================================================================================== */
+.fact-icon { font-size: calc(22px * var(--fs)); line-height: 1; display: block; margin-bottom: 6px; }
+.fact-bar { display: block; height: 6px; margin-top: 8px; border-radius: 3px; background: rgb(60 45 20 / 10%); overflow: hidden; }
+.fact-bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #F4C46A, #D9902B); transition: width .3s ease; }
+.fact-bar.is-water i { background: linear-gradient(90deg, var(--flood-2), var(--flood-4)); }
+
+.facts { gap: 10px; }
+.facts div { padding: 12px 14px; border-radius: 18px; background: var(--sand); }
+.facts dt { font-size: calc(26px * var(--fs)); letter-spacing: -.01em; }
+.facts dd { margin-top: 2px; }
+
+.vc-facts { grid-template-columns: 1fr 1fr; gap: 10px; }
+.vc-facts > div { padding: 12px 14px; border-radius: 18px; }
+.vc-facts dd strong { font-size: calc(17px * var(--fs)); }
+
+.level {
+  align-self: flex-start; padding: 3px 12px; border-radius: 999px; color: #fff;
+  font-size: calc(12px * var(--fs)); font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+.level-0 { background: linear-gradient(135deg, #2A5238, #3F7552); }
+.level-1 { background: linear-gradient(135deg, #8A5A0E, #D9902B); }
+.level-2 { background: linear-gradient(135deg, #8E2A1A, #D64533); }
+.level-3 { background: linear-gradient(135deg, #5B1410, #B23A26); }
+.peak-share { margin-bottom: 4px; }
+.peak-share small { display: block; margin-top: 4px; color: var(--muted); font-size: calc(12px * var(--fs)); }
+.peak-share .fact-bar { margin-top: 2px; }
+.gauge-panel .rise { margin-bottom: 2px; }

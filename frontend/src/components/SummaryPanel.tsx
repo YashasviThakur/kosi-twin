@@ -26,10 +26,20 @@ export function SummaryPanel({ lang, discharge, stats, top, selectedId, onSelect
 
       {!dry && (
         <dl className="facts num">
-          <div><dt>{people(stats.elderly, lang)}</dt><dd>{t.elderly}</dd></div>
-          <div><dt>{people(stats.children, lang)}</dt><dd>{t.children}</dd></div>
-          <div><dt>{int(stats.road_km_cut)}</dt><dd>{t.roads}</dd></div>
-          <div><dt>{int(stats.shelters_flooded)}</dt><dd>{t.shelters}</dd></div>
+          {([
+            { icon: '👵', n: people(stats.elderly, lang), label: t.elderly, share: stats.elderly / stats.people },
+            { icon: '🧒', n: people(stats.children, lang), label: t.children, share: stats.children / stats.people },
+            { icon: '🛣️', n: int(stats.road_km_cut), label: t.roads, share: null },
+            { icon: '🏥', n: int(stats.shelters_flooded), label: t.shelters, share: null },
+          ]).map((f) => (
+            <div key={f.label}>
+              <span className="fact-icon" aria-hidden>{f.icon}</span>
+              <dt>{f.n}</dt><dd>{f.label}</dd>
+              {f.share != null && (
+                <span className="fact-bar" title={`${Math.round(f.share * 100)}%`}><i style={{ width: `${Math.max(4, Math.min(100, f.share * 100 * 2.5))}%` }} /></span>
+              )}
+            </div>
+          ))}
         </dl>
       )}
 

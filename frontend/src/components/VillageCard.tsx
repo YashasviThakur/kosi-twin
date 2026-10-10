@@ -99,15 +99,18 @@ function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory, on
 
       <dl className="vc-facts">
         <div>
+          <span className="fact-icon" aria-hidden>⏱️</span>
           <dt>{c.arrives}</dt>
           <dd className="num"><strong>{card.eta_time ? dayTime(card.eta_time, lang) : '—'}</strong>
             <span>{c.arrivesIn(duration(card.eta_h ?? 0, lang))}</span></dd>
         </div>
         <div>
+          <span className="fact-icon" aria-hidden>🌊</span>
           <dt>{c.depth}</dt>
           <dd className="num">
             <strong>{card.edge_only ? c.outskirts : `${depth.toFixed(1)} m · ${card.max_depth_band?.[lang] ?? ''}`}</strong>
             {!card.edge_only && <span>{depthSentence(depth, lang)}</span>}
+            {!card.edge_only && <span className="fact-bar is-water"><i style={{ width: `${Math.max(6, Math.min(100, (depth / 3) * 100))}%` }} /></span>}
           </dd>
         </div>
       </dl>
