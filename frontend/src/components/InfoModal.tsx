@@ -77,7 +77,7 @@ export function InfoModal({ onClose, onTour }: Props) {
 
           <section>
             <h3 className="eyebrow">Built on AWS: how the pieces fit together</h3>
-            <Architecture />
+            <div className="arch-wrap"><Architecture /></div>
             <p className={`im-status${live ? ' is-live' : ''}`} role="status">
               <i aria-hidden />
               {status === null ? 'Checking the AWS services…'

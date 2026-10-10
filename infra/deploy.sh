@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the Lambda package, deploy the CloudFormation stack, upload flood layers.
+# Build the Lambda package, deploy the CloudFormation stack, upload flood layers and the web app.
 # Usage: infra/deploy.sh   (needs AWS CLI credentials; run backend/prep first so backend/data/out exists)
 set -euo pipefail
 
@@ -23,7 +23,7 @@ HASH="$(sha1sum "$BUILD/lambda.zip" | cut -c1-12)"
 echo "    lambda.zip $(du -h "$BUILD/lambda.zip" | cut -f1), unzipped $(du -sh "$BUILD/pkg" | cut -f1)"
 
 echo "==> uploading code to s3://$CODE_BUCKET"
-aws s3api head-bucket --bucket "$CODE_BUCKET" 2>/dev/null || aws s3 mb "s3://$CODE_BUCKET" --region "$REGION"
+aws s3api head-bucket --bucket "$CODE_BUCKET" >/dev/null 2>&1 || aws s3 mb "s3://$CODE_BUCKET" --region "$REGION"
 aws s3 cp "$BUILD/lambda.zip" "s3://$CODE_BUCKET/lambda-$HASH.zip" --region "$REGION" --only-show-errors
 
 echo "==> deploying stack $STACK"
@@ -40,10 +40,20 @@ aws s3 sync "$OUT/layers" "s3://$(output SiteBucket)/layers" --region "$REGION" 
 
 echo "==> building and uploading the web app"
 (cd "$ROOT/frontend" && { [ -d node_modules ] || npm ci --silent; } && npm run build --silent)
-aws s3 sync "$ROOT/frontend/dist" "s3://$(output SiteBucket)" --region "$REGION" --only-show-errors     --delete --exclude "layers/*" --exclude "audio/*"
+aws s3 sync "$ROOT/frontend/dist" "s3://$(output SiteBucket)" --region "$REGION" --only-show-errors \
+    --delete --exclude "layers/*" --exclude "audio/*"
 # the map worker must be served as JavaScript (Windows can guess another type for .mjs)
-aws s3 cp "$ROOT/frontend/dist/maplibre/maplibre-gl-worker.mjs" "s3://$(output SiteBucket)/maplibre/maplibre-gl-worker.mjs" \n    --region "$REGION" --content-type text/javascript --cache-control "public, max-age=86400" --only-show-errors
-MSYS_NO_PATHCONV=1 aws cloudfront create-invalidation --distribution-id "$(output DistributionId)" --paths "/index.html" "/"     --query "Invalidation.Id" --output text >/dev/null
+aws s3 cp "$ROOT/frontend/dist/maplibre/maplibre-gl-worker.mjs" "s3://$(output SiteBucket)/maplibre/maplibre-gl-worker.mjs" \
+    --region "$REGION" --content-type text/javascript --cache-control "public, max-age=86400" --only-show-errors
+
+echo "==> protecting the bill: capping the public API (30 requests/second steady, bursts of 60)"
+API_ID="$(output ApiUrl | sed -E 's#https://([^.]+)\..*#\1#')"
+MSYS_NO_PATHCONV=1 aws apigatewayv2 update-stage --region "$REGION" --api-id "$API_ID" --stage-name '$default' \
+    --default-route-settings ThrottlingBurstLimit=60,ThrottlingRateLimit=30 >/dev/null
+
+echo "==> refreshing CloudFront"
+MSYS_NO_PATHCONV=1 aws cloudfront create-invalidation --distribution-id "$(output DistributionId)" \
+    --paths "/index.html" "/" "/assets/*" "/maplibre/*" --query "Invalidation.Id" --output text >/dev/null
 
 echo
 echo "Site:   $(output Url)"

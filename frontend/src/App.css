@@ -1673,3 +1673,18 @@
 .live-apply.is-on { background: var(--acc); color: var(--on-acc); }
 .live-note { font-size: calc(12px * var(--fs)); line-height: 1.45; }
 .live-card.is-loading { min-height: 90px; }
+
+/* Phones: the example thumbnails are small, so the "scale marked" badge shrinks to its ruler icon. */
+@media (max-width: 860px) {
+  .mm-sample-img em { font-size: 0; padding: 5px; left: 6px; bottom: 6px; }
+  .mm-sample-img em .icon { font-size: 14px; margin: 0; }
+}
+
+.arch-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+@media (max-width: 860px) { .arch { min-width: 600px; } }
+
+/* Phones: the replay bar's close button sits inside the bar (the round buttons own the top-right corner). */
+@media (max-width: 860px) {
+  .replay { padding-right: 52px; }
+  .rp-exit { top: 10px; right: 10px; width: 34px; height: 34px; background: rgb(255 255 255 / 12%); border: 0; box-shadow: none; }
+}
