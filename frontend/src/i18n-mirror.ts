@@ -42,6 +42,8 @@ type Strings = {
   whatIf: string
   useForecast: string
   oneTap: string
+  sampleReady: string
+  sampleNote: string
   oneTapHint: string
   oneTapLow: string
   oneTapNote: string
@@ -54,7 +56,7 @@ export const M: Record<Lang, Strings> = {
     title: 'Flood Mirror',
     intro: 'See what the forecast flood could look like on your own street.',
     choose: 'Take or choose a photo',
-    samples: 'Or try a sample',
+    samples: 'Or start with an example',
     tip: 'Best photos show a door or a person standing on the ground, so the water height can be measured.',
     detecting: 'Looking for a door or a person…',
     found: (what) => `Found ${what} to measure the height`,
@@ -88,6 +90,8 @@ export const M: Record<Lang, Strings> = {
     whatIf: 'Try a what-if depth instead',
     useForecast: 'Use the forecast for this village',
     oneTap: 'No door or person? Tap just the ground instead',
+    sampleReady: 'Scale marked',
+    sampleNote: 'Illustrated scenes, ready to try. Your own photo works the same way.',
     oneTapHint: 'Tap where a wall or wheel meets the ground. Hold the phone level, at about chest height.',
     oneTapLow: 'Tap lower, on the ground below the dashed line.',
     oneTapNote: 'Approximate: assumes the phone was held level at about 1.5 m.',
@@ -98,7 +102,7 @@ export const M: Record<Lang, Strings> = {
     title: 'बाढ़ दर्पण',
     intro: 'देखें कि अनुमानित बाढ़ आपकी अपनी गली में कैसी दिख सकती है।',
     choose: 'फ़ोटो लें या चुनें',
-    samples: 'या नमूना आज़माएँ',
+    samples: 'या कोई उदाहरण चुनें',
     tip: 'सबसे अच्छी फ़ोटो में दरवाज़ा या ज़मीन पर खड़ा इंसान दिखे, ताकि पानी की ऊँचाई नापी जा सके।',
     detecting: 'दरवाज़ा या इंसान खोज रहे हैं…',
     found: (what) => `ऊँचाई नापने के लिए ${what} मिला`,
@@ -132,6 +136,8 @@ export const M: Record<Lang, Strings> = {
     whatIf: 'कोई और गहराई आज़माएँ',
     useForecast: 'इस गाँव का अनुमान इस्तेमाल करें',
     oneTap: 'दरवाज़ा या इंसान नहीं है? बस ज़मीन छुएँ',
+    sampleReady: 'पैमाना तय',
+    sampleNote: 'चित्र-दृश्य, तुरंत आज़माने के लिए। आपकी अपनी फ़ोटो भी ऐसे ही चलेगी।',
     oneTapHint: 'जहाँ दीवार या पहिया ज़मीन से मिलता है वहाँ छुएँ। फ़ोन सीधा, लगभग छाती की ऊँचाई पर रखें।',
     oneTapLow: 'और नीचे, बिंदीदार रेखा के नीचे की ज़मीन पर छुएँ।',
     oneTapNote: 'अनुमानित: मानकर चला गया है कि फ़ोन सीधा, लगभग 1.5 मी की ऊँचाई पर था।',
@@ -142,7 +148,7 @@ export const M: Record<Lang, Strings> = {
     title: 'बाढ़ दर्पण',
     intro: 'देखीं कि अंदाजा वाला बाढ़ रउआ आपन गली में कइसन लउक सकेला।',
     choose: 'फोटो लीं भा चुनीं',
-    samples: 'भा नमूना आजमाईं',
+    samples: 'भा कवनो उदाहरन चुनीं',
     tip: 'सबसे बढ़िया फोटो में दरवाजा भा जमीन पर ठाढ़ आदमी लउके, ताकि पानी के ऊँचाई नापल जा सके।',
     detecting: 'दरवाजा भा आदमी खोजत बानी…',
     found: (what) => `ऊँचाई नापे खातिर ${what} मिलल`,
@@ -176,6 +182,8 @@ export const M: Record<Lang, Strings> = {
     whatIf: 'कवनो दोसर गहराई आजमाईं',
     useForecast: 'एह गाँव के अंदाजा इस्तेमाल करीं',
     oneTap: 'दरवाजा भा आदमी नइखे? खाली जमीन छूईं',
+    sampleReady: 'पैमाना तय',
+    sampleNote: 'चित्र-दृश्य, तुरंते आजमावे खातिर। रउआ आपन फोटो भी अइसहीं चली।',
     oneTapHint: 'जहाँ देवाल भा पहिया जमीन से मिलेला उहाँ छूईं। फोन सीधा, लगभग छाती के ऊँचाई पर राखीं।',
     oneTapLow: 'आउर नीचे, बिंदी वाला रेखा के नीचे जमीन पर छूईं।',
     oneTapNote: 'अंदाजा: मानल गइल बा कि फोन सीधा, लगभग 1.5 मी के ऊँचाई पर रहे।',
@@ -186,7 +194,7 @@ export const M: Record<Lang, Strings> = {
     title: 'बाढ़ि दर्पण',
     intro: 'देखू जे अनुमानित बाढ़ि अहाँक अपन गली मे कोना देखा सकैत अछि।',
     choose: 'फोटो लिअ वा चुनू',
-    samples: 'वा नमूना आजमाउ',
+    samples: 'वा कोनो उदाहरण चुनू',
     tip: 'सभसँ नीक फोटो मे केबाड़ वा जमीन पर ठाढ़ लोक देखाए, जाहि सँ पानिक ऊँचाई नापल जा सकय।',
     detecting: 'केबाड़ वा लोक ताकि रहल छी…',
     found: (what) => `ऊँचाई नापबाक लेल ${what} भेटल`,
@@ -220,6 +228,8 @@ export const M: Record<Lang, Strings> = {
     whatIf: 'कोनो आन गहराइ आजमाउ',
     useForecast: 'एहि गामक अनुमान उपयोग करू',
     oneTap: 'केबाड़ वा लोक नहि अछि? मात्र जमीन छुबू',
+    sampleReady: 'पैमाना तय',
+    sampleNote: 'चित्र-दृश्य, तुरंत आजमाबक लेल। अहाँक अपन फोटो सेहो एहिना चलत।',
     oneTapHint: 'जतय देबाल वा पहिया जमीन सँ मिलैत अछि ततय छुबू। फोन सीधा, लगभग छातीक ऊँचाई पर राखू।',
     oneTapLow: 'आओर नीचाँ, बिन्दीदार रेखाक नीचाँक जमीन पर छुबू।',
     oneTapNote: 'अनुमानित: मानल गेल अछि जे फोन सीधा, लगभग 1.5 मीक ऊँचाई पर छल।',

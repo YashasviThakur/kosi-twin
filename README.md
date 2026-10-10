@@ -52,10 +52,13 @@ python -m pytest tests
 - **2024 replay:** only the ~6.61 lakh cusec peak is from reports; the rest of the curve is interpolated.
 - This is a planning estimate, not an engineering-grade hydraulic model.
 
-### Flood Mirror sample photos
-To offer one-tap sample photos, put street photos with a visible door in `frontend/public/samples/` and list them in
-`frontend/public/samples/samples.json`, e.g. `[{"file": "supaul-lane.jpg", "label": "Supaul lane"}]`. Use photos you
-own or that are licensed for reuse. Without that file the sample row is simply not shown.
+### Flood Mirror example scenes
+The Flood Mirror window offers example cards from `frontend/public/samples/samples.json`. The three shipped examples are
+illustrations drawn by `backend/prep/make_samples.py` (run it to regenerate them), each with a door at a known place, so the
+demo works without a real photo or door detection. To add real photos, put them in the same folder and add
+`{"file": "lane.jpg", "label": "Supaul lane", "ground": 0.78, "top": 0.39}`: `ground` and `top` are the bottom and top of a
+2.1 m door as fractions of the picture height. Leave them out and the app looks for a door or person itself. Use photos you
+own or that are licensed for reuse. Without `samples.json` the example row is simply not shown.
 
 ### Embankments and leak reports
 - The embankment layer ranks **mapped** dyke stretches (OpenStreetMap, ~87 km in Bihar; railway embankments excluded) by

@@ -25,6 +25,7 @@ interface Props {
   onClose: () => void
 }
 
+type Sample = { file: string; label: string; ground?: number; top?: number }   // ground/top: where a 2.1 m door starts and ends
 type Stage = 'photo' | 'scale' | 'working' | 'result'
 type Detect = { status: 'idle' | 'loading' | 'error' } | { status: 'done'; found: MirrorDetect | null }
 interface Result { url: string; blob: Blob; engine: string }
@@ -59,7 +60,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
   const depth = Math.min(fromForecast ? forecast[timeIdx].depth_m : presetDepth, 6)
   const [result, setResult] = useState<Result | null>(null)
   const [failed, setFailed] = useState(false)
-  const [samples, setSamples] = useState<{ file: string; label: string }[]>([])
+  const [samples, setSamples] = useState<Sample[]>([])
   const closeBtn = useRef<HTMLButtonElement>(null)
 
   useEffect(() => { closeBtn.current?.focus() }, [])
@@ -68,7 +69,8 @@ export function MirrorModal({ lang, target, onClose }: Props) {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
-  // Optional sample street photos: public/samples/samples.json = [{ "file": "a.jpg", "label": "Supaul lane" }]
+  // Example scenes: public/samples/samples.json = [{ "file", "label", "ground", "top" }] (see backend/prep/make_samples.py).
+  // With ground and top the door is already marked; without them the app looks for a door or person itself.
   useEffect(() => {
     fetch('/samples/samples.json').then((r) => (r.ok ? r.json() : [])).then(setSamples).catch(() => {})
   }, [])
@@ -79,14 +81,20 @@ export function MirrorModal({ lang, target, onClose }: Props) {
     if (result) URL.revokeObjectURL(result.url)
   }, [result])
 
-  const load = async (file: Blob) => {
+  const load = async (file: Blob, preset?: Sample) => {
     setFailed(false)
-    setTaps([])
     setResult(null)
+    setOneTap(false)
+    // An example whose door is already marked needs no detection.
+    const marks = preset?.ground != null && preset.top != null
+      ? [{ x: 0.5, y: preset.top }, { x: 0.5, y: preset.ground }] : []
+    setTaps(marks)
+    if (marks.length) setRefHeight(2.1)
     try {
       const p = await preparePhoto(file)
       setPhoto(p)
       setStage('scale')
+      if (marks.length) { setDetect({ status: 'done', found: null }); return }
       setDetect({ status: 'loading' })
       api.mirrorDetect(p.blob)
         .then((found) => setDetect({ status: 'done', found }))
@@ -96,9 +104,9 @@ export function MirrorModal({ lang, target, onClose }: Props) {
     }
   }
 
-  const loadSample = async (file: string) => {
-    const res = await fetch(`/samples/${file}`)
-    if (res.ok) await load(await res.blob())
+  const loadSample = async (s: Sample) => {
+    const res = await fetch(`/samples/${s.file}`)
+    if (res.ok) await load(await res.blob(), s)
   }
 
   const detected = detect.status === 'done' ? detect.found : null
@@ -187,11 +195,18 @@ export function MirrorModal({ lang, target, onClose }: Props) {
             </label>
             {samples.length > 0 && (
               <>
-                <p className="eyebrow">{m.samples}</p>
+                <div className="mm-samples-head">
+                  <p className="eyebrow">{m.samples}</p>
+                  <span>{m.sampleNote}</span>
+                </div>
                 <div className="mm-samples">
                   {samples.map((s) => (
-                    <button key={s.file} onClick={() => void loadSample(s.file)} title={s.label}>
-                      <img src={`/samples/${s.file}`} alt={s.label} />
+                    <button key={s.file} className="mm-sample" onClick={() => void loadSample(s)}>
+                      <span className="mm-sample-img">
+                        <img src={`/samples/${s.file}`} alt="" />
+                        {s.ground != null && s.top != null && <em><Icon name="ruler" /> {m.sampleReady}</em>}
+                      </span>
+                      <strong>{s.label}</strong>
                     </button>
                   ))}
                 </div>

@@ -1,0 +1,20 @@
+[
+  {
+    "file": "lane.jpg",
+    "label": "Village lane (illustration)",
+    "ground": 0.8125,
+    "top": 0.4375
+  },
+  {
+    "file": "brick.jpg",
+    "label": "Brick house (illustration)",
+    "ground": 0.8125,
+    "top": 0.4375
+  },
+  {
+    "file": "shop.jpg",
+    "label": "Shop front (illustration)",
+    "ground": 0.8125,
+    "top": 0.4375
+  }
+]

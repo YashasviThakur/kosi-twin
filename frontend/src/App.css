@@ -1563,3 +1563,31 @@
 .im-body::-webkit-scrollbar, .mm-body::-webkit-scrollbar, .search-list::-webkit-scrollbar { width: 8px; }
 .im-body::-webkit-scrollbar-thumb, .mm-body::-webkit-scrollbar-thumb, .search-list::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 28%); border-radius: 4px; }
 .im-body::-webkit-scrollbar-track, .mm-body::-webkit-scrollbar-track, .search-list::-webkit-scrollbar-track { background: transparent; }
+
+/* Example scenes: three cards with a caption and a "scale marked" badge. */
+.mm-samples-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-top: 6px; }
+.mm-samples-head .eyebrow { color: var(--muted); }
+.mm-samples-head span { font-size: calc(13px * var(--fs)); color: var(--muted); }
+.mm-samples { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.mm-sample {
+  display: flex; flex-direction: column; gap: 8px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; color: var(--ink);
+  transition: transform .18s cubic-bezier(.3, 1.4, .5, 1);
+}
+.mm-sample:hover { transform: translateY(-3px); }
+.mm-sample:active { transform: scale(.97); }
+.mm-sample-img { position: relative; display: block; aspect-ratio: 3 / 2; border-radius: 18px; overflow: hidden; outline: 1px solid rgb(255 255 255 / 14%); box-shadow: 0 10px 24px rgb(0 0 0 / 40%); }
+.mm-sample:hover .mm-sample-img { outline-color: #F4C46A; }
+.mm-sample-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.mm-sample-img em {
+  position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 8px; border-radius: 999px;
+  background: rgb(22 31 35 / 82%); color: #F4C46A; font: 700 11px/1.5 var(--font-ui); font-style: normal; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.mm-sample-img em .icon { font-size: 13px; }
+.mm-sample > strong { font-size: calc(14px * var(--fs)); font-weight: 600; }
+.mm-samples button { border: 0; }
+@media (max-width: 860px) {
+  .mm-samples { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .mm-sample > strong { font-size: 12px; }
+}
+
+.mm-samples .mm-sample { overflow: visible; border-radius: 0; border: 0; }
