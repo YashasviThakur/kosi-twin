@@ -159,6 +159,8 @@ export default function App() {
     return m
   }, [scenario, replay, replayFrame])
 
+  const eta = useMemo(() => new Map<number, number>(replay ? [] : (scenario?.affected ?? []).map((a) => [a.id, a.eta_h])), [scenario, replay])
+
   useEffect(() => {
     if (!playing || !replay) return
     const id = window.setInterval(() => {
@@ -183,7 +185,7 @@ export default function App() {
 
   return (
     <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang}>
-      <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} layer={layerPrefix(extentRise)}
+      <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} eta={eta} layer={layerPrefix(extentRise)}
         basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId}
         showEmbankments={showEmbankments} reports={reports} reportMode={reportMode} draft={draft}
         onPick={(lon, lat) => setDraft({ lon, lat })}

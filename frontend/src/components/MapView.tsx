@@ -40,6 +40,7 @@ interface Props {
   tiles: [number, number, number, number][]   // flood overlay tiles: west, south, east, north
   villages: Village[]
   risk: Map<number, Risk>
+  eta: Map<number, number>                    // hours until the water reaches each village (not during a replay)
   layer: string | null                        // flood layer prefix, e.g. /layers/flood_3.0
   basemap: Basemap
   selectedId: number | null
@@ -76,7 +77,7 @@ function villagePoints(villages: Village[]): FeatureCollection {
 
 const villageName = (v: Village, lang: Lang) => (lang === 'en' ? v.name : (v.name_hi ?? v.name))
 
-export function MapView({ tiles, villages, risk, layer, basemap, selectedId, focus, lang, onSelect,
+export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId, focus, lang, onSelect,
   showEmbankments, reports, reportMode, draft, onPick }: Props) {
   const el = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -267,7 +268,8 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
       for (const v of villages) {
         const label = document.createElement('div')
         label.className = v.type === 'town' || v.type === 'city' ? 'vlabel is-town' : 'vlabel'
-        label.textContent = villageName(v, langRef.current)
+        label.innerHTML = '<span class="vl-name"></span><b class="vl-eta"></b>'
+        label.querySelector('.vl-name')!.textContent = villageName(v, langRef.current)
         label.dataset.pop = String(v.pop)
         label.addEventListener('click', () => { if (!reportModeRef.current) onSelectRef.current(v.id) })
         labels.current.set(v.id, label)
@@ -370,16 +372,21 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
       const r = risk.get(v.id) ?? 'SAFE'
       map.setFeatureState({ source: 'villages', id: v.id }, { risk: r })
       const label = labels.current.get(v.id)
-      if (label) label.dataset.risk = r
+      if (label) {
+        label.dataset.risk = r
+        const h = eta.get(v.id)
+        label.querySelector('.vl-eta')!.textContent = r !== 'SAFE' && h != null
+          ? `${h < 1 ? '<1' : Math.round(h)}${langRef.current === 'en' ? 'h' : 'घं'}` : ''
+      }
     }
     requestAnimationFrame(declutter)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, risk, villages])
+  }, [ready, risk, eta, lang, villages])
 
   useEffect(() => {
     for (const v of villages) {
       const label = labels.current.get(v.id)
-      if (label) label.textContent = villageName(v, lang)
+      if (label) label.querySelector('.vl-name')!.textContent = villageName(v, lang)
     }
     for (const label of districtLabels.current) label.textContent = (lang === 'en' ? label.dataset.en : label.dataset.hi) ?? ''
     requestAnimationFrame(declutter)
