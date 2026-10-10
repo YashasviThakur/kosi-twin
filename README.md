@@ -55,6 +55,7 @@ python -m pytest tests
 ## Live deployment (AWS, us-east-1)
 - Site: https://d34uuvdd8ofh55.cloudfront.net (CloudFront in front of S3 for the web app and flood layers, and API Gateway to Lambda for `/api/*`)
 - Stack: `kosi-twin` (CloudFormation, `infra/template.yaml`). Redeploy with `bash infra/deploy.sh` (needs AWS CLI credentials and `backend/data/out`).
+- Live river data: `/api/live` and `/api/history` (GloFAS modelled flow via Open-Meteo; 1997 to last year is a snapshot in `backend/kosi/glofas_history.json`, refresh with `backend/prep/fetch_glofas.py`). Modelled, not a gauge: see `backend/kosi/live.py`.
 - Live AWS services: Lambda, API Gateway, S3, CloudFront, DynamoDB (leak reports), Polly (voice), Translate, Rekognition.
 - Bedrock (AI-written advisories, AI-painted water) is wired in but the account has no model access or quota yet, so those two features
   use the built-in template and app-drawn water. Nothing else changes when access is granted.

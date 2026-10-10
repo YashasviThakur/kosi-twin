@@ -174,3 +174,21 @@ def test_replays_are_listed_from_files():
     from kosi import store
     names = [r["name"] for r in store.replays()]
     assert "2024" in names and all(r["peak_lakh"] > 0 for r in store.replays())
+
+
+def test_history_and_modelled_replay(monkeypatch):
+    from kosi import hydro, live
+    monkeypatch.setattr(live, "_fetch", lambda: ([("2026-01-01", 2000.0), ("2026-01-02", 2200.0)], (26.525, 86.875)))
+    live._cache.update(t=0.0, data=None)
+    h = live.history(today="2026-01-02")
+    assert h["start"] == "1997-01-02" and h["end"] == "2026-01-02" and len(h["values"]) == 10591 + 2 and h["modelled"]
+    # a modelled replay is built from the days around a date, in app discharge units, and plays like a recorded one
+    r = live.replay_data("glofas:2024-09-30")
+    assert r["series"][0]["time"] == "2024-09-27T00:00" and len(r["series"]) == 9
+    assert max(p["discharge_lakh"] for p in r["series"]) <= live.REPORTED_2024_PEAK_LAKH + 0.01
+    assert live.replay_data("2024") is None
+    frames = hydro.replay_frames("glofas:2024-09-30")
+    assert frames["frames"][1]["hours"] - frames["frames"][0]["hours"] == 3.0 and "MODELLED" in frames["note"]
+    import pytest
+    with pytest.raises(FileNotFoundError):
+        live.replay_data("glofas:1990-01-01")

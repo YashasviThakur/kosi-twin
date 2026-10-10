@@ -23,7 +23,7 @@ const LIMITS = [
   ['Flooded area', 'It shows where water can flow across the land. It cannot predict embankment breaks, blocked drains, or puddles that stay behind.'],
   ['Timing', 'Arrival times come from a rule of thumb for how fast a flood moves, not from measured travel times.'],
   ['Live river flow', 'The "River now" card uses a global flood model (GloFAS), not a gauge. It reads the 2024 flood at about half the reported size, so we only show today\'s flow against the model\'s own 2024 reading, as a trend.'],
-  ['Past floods', 'Only the September 2024 flood is built in, because it is the one we have a reported figure for. Official records from the Water Resources Department can be added and will show up as more replays.'],
+  ['Past dates', 'Any day since 1997 can be browsed as modelled river flow and replayed, but only the September 2024 flood has a reported figure. The model can rank years differently from official records. Official Water Resources Department records can be added and will show up as more replays.'],
   ['People and places', 'Villages, roads and shelters come from open data, so a few places are missing.'],
   ['Embankments', 'We only show the stretches that are mapped. The colours show how many people live behind them, not where a break will happen.'],
   ['Flood Mirror', 'It is a simulation, not a real photo. The depth comes from the forecast, and the scale comes from a door, a person, or a rough guess from one tap.'],

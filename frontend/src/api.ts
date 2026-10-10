@@ -130,6 +130,18 @@ export interface LiveFlow {
   note: string
 }
 
+export interface History {
+  source: string
+  modelled: boolean
+  start: string                   // first day of `values`
+  end: string
+  today: string
+  values: (number | null)[]       // modelled river flow, m3/s, one per day from `start`
+  peak_2024_m3s: number           // the model's own reading for the 2024 flood
+  reported_peak_lakh: number      // the reported 2024 peak, lakh cusecs
+  note: string
+}
+
 export interface Replay {
   name: string
   note: string
@@ -146,6 +158,7 @@ async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
 export const api = {
   meta: () => get<Meta>('/api/meta'),
   live: () => get<LiveFlow>('/api/live'),
+  history: () => get<History>('/api/history'),
   status: () => get<{ aws: boolean; region: string; bucket: boolean; text_models: string[]; image_model: string }>('/api/status'),
   villages: () => get<Village[]>('/api/villages'),
   scenario: (discharge: number, signal?: AbortSignal) =>

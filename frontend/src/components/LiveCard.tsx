@@ -1,26 +1,13 @@
 // "River now": the modelled flow near Birpur against the same model's reading for the 2024 flood, with a 120-day
 // history, a 14-day outlook, and a button that shows this level on the map. It is a trend, not a gauge reading.
-import { useEffect, useState } from 'react'
-import { api } from '../api'
 import type { Lang, LiveFlow } from '../api'
 import { N } from '../i18n-more'
 
 const W = 320
 const H = 84
 
-export function LiveCard({ lang, applied, onApply }: { lang: Lang; applied: boolean; onApply: (lakh: number) => void }) {
+export function LiveCard({ lang, live, applied, onApply }: { lang: Lang; live: LiveFlow | 'error'; applied: boolean; onApply: (lakh: number) => void }) {
   const t = N[lang].live
-  const [live, setLive] = useState<LiveFlow | null | 'error'>(null)
-
-  useEffect(() => {
-    let on = true
-    const load = () => api.live().then((d) => on && setLive(d)).catch(() => on && setLive('error'))
-    load()
-    const id = window.setInterval(load, 30 * 60 * 1000)          // the model updates daily; half-hourly is plenty
-    return () => { on = false; window.clearInterval(id) }
-  }, [])
-
-  if (live === null) return <section className="live-card is-loading" aria-busy><span className="eyebrow">{t.title}</span></section>
   if (live === 'error') return <section className="live-card"><span className="eyebrow">{t.title}</span><p className="vc-note">{t.unavailable}</p></section>
 
   const s = live.series

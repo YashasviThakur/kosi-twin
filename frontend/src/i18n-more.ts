@@ -13,6 +13,10 @@ interface More {
   tour: { next: string; back: string; done: string; skip: string; steps: { title: string; text: string }[] }
   info: string
   retry: string
+  hist: {
+    title: string; modelled: string; pick: (from: string) => string; of2024: string; forecast: string; jump: string
+    show: string; shown: string; replay: string; note: string; unavailable: string; replayTitle: (d: string) => string; replayNote: string; overstated: string
+  }
   live: {
     title: string; live: string; of2024: string; rising: string; falling: string; steady: string
     peak: (pct: number, day: string) => string; history: string; outlook: string; apply: string; applied: string
@@ -40,6 +44,14 @@ export const N: Record<Lang, More> = {
     },
     info: 'How this works',
     retry: 'Try again',
+    hist: {
+      title: 'Look back', modelled: 'Modelled', pick: (f) => `Any day from ${f} to now`, of2024: 'of the 2024 flood flow', forecast: 'forecast',
+      jump: 'Jump to a year’s biggest flow', show: 'Show this day on the map', shown: 'Showing this day on the map', replay: 'Replay this flood',
+      note: 'Modelled river flow (GloFAS). It can read big Kosi floods low and rank years differently from official records. Only the September 2024 flood has a reported figure.',
+      unavailable: 'Past river data is unavailable right now.', replayTitle: (d) => `Modelled flow · ${d}`,
+      replayNote: 'MODELLED (GloFAS), not a barrage record. It can read big Kosi floods low and rank years differently from official records.',
+      overstated: 'The model shows this day bigger than the 2024 flood, but news reports called 2024 the biggest Kosi flow in over 50 years. Treat the size of this day as unreliable.',
+    },
     live: {
       title: 'River now (modelled)', live: 'Live', of2024: 'of the 2024 flood flow', rising: 'Rising over the next 3 days', falling: 'Falling over the next 3 days',
       steady: 'Steady over the next 3 days', peak: (p, d) => `up to ${p}% by ${d}`, history: 'Last 4 months', outlook: '14-day outlook',
@@ -67,6 +79,14 @@ export const N: Record<Lang, More> = {
     },
     info: 'यह कैसे काम करता है',
     retry: 'फिर कोशिश करें',
+    hist: {
+      title: 'पीछे देखें', modelled: 'मॉडल से', pick: (f) => `${f} से अब तक कोई भी दिन`, of2024: '2024 की बाढ़ के बहाव का', forecast: 'अनुमान',
+      jump: 'किसी साल का सबसे बड़ा बहाव चुनें', show: 'यह दिन नक्शे पर दिखाएँ', shown: 'नक्शे पर यही दिन दिख रहा है', replay: 'यह बाढ़ दोबारा चलाएँ',
+      note: 'मॉडल से निकाला नदी का बहाव (GloFAS)। यह कोसी की बड़ी बाढ़ को कम आँक सकता है और सालों का क्रम सरकारी रिकॉर्ड से अलग दिखा सकता है। केवल सितंबर 2024 की बाढ़ का रिपोर्ट किया आँकड़ा है।',
+      unavailable: 'पिछला नदी डेटा अभी उपलब्ध नहीं है।', replayTitle: (d) => `मॉडल से बहाव · ${d}`,
+      replayNote: 'मॉडल से (GloFAS), बराज का रिकॉर्ड नहीं। यह कोसी की बड़ी बाढ़ को कम आँक सकता है और सालों का क्रम सरकारी रिकॉर्ड से अलग दिखा सकता है।',
+      overstated: 'मॉडल इस दिन को 2024 की बाढ़ से बड़ा दिखा रहा है, पर समाचारों में 2024 को 50 साल से ज़्यादा में कोसी का सबसे बड़ा बहाव बताया गया था। इस दिन के आकार को भरोसेमंद न मानें।',
+    },
     live: {
       title: 'नदी अभी (मॉडल से)', live: 'लाइव', of2024: '2024 की बाढ़ के बहाव का', rising: 'अगले 3 दिन बढ़ेगा', falling: 'अगले 3 दिन घटेगा',
       steady: 'अगले 3 दिन लगभग स्थिर', peak: (p, d) => `${d} तक ${p}% तक`, history: 'पिछले 4 महीने', outlook: '14 दिन का अनुमान',
@@ -94,6 +114,14 @@ export const N: Record<Lang, More> = {
     },
     info: 'ई कइसे काम करेला',
     retry: 'फेर कोशिश करीं',
+    hist: {
+      title: 'पीछे देखीं', modelled: 'मॉडल से', pick: (f) => `${f} से अब ले कवनो दिन`, of2024: '2024 के बाढ़ के बहाव के', forecast: 'अंदाजा',
+      jump: 'कवनो साल के सबसे बड़ बहाव चुनीं', show: 'ई दिन नक्सा पर देखाईं', shown: 'नक्सा पर इहे दिन देखात बा', replay: 'ई बाढ़ फेर चलाईं',
+      note: 'मॉडल से निकारल नदी के बहाव (GloFAS)। ई कोसी के बड़ बाढ़ के कम आँक सकेला आ सालन के क्रम सरकारी रिकॉर्ड से अलग देखा सकेला। खाली सितंबर 2024 के बाढ़ के रिपोर्ट कइल आँकड़ा बा।',
+      unavailable: 'पिछला नदी डेटा अबहीं ना मिलल।', replayTitle: (d) => `मॉडल से बहाव · ${d}`,
+      replayNote: 'मॉडल से (GloFAS), बराज के रिकॉर्ड ना। ई कोसी के बड़ बाढ़ के कम आँक सकेला आ सालन के क्रम सरकारी रिकॉर्ड से अलग देखा सकेला।',
+      overstated: 'मॉडल ई दिन के 2024 के बाढ़ से बड़ देखावत बा, बाकिर समाचार में 2024 के 50 साल से बेसी में कोसी के सबसे बड़ बहाव बतावल गइल रहे। ई दिन के आकार पर भरोसा मत करीं।',
+    },
     live: {
       title: 'नदी अब (मॉडल से)', live: 'लाइव', of2024: '2024 के बाढ़ के बहाव के', rising: 'अगिला 3 दिन बढ़ी', falling: 'अगिला 3 दिन घटी',
       steady: 'अगिला 3 दिन लगभग स्थिर', peak: (p, d) => `${d} ले ${p}% तक`, history: 'पिछला 4 महीना', outlook: '14 दिन के अंदाजा',
@@ -121,6 +149,14 @@ export const N: Record<Lang, More> = {
     },
     info: 'ई कोना काज करैत अछि',
     retry: 'फेर प्रयास करू',
+    hist: {
+      title: 'पाछू देखू', modelled: 'मॉडल सँ', pick: (f) => `${f} सँ आब धरि कोनो दिन`, of2024: '2024 क बाढ़िक बहावक', forecast: 'अनुमान',
+      jump: 'कोनो सालक सभसँ पैघ बहाव चुनू', show: 'ई दिन नक्शा पर देखाउ', shown: 'नक्शा पर यैह दिन देखा रहल अछि', replay: 'ई बाढ़ि फेर चलाउ',
+      note: 'मॉडल सँ निकालल नदीक बहाव (GloFAS)। ई कोसीक पैघ बाढ़िकेँ कम आँकि सकैत अछि आ सभक क्रम सरकारी रिकॉर्ड सँ अलग देखा सकैत अछि। मात्र सितम्बर 2024 क बाढ़िक रिपोर्ट कएल आँकड़ा अछि।',
+      unavailable: 'पछिला नदी डेटा एखन उपलब्ध नहि अछि।', replayTitle: (d) => `मॉडल सँ बहाव · ${d}`,
+      replayNote: 'मॉडल सँ (GloFAS), बराजक रिकॉर्ड नहि। ई कोसीक पैघ बाढ़िकेँ कम आँकि सकैत अछि आ सभक क्रम सरकारी रिकॉर्ड सँ अलग देखा सकैत अछि।',
+      overstated: 'मॉडल ई दिनकेँ 2024 क बाढ़ि सँ पैघ देखा रहल अछि, मुदा समाचार मे 2024 केँ 50 सालसँ बेसी मे कोसीक सभसँ पैघ बहाव कहल गेल छल। ई दिनक आकार पर भरोसा नहि करू।',
+    },
     live: {
       title: 'नदी एखन (मॉडल सँ)', live: 'लाइव', of2024: '2024 क बाढ़िक बहावक', rising: 'अगिला 3 दिन बढ़त', falling: 'अगिला 3 दिन घटत',
       steady: 'अगिला 3 दिन लगभग स्थिर', peak: (p, d) => `${d} धरि ${p}% धरि`, history: 'पछिला 4 मास', outlook: '14 दिनक अनुमान',

@@ -1,7 +1,7 @@
 """Kosi Twin HTTP API. Local: `uvicorn kosi.api:app --reload`. Lambda: `kosi.api.handler`."""
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
 
@@ -87,6 +87,15 @@ def live_flow():
         return live.get()
     except Exception:
         raise HTTPException(503, "live river data is unavailable right now")
+
+
+@app.get("/api/history")
+def live_history():
+    """The whole modelled river record, 1997 to 14 days ahead, for the date browser (see kosi/live.py)."""
+    try:
+        return JSONResponse(live.history(), headers={"Cache-Control": "public, max-age=3600"})
+    except Exception:
+        raise HTTPException(503, "river history is unavailable right now")
 
 
 @app.get("/api/replays")

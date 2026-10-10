@@ -3,6 +3,7 @@
 import type { Lang, Replay } from '../api'
 import { clock } from '../format'
 import { T } from '../i18n'
+import { N } from '../i18n-more'
 import { X } from '../i18n-extra'
 
 interface Props {
@@ -21,6 +22,7 @@ const PAD = 8
 
 export function ReplayBar({ lang, replay, frame, playing, onToggle, onSeek, onExit }: Props) {
   const t = T[lang]
+  const modelled = replay.name.startsWith('glofas:')
   const frames = replay.frames
   const last = frames.length - 1
   const qMax = Math.max(...frames.map((f) => f.discharge_lakh))
@@ -40,7 +42,7 @@ export function ReplayBar({ lang, replay, frame, playing, onToggle, onSeek, onEx
       </button>
 
       <div className="rp-clock num">
-        <span className="eyebrow">{t.replay}</span>
+        <span className="eyebrow">{modelled ? N[lang].hist.replayTitle(replay.name.slice(7)) : t.replay}</span>
         <strong>{clock(current.time)}</strong>
       </div>
 
@@ -70,7 +72,7 @@ export function ReplayBar({ lang, replay, frame, playing, onToggle, onSeek, onEx
         <div><dt>{reached}<small>/{total}</small></dt><dd>{X[lang].reached}</dd></div>
       </dl>
 
-      <p className="rp-note">{t.replayNote}</p>
+      <p className="rp-note">{modelled ? N[lang].hist.replayNote : t.replayNote}</p>
 
       <button className="rp-exit" onClick={onExit} aria-label={t.exitReplay} title={`${t.exitReplay} · ${t.replayNote}`}>
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>

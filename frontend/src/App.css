@@ -1688,3 +1688,33 @@
   .replay { padding-right: 52px; }
   .rp-exit { top: 10px; right: 10px; width: 34px; height: 34px; background: rgb(255 255 255 / 12%); border: 0; box-shadow: none; }
 }
+
+/* "Look back": a date browser over the modelled record since 1997 */
+.hist-card { display: grid; gap: 8px; padding: 16px 18px; border-radius: 22px; color: var(--txt); background: rgb(255 255 255 / 6%); border: 1px solid rgb(255 255 255 / 10%); }
+.hist-card header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.hist-card .eyebrow { color: rgb(var(--txt-rgb) / 62%); }
+.hist-chip { padding: 3px 10px; border-radius: 999px; background: rgb(255 255 255 / 10%); color: rgb(var(--txt-rgb) / 75%); font: 700 11px/1.5 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
+.hist-pick { margin: 0; font-size: calc(13px * var(--fs)); color: rgb(var(--txt-rgb) / 70%); }
+.hist-chart { width: 100%; height: 64px; display: block; overflow: visible; }
+.hist-area { fill: rgb(var(--acc-rgb) / 14%); }
+.hist-line { fill: none; stroke: var(--acc); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.hist-cursor { stroke: var(--txt); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.hist-range { width: 100%; margin: -2px 0 0; accent-color: var(--acc); cursor: ew-resize; }
+.hist-sel { display: flex; flex-direction: column; gap: 1px; }
+.hist-sel strong { font-size: calc(18px * var(--fs)); }
+.hist-sel strong em { font-style: normal; font-weight: 600; font-size: .7em; color: var(--accl); }
+.hist-sel span { color: rgb(var(--txt-rgb) / 75%); font-size: calc(14px * var(--fs)); }
+.hist-jump { margin-top: 4px; }
+.hist-years { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.hist-years button {
+  flex: none; padding: 6px 12px; border: 0; border-radius: 999px; cursor: pointer; background: rgb(255 255 255 / 9%); color: var(--txt);
+  font-weight: 600; font-size: calc(13px * var(--fs));
+}
+.hist-years button:hover { background: rgb(255 255 255 / 16%); }
+.hist-years button.is-active { background: var(--acc); color: var(--on-acc); }
+.hist-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hist-actions .live-apply { margin-top: 2px; padding: 11px 8px; font-size: calc(13px * var(--fs)); }
+.hist-actions .live-apply:disabled { opacity: .4; cursor: not-allowed; }
+.hist-card.is-loading { min-height: 90px; }
+
+.hist-warn { margin: 2px 0; padding: 10px 12px; border-radius: 14px; background: rgb(255 180 168 / 12%); border: 1px solid rgb(255 180 168 / 35%); color: #FFB4A8; font-size: calc(13px * var(--fs)); line-height: 1.45; }

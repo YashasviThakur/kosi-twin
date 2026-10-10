@@ -56,7 +56,7 @@ class Hydrograph:
 
     @classmethod
     def from_replay(cls, name):
-        data = store.replay(name)
+        data = replay_source(name)
         start = datetime.fromisoformat(data["series"][0]["time"])
         pts = [((datetime.fromisoformat(p["time"]) - start).total_seconds() / 3600, p["discharge_lakh"])
                for p in data["series"]]
@@ -92,8 +92,15 @@ class Hydrograph:
         return self.start + timedelta(hours=hours)
 
 
-def replay_frames(name, step_h=1.0):
-    """Hour-by-hour frames for the replay animation."""
+def replay_source(name):
+    """A modelled replay ('glofas:YYYY-MM-DD') or a replay file (kosi/replays/<name>.json)."""
+    from . import live          # imported here because live imports this module
+    return live.replay_data(name) or store.replay(name)
+
+
+def replay_frames(name, step_h=None):
+    """Frames for the replay animation: hourly for a recorded flood, every 3 hours for a modelled one (daily values)."""
+    step_h = step_h or (3.0 if name.startswith("glofas:") else 1.0)
     hg = Hydrograph.from_replay(name)
     end = hg.points[-1][0] + 36                 # let the wave travel through the region
     frames, t = [], 0.0
@@ -103,4 +110,4 @@ def replay_frames(name, step_h=1.0):
                        "discharge_lakh": round(q, 2), "rise_m": round(rise_for(q), 2),
                        "layer_url": layer_url(rise_for(q)), "stats": stats_at(rise_for(q))})
         t += step_h
-    return {"name": name, "note": store.replay(name)["note"], "frames": frames}
+    return {"name": name, "note": replay_source(name)["note"], "frames": frames}

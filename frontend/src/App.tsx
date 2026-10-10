@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, layerPrefix, riseFor, statsAt } from './api'
-import type { Lang, Meta, Replay, Report, Risk, Scenario, ScenarioRef, Village, VillageCard as Card } from './api'
+import type { Lang, LiveFlow, Meta, Replay, Report, Risk, Scenario, ScenarioRef, Village, VillageCard as Card } from './api'
 import { Gauge } from './components/Gauge'
 import { MapView } from './components/MapView'
 import { Panel } from './components/Panel'
@@ -19,6 +19,7 @@ import { InfoModal } from './components/InfoModal'
 import { Tour } from './components/Tour'
 import { Splash } from './components/Splash'
 import { LiveCard } from './components/LiveCard'
+import { HistoryCard } from './components/HistoryCard'
 import { N } from './i18n-more'
 import { Logo } from './components/Logo'
 import { M } from './i18n-mirror'
@@ -93,6 +94,10 @@ export default function App() {
   const [theme, setTheme] = useState<ThemeId>(loadTheme)
   const [info, setInfo] = useState(false)
   const [liveApplied, setLiveApplied] = useState(false)     // the gauge is showing the live river level
+  const [live, setLive] = useState<LiveFlow | null | 'error'>(null)
+  const [historyDate, setHistoryDate] = useState<string | null>(null)   // a past day is showing on the map
+  const autoLive = useRef(false)                            // the app opens on the live level once
+  const touched = useRef(false)                             // ...unless the person has already moved the gauge
   const [tour, setTour] = useState(false)
   const [sheet, setSheet] = useState<(typeof SHEETS)[number]>('half')   // phone bottom-sheet height
   const drag = useRef<number | null>(null)
@@ -115,6 +120,21 @@ export default function App() {
     try { localStorage.setItem('kosi.theme', theme) } catch { /* the choice just isn't remembered */ }
   }, [theme])
   useEffect(() => { api.reports().then(setReports).catch(() => {}) }, [])
+  // The river now: open on the live level, refresh every 30 minutes, and never hold the loading screen for more than 4 s.
+  useEffect(() => {
+    const load = () => api.live().then((d) => {
+      setLive(d)
+      if (!autoLive.current && !touched.current) {
+        autoLive.current = true
+        setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, d.now.lakh)))
+        setLiveApplied(true)
+      }
+    }).catch(() => setLive((l) => l ?? 'error'))
+    load()
+    const refresh = window.setInterval(load, 30 * 60 * 1000)
+    const giveUp = window.setTimeout(() => setLive((l) => l ?? 'error'), 4000)
+    return () => { window.clearInterval(refresh); window.clearTimeout(giveUp) }
+  }, [])
   useEffect(() => { sbScroll.current?.scrollTo({ top: 0 }) }, [selectedId])       // each view starts at its top
   useEffect(() => {                                   // the layers menu closes on an outside tap or Escape
     if (!menu) return
@@ -235,8 +255,8 @@ export default function App() {
     return () => window.clearInterval(id)
   }, [playing, replay])
 
-  const startReplay = async () => {
-    const r = replay ?? await api.replay('2024')
+  const startReplay = async (name = '2024') => {
+    const r = replay?.name === name ? replay : await api.replay(name)
     setReplay(r)
     setFrame(0)
     setPlaying(true)
@@ -244,7 +264,7 @@ export default function App() {
   const exitReplay = () => { setReplay(null); setPlaying(false) }
 
   if (failed) return <Splash lang={lang} error />
-  if (!meta) return <Splash lang={lang} />
+  if (!meta || live === null) return <Splash lang={lang} />
 
   return (
     <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang}>
@@ -308,12 +328,15 @@ export default function App() {
             { value: 1, label: t.normal, tone: 'muted' },
             { value: PEAK_2024, label: t.peak2024, tone: 'danger' },
           ]}
-          onChange={(v) => { setLiveApplied(false); setDischarge(v) }}
+          onChange={(v) => { touched.current = true; setLiveApplied(false); setHistoryDate(null); setDischarge(v) }}
         />
-        {!replay && <button className="btn btn-primary" onClick={startReplay}>{t.replay}</button>}
+        {!replay && <button className="btn btn-primary" onClick={() => void startReplay('2024')}>{t.replay}</button>}
       </Panel>
-              <LiveCard lang={lang} applied={liveApplied}
-                onApply={(lakh) => { setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(true) }} />
+              <LiveCard lang={lang} live={live} applied={liveApplied}
+                onApply={(lakh) => { setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(true); setHistoryDate(null) }} />
+              <HistoryCard lang={lang} shownDate={historyDate}
+                onShow={(lakh, date) => { touched.current = true; setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(false); setHistoryDate(date) }}
+                onReplay={(date) => void startReplay(`glofas:${date}`)} />
               <SummaryPanel lang={lang} discharge={qExtent} stats={stats} affected={scenario?.affected ?? []} villages={villages}
                 selectedId={selectedId} onSelect={setSelectedId} />
             </>
