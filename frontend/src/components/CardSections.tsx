@@ -101,28 +101,43 @@ export function WeatherBlock({ card, lang }: { card: VillageCard; lang: Lang }) 
   const max = rows ? Math.max(10, ...rows.flatMap((r) => r.daily.precipitation_sum)) : 10
   const day = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString(lang === 'en' ? 'en-IN' : 'hi-IN',
     { weekday: 'short', timeZone: 'UTC' })
+  // What the day looks like, from the rain total and the chance of rain.
+  const sky = (mm: number, chance: number): { icon: IconName; tone: string } =>
+    mm >= 30 ? { icon: 'storm', tone: 'is-storm' }
+      : mm >= 8 ? { icon: 'rain', tone: 'is-heavy' }
+      : mm >= 1 ? { icon: 'rain', tone: 'is-light' }
+      : chance >= 40 ? { icon: 'cloud', tone: 'is-cloud' }
+      : { icon: 'sun', tone: 'is-sun' }
 
   return (
     <section className="vc-weather">
       <h3 className="eyebrow">{x.weather}</h3>
       {failed && <p className="vc-note">{x.weatherError}</p>}
       {rows && (
-        <table className="rain">
-          <thead><tr><th />{rows[0].daily.time.map((t) => <th key={t}>{day(t)}</th>)}</tr></thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.label}>
-                <th scope="row">{r.label === 'here' ? x.here : x.upstream}</th>
-                {r.daily.precipitation_sum.map((mm, i) => (
-                  <td key={i} title={x.rainChance(r.daily.precipitation_probability_max[i] ?? 0)}>
-                    <span className="rain-bar" style={{ height: `${Math.max(4, (mm / max) * 34)}px` }} />
-                    <span className="num">{mm.toFixed(0)} mm</span>
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="wx-cards">
+          {rows.map((r) => (
+            <article key={r.label} className="wx-card">
+              <h4 className="wx-title">
+                <Icon name={r.label === 'here' ? 'pin' : 'mountain'} /> {r.label === 'here' ? x.here : x.upstream}
+              </h4>
+              <div className="wx-days">
+                {r.daily.precipitation_sum.map((mm, i) => {
+                  const chance = r.daily.precipitation_probability_max[i] ?? 0
+                  const w = sky(mm, chance)
+                  return (
+                    <div key={i} className={`wx-day ${w.tone}`} title={x.rainChance(chance)}>
+                      <span className="wx-name">{day(r.daily.time[i])}</span>
+                      <Icon name={w.icon} className="wx-ico" />
+                      <span className="wx-bar"><i style={{ height: `${Math.max(6, (mm / max) * 100)}%` }} /></span>
+                      <strong className="num">{mm.toFixed(0)}<small> mm</small></strong>
+                      <small className="num">{chance}%</small>
+                    </div>
+                  )
+                })}
+              </div>
+            </article>
+          ))}
+        </div>
       )}
       <p className="vc-note">{x.upstreamNote} <span className="src">Open-Meteo</span></p>
     </section>

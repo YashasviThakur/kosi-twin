@@ -15,6 +15,7 @@ import { VillageCard } from './components/VillageCard'
 import { duration } from './format'
 import { CATEGORY_ICON, X } from './i18n-extra'
 import { Icon } from './icons'
+import { Logo } from './components/Logo'
 import { M } from './i18n-mirror'
 import type { Category } from './i18n-extra'
 import { T } from './i18n'
@@ -224,7 +225,7 @@ export default function App() {
               else setSheet(SHEETS[(i + 1) % 3])
             }}><i /></button>
         <div className="brand" title={t.replayNote}>
-          <span className="brand-badge" aria-hidden>कोसी</span>
+          <Logo className="brand-badge" />
           <span className="brand-text">
             <span className="brand-name">{t.title}</span>
             <span className="badge">{t.estimate}</span>

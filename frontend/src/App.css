@@ -1412,3 +1412,36 @@
 .report-pin.kind-crack { color: #D9902B; }
 .report-pin.kind-breach { color: #D64533; }
 .report-pin.is-draft { width: 44px; height: 44px; color: #1F2B30; border-color: #F4C46A; background: #F4C46A; font-size: 26px; cursor: default; }
+
+/* =====================================================================================
+   v14 — weather: two cards (here, upstream in Nepal) of three day columns, each with a sky icon, a rain bar,
+   millimetres and chance. Logo: the braided-river mark replaces the Devanagari badge.
+   ===================================================================================== */
+.wx-cards { display: grid; gap: 10px; margin-top: 8px; }
+.wx-card { padding: 14px 14px 12px; border-radius: 20px; background: rgb(255 255 255 / 6%); border: 1px solid rgb(255 255 255 / 10%); }
+.wx-title { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: calc(14px * var(--fs)); font-weight: 700; color: var(--ink); }
+.wx-title .icon { font-size: 17px; color: #8EC9F0; }
+.wx-days { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.wx-day {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px 8px; border-radius: 16px;
+  background: rgb(255 255 255 / 5%); --tone: #8EC9F0;
+}
+.wx-day.is-sun { --tone: #F4C46A; }
+.wx-day.is-cloud { --tone: #B8C4CA; }
+.wx-day.is-light { --tone: #8EC9F0; }
+.wx-day.is-heavy { --tone: #4F9BE8; }
+.wx-day.is-storm { --tone: #FF9C8C; }
+.wx-name { font-size: calc(12px * var(--fs)); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.wx-ico { font-size: 30px; color: var(--tone); stroke-width: 1.6; }
+.wx-bar { display: flex; align-items: flex-end; width: 100%; max-width: 30px; height: 44px; border-radius: 8px; background: rgb(255 255 255 / 8%); overflow: hidden; }
+.wx-bar i { display: block; width: 100%; border-radius: 8px; background: linear-gradient(180deg, var(--tone), color-mix(in srgb, var(--tone) 45%, #12357A)); }
+.wx-day strong { font-size: calc(18px * var(--fs)); line-height: 1.1; color: var(--ink); }
+.wx-day strong small { font-size: .62em; font-weight: 600; color: var(--muted); }
+.wx-day > small { font-size: calc(12px * var(--fs)); color: var(--muted); }
+
+.brand-badge { display: block; width: 46px; height: 46px; border-radius: 14px; background: none; box-shadow: 0 6px 16px rgb(0 0 0 / 35%); font-size: 0; }
+.brand-name { font-size: calc(18px * var(--fs)); font-weight: 700; letter-spacing: .01em; }
+.sidebar .brand { gap: 12px; }
+@media (max-width: 860px) {
+  .sidebar .brand-badge { width: 42px; height: 42px; }
+}
