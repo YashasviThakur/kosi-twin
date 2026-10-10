@@ -133,6 +133,7 @@ async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
 
 export const api = {
   meta: () => get<Meta>('/api/meta'),
+  status: () => get<{ aws: boolean; region: string; bucket: boolean; text_models: string[]; image_model: string }>('/api/status'),
   villages: () => get<Village[]>('/api/villages'),
   scenario: (discharge: number, signal?: AbortSignal) =>
     get<Scenario>(`/api/scenario?discharge=${discharge.toFixed(2)}`, signal),

@@ -1,6 +1,6 @@
 // Screen 2: one village's flood — when to leave, when water arrives, how deep, where to go, and a
 // plain-language advisory that can be read aloud.
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api'
 import type { Advisory, Lang, ScenarioRef, VillageCard as Card } from '../api'
 import { dayTime, duration, int, people, shiftIso } from '../format'
@@ -13,6 +13,10 @@ import { depthSentence } from '../depth'
 import { Icon } from '../icons'
 import { M } from '../i18n-mirror'
 import { DepthScale } from './DepthScale'
+import { PrintSheet } from './PrintSheet'
+import { shareText } from '../evac'
+import { N } from '../i18n-more'
+import { T } from '../i18n'
 
 interface Props {
   card: Card | null
@@ -74,6 +78,18 @@ function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory, on
 }) {
   const c = C[lang]
   const [tab, setTab] = useState<Tab>('go')
+  const [printing, setPrinting] = useState(false)
+  const n = N[lang]
+  const donePrinting = useCallback(() => setPrinting(false), [])
+  const dischargeText = 'discharge' in scenario ? `${scenario.discharge.toFixed(2)} ${T[lang].unit}` : scenario.replay
+  const share = async () => {
+    const text = shareText(card, lang)
+    if (navigator.share) {
+      try { await navigator.share({ text }) } catch { /* the person closed the share sheet */ }
+      return
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')
+  }
   const depth = card.max_depth_m ?? 0
   // "Leave by" follows the destination shown on the map: each route has its own safe departure time.
   const option = routeCategory ? card.options?.[routeCategory] : undefined
@@ -123,6 +139,12 @@ function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory, on
           {!card.edge_only && <small>{depthSentence(depth, lang)}</small>}
         </span>
       </div>
+
+      <div className="vc-actions">
+        <button onClick={() => void share()}><Icon name="share" /> {n.share}</button>
+        <button onClick={() => setPrinting(true)}><Icon name="print" /> {n.print}</button>
+      </div>
+      {printing && <PrintSheet card={card} lang={lang} scenario={scenario} discharge={dischargeText} onDone={donePrinting} />}
 
       <div className="vc-tabs" role="tablist">
         {(['go', 'water', 'help'] as Tab[]).map((k) => (

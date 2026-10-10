@@ -1445,3 +1445,115 @@
 @media (max-width: 860px) {
   .sidebar .brand-badge { width: 42px; height: 42px; }
 }
+
+/* =====================================================================================
+   v15 — evacuation card (share / print), "How this works" panel, first-visit tour.
+   ===================================================================================== */
+.vc-actions { display: flex; gap: 8px; }
+.vc-actions button {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 12px; border: 0; border-radius: 999px;
+  cursor: pointer; background: rgb(255 255 255 / 9%); color: var(--ink); font-weight: 700; font-size: calc(14px * var(--fs));
+}
+.vc-actions button:hover { background: rgb(255 255 255 / 16%); }
+.vc-actions .icon { font-size: 18px; color: #F4C46A; }
+
+/* The printable card lives in <body> and only shows on paper. */
+.print-sheet { display: none; }
+@media print {
+  @page { size: A4; margin: 14mm; }
+  body { background: #fff !important; }
+  body > #root { display: none !important; }
+  .print-sheet { display: block; color: #111; background: #fff; font-family: var(--font-ui); font-size: 11.5pt; line-height: 1.4; }
+  .ps-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 2px solid #111; }
+  .ps-logo { width: 38px; height: 38px; }
+  .ps-head div { display: flex; flex-direction: column; }
+  .ps-head span { font-size: 10pt; color: #444; }
+  .ps-risk { margin-left: auto; padding: 4px 14px; border: 2px solid #111; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 10pt !important; color: #111 !important; }
+  .print-sheet h1 { margin: 14px 0 10px; font-family: var(--font-display); font-weight: 400; font-size: 34pt; line-height: 1.1; }
+  .print-sheet h2 { margin: 16px 0 6px; font-size: 10.5pt; letter-spacing: .1em; text-transform: uppercase; color: #444; }
+  .ps-times { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; }
+  .ps-times div { padding: 8px 10px; border: 1.5px solid #111; border-radius: 8px; }
+  .ps-times .is-leave { background: #111; color: #fff; }
+  .ps-times dt { font-size: 9.5pt; text-transform: uppercase; letter-spacing: .08em; opacity: .75; }
+  .ps-times dd { margin: 2px 0 0; font-size: 15pt; font-weight: 700; line-height: 1.2; }
+  .ps-boat { padding: 10px 12px; border: 2px solid #111; border-radius: 8px; font-weight: 700; }
+  .ps-table { width: 100%; border-collapse: collapse; }
+  .ps-table td { padding: 6px 8px; border: 1px solid #999; vertical-align: top; }
+  .ps-table .is-rec td { background: #eee; }
+  .ps-advisory { margin: 0; padding: 8px 10px; border-left: 4px solid #111; }
+  .ps-sos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+  .ps-sos strong { font-size: 14pt; margin-right: 6px; }
+  .ps-take { margin: 0; padding: 0; list-style: none; columns: 2; column-gap: 16px; }
+  .ps-take li { break-inside: avoid; margin-bottom: 5px; }
+  .ps-take li::before { content: ""; display: inline-block; width: 3.6mm; height: 3.6mm; margin-right: 2.4mm; border: 1.5px solid #111; vertical-align: -0.6mm; }
+  .ps-foot { margin-top: 18px; padding-top: 8px; border-top: 1px solid #999; display: flex; flex-direction: column; gap: 2px; font-size: 9pt; color: #444; }
+}
+
+/* "How this works" */
+.info-modal {
+  --ink: #F5EFE3; --muted: rgb(245 239 227 / 66%); --line: rgb(255 255 255 / 14%);
+  width: min(880px, 100%); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; color: var(--ink);
+  background: rgb(24 33 37 / 97%); border: 1px solid rgb(255 255 255 / 10%); border-radius: 26px; overflow: hidden;
+}
+.im-head { display: flex; align-items: center; gap: 14px; padding: 18px 18px 14px 22px; border-bottom: 1px solid var(--line); }
+.im-logo { width: 46px; height: 46px; flex: none; }
+.im-head h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: calc(26px * var(--fs)); color: #F4C46A; }
+.im-head p { margin: 2px 0 0; font-size: calc(14px * var(--fs)); color: var(--muted); }
+.im-close { position: static; margin-left: auto; flex: none; background: rgb(255 255 255 / 12%); color: #fff; }
+.im-body { overflow-y: auto; padding: 20px 24px 26px; display: grid; gap: 26px; }
+.im-body .eyebrow { color: var(--muted); margin-bottom: 10px; }
+.im-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.im-steps li { display: flex; gap: 12px; padding: 14px; border-radius: 18px; background: rgb(255 255 255 / 6%); }
+.im-n { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #F4C46A; color: #2B1D07; font-weight: 700; }
+.im-steps strong, .im-limits strong { display: block; font-size: calc(15px * var(--fs)); }
+.im-steps p, .im-limits p { margin: 3px 0 0; font-size: calc(14px * var(--fs)); color: var(--muted); line-height: 1.45; }
+.im-limits { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; }
+.im-limits li { padding-left: 14px; border-left: 3px solid #D9902B; }
+.im-warn { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: rgb(244 196 106 / 12%); color: #F4C46A; font-weight: 600; font-size: calc(14px * var(--fs)); }
+.arch { width: 100%; height: auto; display: block; }
+.arch-box rect { fill: rgb(255 255 255 / 7%); stroke: rgb(255 255 255 / 22%); }
+.arch-box.is-core rect { fill: rgb(244 196 106 / 18%); stroke: #F4C46A; }
+.arch-box.is-user rect { fill: rgb(142 201 240 / 14%); stroke: #8EC9F0; }
+.arch-t { font: 700 13px var(--font-ui); fill: #F5EFE3; }
+.arch-s { font: 500 10.5px var(--font-ui); fill: rgb(245 239 227 / 65%); }
+.arch-line { stroke: rgb(245 239 227 / 45%); stroke-width: 1.6; }
+.arch-head { fill: rgb(245 239 227 / 70%); }
+.arch-note { font: 500 11px var(--font-ui); fill: rgb(245 239 227 / 55%); }
+.im-status { display: flex; align-items: flex-start; gap: 10px; margin: 12px 0 0; font-size: calc(14px * var(--fs)); color: var(--muted); }
+.im-status i { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: #9aa; }
+.im-status.is-live i { background: #4ADE80; box-shadow: 0 0 0 4px rgb(74 222 128 / 25%); }
+.im-tour { justify-self: start; background: #F4C46A; color: #2B1D07; }
+
+/* Guided tour */
+.tour { position: fixed; inset: 0; z-index: 40; }
+.tour-block { position: absolute; inset: 0; }
+.tour.no-spot .tour-block { background: rgb(10 16 19 / 55%); }
+.tour-spot {
+  position: absolute; border-radius: 24px; pointer-events: none; transition: left .35s ease, top .35s ease, width .35s ease, height .35s ease;
+  box-shadow: 0 0 0 9999px rgb(10 16 19 / 62%), 0 0 0 3px #F4C46A, 0 0 28px 4px rgb(244 196 106 / 45%);
+}
+.tour-card {
+  position: absolute; display: grid; gap: 8px; padding: 18px 18px 14px; border-radius: 24px; color: #F5EFE3;
+  background: rgb(24 33 37 / 98%); border: 1px solid rgb(255 255 255 / 14%); box-shadow: 0 24px 60px rgb(0 0 0 / 50%);
+  transition: left .35s ease, top .35s ease;
+}
+.tour-card .eyebrow { color: #F4C46A; }
+.tour-card h3 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: calc(24px * var(--fs)); }
+.tour-card p { margin: 0; font-size: calc(15px * var(--fs)); line-height: 1.5; color: rgb(245 239 227 / 85%); }
+.tour-card p.eyebrow { font-size: calc(11px * var(--fs)); }
+.tour-dots { display: flex; gap: 6px; margin: 4px 0; }
+.tour-dots i { width: 8px; height: 8px; border-radius: 50%; background: rgb(255 255 255 / 22%); }
+.tour-dots i.is-done { background: rgb(244 196 106 / 55%); }
+.tour-dots i.is-now { width: 22px; border-radius: 4px; background: #F4C46A; }
+.tour-actions { display: flex; align-items: center; gap: 8px; }
+.tour-actions > span { flex: 1; }
+.tour-actions .btn-quiet { color: rgb(245 239 227 / 70%); }
+.tour-card .btn-primary { background: #F4C46A; color: #2B1D07; box-shadow: none; }
+.tour-back { background: rgb(255 255 255 / 12%); color: #F5EFE3; }
+
+@media (max-width: 860px) {
+  .im-steps, .im-limits { grid-template-columns: 1fr; }
+  .info-modal { border-radius: 0; max-height: 100dvh; }
+  .im-body { padding: 16px; }
+  .tour-card { padding: 14px 14px 10px; }
+}

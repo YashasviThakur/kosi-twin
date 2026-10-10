@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, layerPrefix, riseFor, statsAt } from './api'
 import type { Lang, Meta, Replay, Report, Risk, Scenario, ScenarioRef, Village, VillageCard as Card } from './api'
 import { Gauge } from './components/Gauge'
@@ -15,6 +15,9 @@ import { VillageCard } from './components/VillageCard'
 import { duration } from './format'
 import { CATEGORY_ICON, X } from './i18n-extra'
 import { Icon } from './icons'
+import { InfoModal } from './components/InfoModal'
+import { Tour } from './components/Tour'
+import { N } from './i18n-more'
 import { Logo } from './components/Logo'
 import { M } from './i18n-mirror'
 import type { Category } from './i18n-extra'
@@ -30,6 +33,14 @@ const LEVELS: Record<Lang, [string, string, string, string]> = {
 const levelOf = (q: number) => (q < 1.5 ? 0 : q < 4 ? 1 : q < 6 ? 2 : 3)
 
 const SHEETS = ['peek', 'half', 'full'] as const
+// First-visit tour: what each step points at, in order.
+const TOUR_TARGETS = ['.gauge-panel .gauge', '.gauge-panel .btn-primary', '.vlist', '.tl-card', '.round-accent']
+function tourSeen() {
+  try { return localStorage.getItem('kosi.tour.done') === '1' } catch { return true }
+}
+function markTourSeen() {
+  try { localStorage.setItem('kosi.tour.done', '1') } catch { /* it will show again next time */ }
+}
 const GAUGE_MIN = 0.5
 const GAUGE_MAX = 8
 const PEAK_2024 = 6.61
@@ -59,6 +70,8 @@ export default function App() {
   const [draft, setDraft] = useState<{ lon: number; lat: number } | null>(null)
   const [mirror, setMirror] = useState<MirrorTarget | null>(null)
   const [menu, setMenu] = useState<'layers' | 'lang' | null>(null)
+  const [info, setInfo] = useState(false)
+  const [tour, setTour] = useState(false)
   const [sheet, setSheet] = useState<(typeof SHEETS)[number]>('half')   // phone bottom-sheet height
   const drag = useRef<number | null>(null)
   const sbScroll = useRef<HTMLDivElement>(null)
@@ -145,6 +158,18 @@ export default function App() {
         timeline: shownCard.timeline?.map((p) => ({ time: p.time, depth_m: p.depth_m })) ?? null,
       }
     : { village: 'Example', displayName: '', depth: 0, when: null, timeline: null })
+  // Tour: the first time, once the map is up. Steps 4-5 need a village open, so open the soonest one.
+  useEffect(() => {
+    if (!meta || tourSeen()) return
+    const id = window.setTimeout(() => setTour(true), 2400)
+    return () => window.clearTimeout(id)
+  }, [meta])
+  const tourVillage = scenario?.top_villages?.[0]?.id ?? scenario?.affected?.[0]?.id ?? null
+  const onTourStep = useCallback((i: number) => {
+    if (i <= 2) setSelectedId(null)
+    else if (tourVillage != null) setSelectedId(tourVillage)
+  }, [tourVillage])
+  const closeTour = useCallback(() => { markTourSeen(); setTour(false); setSelectedId(null) }, [])
   const [routeCategory, setRouteCategory] = useState<Category | null>(null)
   const [routeFor, setRouteFor] = useState<number | null>(null)
   const [sheetFor, setSheetFor] = useState<number | null>(null)
@@ -282,6 +307,9 @@ export default function App() {
           <button className="round-btn round-accent" onClick={openMirror} aria-label={M[lang].title} title={M[lang].title}>
             <Icon name="image" />
           </button>
+          <button className="round-btn" onClick={() => setInfo(true)} aria-label={N[lang].info} title={N[lang].info}>
+            <Icon name="info" />
+          </button>
           <div className="pop-wrap">
             <button className={`round-btn${menuOpen ? ' is-open' : ''}`} aria-expanded={menuOpen} aria-haspopup="true"
               aria-label={X[lang].layers} title={X[lang].layers} onClick={() => setMenu(menuOpen ? null : 'layers')}>
@@ -355,6 +383,8 @@ export default function App() {
         )}
       </div>
       {mirror && <MirrorModal lang={lang} target={mirror} onClose={() => setMirror(null)} />}
+      {info && <InfoModal onClose={() => setInfo(false)} onTour={() => setTour(true)} />}
+      {tour && <Tour lang={lang} targets={TOUR_TARGETS} onStep={onTourStep} onClose={closeTour} />}
       {reportMode && (
         <ReportForm lang={lang} draft={draft}
           onClose={() => { setReportMode(false); setDraft(null) }}

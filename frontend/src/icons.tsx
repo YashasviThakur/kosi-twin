@@ -3,7 +3,7 @@
 export type IconName =
   | 'walk' | 'bike' | 'motorbike' | 'image' | 'camera' | 'ruler' | 'wave' | 'clock' | 'elder' | 'child' | 'road'
   | 'hospital' | 'school' | 'highground' | 'user' | 'pin' | 'drop' | 'alert' | 'siren' | 'bed' | 'goat' | 'cow'
-  | 'adult' | 'door' | 'house' | 'sun' | 'cloud' | 'rain' | 'storm' | 'mountain'
+  | 'adult' | 'door' | 'house' | 'sun' | 'cloud' | 'rain' | 'storm' | 'mountain' | 'share' | 'print' | 'info'
 
 const STICK = '<circle cx="12" cy="4.6" r="2"/><path d="M12 7.6v7M12 14.6l-3 6M12 14.6l3 6M8 11l4-2.2 4 2.2"/>'
 const ANIMAL = '<path d="M4.5 9.5h11l3-3 2.5 1-1.6 3.4V19M15.5 19v-5M7.5 19v-5M11 19v-5M4.5 9.5V14"/>'
@@ -39,6 +39,9 @@ const PATHS: Record<IconName, string> = {
   rain: '<path d="M6.5 14.5a4 4 0 01-.4-7.98 5.5 5.5 0 0110.6-1.2A4.1 4.1 0 0117 14.5z"/><path d="M8 17.5l-1 3M12 17.5l-1 3M16 17.5l-1 3"/>',
   storm: '<path d="M6.5 14.5a4 4 0 01-.4-7.98 5.5 5.5 0 0110.6-1.2A4.1 4.1 0 0117 14.5z"/><path d="M12.8 14.5l-2.6 3.8h3.6l-2.2 3.7"/>',
   mountain: '<path d="M2.5 19.5l6.5-11 4 6.5 2.5-3.5 6 8z"/>',
+  share: '<path d="M12 15V4M8 8l4-4 4 4M5 12.5V19h14v-6.5"/>',
+  print: '<path d="M7 9V4h10v5M7 17H5a1 1 0 01-1-1v-5a2 2 0 012-2h12a2 2 0 012 2v5a1 1 0 01-1 1h-2"/><rect x="7" y="14" width="10" height="6" rx="1"/>',
+  info: '<circle cx="12" cy="12" r="8.6"/><path d="M12 11v5.4M12 7.8v.1"/>',
 }
 
 export const iconSvg = (name: IconName, size = '1em') =>
