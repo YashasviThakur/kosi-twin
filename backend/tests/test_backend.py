@@ -153,3 +153,24 @@ def test_leak_reports_are_validated_and_stored(tmp_path, monkeypatch):
     for bad in ({"kind": "fire", "lon": 86.8, "lat": 26.0}, {"kind": "crack", "lon": 10, "lat": 26.0},
                 {"kind": "crack", "lon": 86.8, "lat": 26.0, "note": "x" * 201}):
         assert client.post("/api/reports", data=bad).status_code == 400
+
+
+def test_live_flow_is_a_trend_anchored_on_the_2024_reading(monkeypatch):
+    from kosi import live
+    days = [("2026-10-08", 2000.0), ("2026-10-09", 2400.0), ("2026-10-10", 2800.0),    # today = 10 Oct
+            ("2026-10-11", 3600.0), ("2026-10-12", 4200.0), ("2026-10-13", 4800.0)]
+    monkeypatch.setattr(live, "_fetch", lambda: (days, (26.525, 86.875)))
+    live._cache.update(t=0.0, data=None)
+    d = live.get(today="2026-10-10")
+    assert d["modelled"] and d["now"]["date"] == "2026-10-10"
+    assert d["now"]["pct"] == round(2800 / live.GLOFAS_2024_PEAK_M3S * 100, 1)
+    assert d["trend"] == "rising" and d["peak_ahead"]["date"] == "2026-10-13"
+    # the model's own 2024 reading maps to the reported 2024 peak, and nothing is invented beyond that ratio
+    assert round(live.to_lakh(live.GLOFAS_2024_PEAK_M3S), 2) == live.REPORTED_2024_PEAK_LAKH
+    assert [p["forecast"] for p in d["series"]] == [False, False, False, True, True, True]
+
+
+def test_replays_are_listed_from_files():
+    from kosi import store
+    names = [r["name"] for r in store.replays()]
+    assert "2024" in names and all(r["peak_lakh"] > 0 for r in store.replays())

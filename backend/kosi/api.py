@@ -5,7 +5,7 @@ from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
 
-from . import advisory, cloud, hydro, mirror, reports, speech, store
+from . import advisory, cloud, hydro, live, mirror, reports, speech, store
 from .config import D0_M, DATA_DIR, EXPONENT, Q0_LAKH
 from .lang import LANGS
 from .village import affected, card
@@ -35,7 +35,7 @@ def health():
 def meta():
     return {"grid": store.grid(), "stage_stats": store.stage_stats(),
             "rating_curve": {"q0_lakh": Q0_LAKH, "d0_m": D0_M, "exponent": EXPONENT},
-            "discharge_range_lakh": [0.5, 10.0], "replays": ["2024"], "languages": LANGS}
+            "discharge_range_lakh": [0.5, 10.0], "replays": [r["name"] for r in store.replays()], "languages": LANGS}
 
 
 @app.get("/api/scenario")
@@ -78,6 +78,20 @@ def village_audio(village_id: int, lang: str = Query("hi", pattern="^(en|hi|bho|
     if audio is None:
         raise HTTPException(503, "voice unavailable")
     return Response(audio, media_type="audio/mpeg", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@app.get("/api/live")
+def live_flow():
+    """Modelled river flow near Birpur now and 14 days ahead (a trend, not a gauge reading; see kosi/live.py)."""
+    try:
+        return live.get()
+    except Exception:
+        raise HTTPException(503, "live river data is unavailable right now")
+
+
+@app.get("/api/replays")
+def replay_list():
+    return store.replays()
 
 
 @app.get("/api/replay/{name}")

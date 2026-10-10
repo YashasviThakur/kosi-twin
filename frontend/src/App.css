@@ -1639,3 +1639,37 @@
 
 .theme-pick { grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .theme-pick button { padding: 8px 2px; font-size: calc(11px * var(--fs)); }
+
+/* =====================================================================================
+   v17 — "River now" card: modelled live flow with history and a 14-day outlook.
+   ===================================================================================== */
+.live-card {
+  display: grid; gap: 8px; padding: 16px 18px 16px; border-radius: 22px; color: var(--txt);
+  background: rgb(255 255 255 / 6%); border: 1px solid rgb(255 255 255 / 10%);
+}
+.live-card header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.live-card .eyebrow { color: rgb(var(--txt-rgb) / 62%); }
+.live-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: rgb(74 222 128 / 16%); color: #8FD6A4; font: 700 11px/1.5 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
+.live-chip i { width: 7px; height: 7px; border-radius: 50%; background: #4ADE80; animation: live-blink 1.8s ease-in-out infinite; }
+@keyframes live-blink { 50% { opacity: .35; } }
+.live-main { display: flex; align-items: baseline; gap: 10px; }
+.live-main strong { font-size: calc(44px * var(--fs)); line-height: 1; color: var(--acc); letter-spacing: -.02em; }
+.live-main strong small { font-size: .5em; margin-left: 2px; }
+.live-main span { color: rgb(var(--txt-rgb) / 75%); font-size: calc(14px * var(--fs)); }
+.live-trend { margin: 0; font-size: calc(14px * var(--fs)); font-weight: 600; color: rgb(var(--txt-rgb) / 85%); }
+.live-trend span { font-size: .8em; margin-right: 2px; }
+.live-trend.is-rising { color: #FFB4A8; }
+.live-trend.is-falling { color: #8FD6A4; }
+.live-chart { width: 100%; height: 84px; display: block; margin-top: 4px; overflow: visible; }
+.live-line { fill: none; stroke: var(--acc); stroke-width: 2.4; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.live-line.is-forecast { stroke-dasharray: 5 4; stroke: var(--accl); }
+.live-today { stroke: rgb(var(--txt-rgb) / 55%); stroke-width: 1.5; stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; }
+.live-axis { display: flex; justify-content: space-between; font-size: calc(11px * var(--fs)); color: rgb(var(--txt-rgb) / 55%); }
+.live-apply {
+  margin-top: 6px; width: 100%; border-radius: 999px; background: rgb(var(--acc-rgb) / 16%); color: var(--acc);
+  border: 1px solid rgb(var(--acc-rgb) / 40%); box-shadow: none;
+}
+.live-apply:hover { background: rgb(var(--acc-rgb) / 26%); }
+.live-apply.is-on { background: var(--acc); color: var(--on-acc); }
+.live-note { font-size: calc(12px * var(--fs)); line-height: 1.45; }
+.live-card.is-loading { min-height: 90px; }

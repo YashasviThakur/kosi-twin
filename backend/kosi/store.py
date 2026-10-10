@@ -44,6 +44,18 @@ def replay(name):
 
 
 @lru_cache
+def replays():
+    """Every replay file in kosi/replays: [{name, title, note, peak_lakh, start, end}], newest first."""
+    out = []
+    for path in sorted((Path(__file__).parent / "replays").glob("*.json")):
+        d = json.loads(path.read_text(encoding="utf-8"))
+        q = [p["discharge_lakh"] for p in d["series"]]
+        out.append({"name": d["name"], "title": d.get("title", d["name"]), "note": d["note"], "peak_lakh": max(q),
+                    "start": d["series"][0]["time"], "end": d["series"][-1]["time"]})
+    return sorted(out, key=lambda r: r["start"], reverse=True)
+
+
+@lru_cache
 def roads():
     z = np.load(DATA_DIR / "roads.npz")
     lonlat = z["lonlat"]

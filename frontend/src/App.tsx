@@ -18,6 +18,7 @@ import { Icon } from './icons'
 import { InfoModal } from './components/InfoModal'
 import { Tour } from './components/Tour'
 import { Splash } from './components/Splash'
+import { LiveCard } from './components/LiveCard'
 import { N } from './i18n-more'
 import { Logo } from './components/Logo'
 import { M } from './i18n-mirror'
@@ -91,6 +92,7 @@ export default function App() {
   const [menu, setMenu] = useState<'layers' | 'lang' | null>(null)
   const [theme, setTheme] = useState<ThemeId>(loadTheme)
   const [info, setInfo] = useState(false)
+  const [liveApplied, setLiveApplied] = useState(false)     // the gauge is showing the live river level
   const [tour, setTour] = useState(false)
   const [sheet, setSheet] = useState<(typeof SHEETS)[number]>('half')   // phone bottom-sheet height
   const drag = useRef<number | null>(null)
@@ -306,10 +308,12 @@ export default function App() {
             { value: 1, label: t.normal, tone: 'muted' },
             { value: PEAK_2024, label: t.peak2024, tone: 'danger' },
           ]}
-          onChange={setDischarge}
+          onChange={(v) => { setLiveApplied(false); setDischarge(v) }}
         />
         {!replay && <button className="btn btn-primary" onClick={startReplay}>{t.replay}</button>}
       </Panel>
+              <LiveCard lang={lang} applied={liveApplied}
+                onApply={(lakh) => { setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(true) }} />
               <SummaryPanel lang={lang} discharge={qExtent} stats={stats} affected={scenario?.affected ?? []} villages={villages}
                 selectedId={selectedId} onSelect={setSelectedId} />
             </>

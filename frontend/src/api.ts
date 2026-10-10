@@ -118,6 +118,18 @@ export interface ReplayFrame {
   stats: StageStats
 }
 
+export interface LivePoint { date: string; m3s: number; pct: number; lakh: number; forecast: boolean }
+export interface LiveFlow {
+  source: string
+  modelled: boolean
+  today: string
+  now: LivePoint & { rise_m: number }
+  trend: 'rising' | 'falling' | 'steady'
+  peak_ahead: LivePoint | null
+  series: LivePoint[]
+  note: string
+}
+
 export interface Replay {
   name: string
   note: string
@@ -133,6 +145,7 @@ async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
 
 export const api = {
   meta: () => get<Meta>('/api/meta'),
+  live: () => get<LiveFlow>('/api/live'),
   status: () => get<{ aws: boolean; region: string; bucket: boolean; text_models: string[]; image_model: string }>('/api/status'),
   villages: () => get<Village[]>('/api/villages'),
   scenario: (discharge: number, signal?: AbortSignal) =>

@@ -13,6 +13,11 @@ interface More {
   tour: { next: string; back: string; done: string; skip: string; steps: { title: string; text: string }[] }
   info: string
   retry: string
+  live: {
+    title: string; live: string; of2024: string; rising: string; falling: string; steady: string
+    peak: (pct: number, day: string) => string; history: string; outlook: string; apply: string; applied: string
+    note: string; unavailable: string
+  }
 }
 
 export const N: Record<Lang, More> = {
@@ -35,6 +40,13 @@ export const N: Record<Lang, More> = {
     },
     info: 'How this works',
     retry: 'Try again',
+    live: {
+      title: 'River now (modelled)', live: 'Live', of2024: 'of the 2024 flood flow', rising: 'Rising over the next 3 days', falling: 'Falling over the next 3 days',
+      steady: 'Steady over the next 3 days', peak: (p, d) => `up to ${p}% by ${d}`, history: 'Last 4 months', outlook: '14-day outlook',
+      apply: 'Show this level on the map', applied: 'Showing this level on the map',
+      note: 'Modelled river flow (GloFAS), compared with the same model’s reading for the 2024 flood. Not a gauge reading, and the model reads big Kosi floods low.',
+      unavailable: 'Live river data is unavailable right now.',
+    },
   },
   hi: {
     share: 'साझा करें', print: 'छापें', sheetTitle: 'निकासी कार्ड',
@@ -55,6 +67,13 @@ export const N: Record<Lang, More> = {
     },
     info: 'यह कैसे काम करता है',
     retry: 'फिर कोशिश करें',
+    live: {
+      title: 'नदी अभी (मॉडल से)', live: 'लाइव', of2024: '2024 की बाढ़ के बहाव का', rising: 'अगले 3 दिन बढ़ेगा', falling: 'अगले 3 दिन घटेगा',
+      steady: 'अगले 3 दिन लगभग स्थिर', peak: (p, d) => `${d} तक ${p}% तक`, history: 'पिछले 4 महीने', outlook: '14 दिन का अनुमान',
+      apply: 'यह स्तर नक्शे पर दिखाएँ', applied: 'नक्शे पर यही स्तर दिख रहा है',
+      note: 'मॉडल से निकाला नदी का बहाव (GloFAS), उसी मॉडल की 2024 की बाढ़ के आँकड़े से तुलना में। यह गेज की रीडिंग नहीं है, और मॉडल कोसी की बड़ी बाढ़ को कम आँकता है।',
+      unavailable: 'नदी का लाइव डेटा अभी उपलब्ध नहीं है।',
+    },
   },
   bho: {
     share: 'साझा करीं', print: 'छापीं', sheetTitle: 'निकासी कार्ड',
@@ -75,6 +94,13 @@ export const N: Record<Lang, More> = {
     },
     info: 'ई कइसे काम करेला',
     retry: 'फेर कोशिश करीं',
+    live: {
+      title: 'नदी अब (मॉडल से)', live: 'लाइव', of2024: '2024 के बाढ़ के बहाव के', rising: 'अगिला 3 दिन बढ़ी', falling: 'अगिला 3 दिन घटी',
+      steady: 'अगिला 3 दिन लगभग स्थिर', peak: (p, d) => `${d} ले ${p}% तक`, history: 'पिछला 4 महीना', outlook: '14 दिन के अंदाजा',
+      apply: 'ई स्तर नक्सा पर देखाईं', applied: 'नक्सा पर इहे स्तर देखात बा',
+      note: 'मॉडल से निकारल नदी के बहाव (GloFAS), ओही मॉडल के 2024 के बाढ़ के आँकड़ा से तुलना में। ई गेज के रीडिंग ना ह, आ मॉडल कोसी के बड़ बाढ़ के कम आँकेला।',
+      unavailable: 'नदी के लाइव डेटा अबहीं ना मिलल।',
+    },
   },
   mai: {
     share: 'साझा करू', print: 'छापू', sheetTitle: 'निकासी कार्ड',
@@ -95,5 +121,12 @@ export const N: Record<Lang, More> = {
     },
     info: 'ई कोना काज करैत अछि',
     retry: 'फेर प्रयास करू',
+    live: {
+      title: 'नदी एखन (मॉडल सँ)', live: 'लाइव', of2024: '2024 क बाढ़िक बहावक', rising: 'अगिला 3 दिन बढ़त', falling: 'अगिला 3 दिन घटत',
+      steady: 'अगिला 3 दिन लगभग स्थिर', peak: (p, d) => `${d} धरि ${p}% धरि`, history: 'पछिला 4 मास', outlook: '14 दिनक अनुमान',
+      apply: 'ई स्तर नक्शा पर देखाउ', applied: 'नक्शा पर यैह स्तर देखा रहल अछि',
+      note: 'मॉडल सँ निकालल नदीक बहाव (GloFAS), ओही मॉडलक 2024 क बाढ़िक आँकड़ा सँ तुलना मे। ई गेजक रीडिंग नहि अछि, आ मॉडल कोसीक पैघ बाढ़िकेँ कम आँकैत अछि।',
+      unavailable: 'नदीक लाइव डेटा एखन उपलब्ध नहि अछि।',
+    },
   },
 }

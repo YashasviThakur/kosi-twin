@@ -22,6 +22,8 @@ const LIMITS = [
   ['River height', 'We use a simple rule to turn flow into river height. It is our best estimate, not a calibrated one. The only real number we have is the 2024 peak of 6.61 lakh cusecs.'],
   ['Flooded area', 'It shows where water can flow across the land. It cannot predict embankment breaks, blocked drains, or puddles that stay behind.'],
   ['Timing', 'Arrival times come from a rule of thumb for how fast a flood moves, not from measured travel times.'],
+  ['Live river flow', 'The "River now" card uses a global flood model (GloFAS), not a gauge. It reads the 2024 flood at about half the reported size, so we only show today\'s flow against the model\'s own 2024 reading, as a trend.'],
+  ['Past floods', 'Only the September 2024 flood is built in, because it is the one we have a reported figure for. Official records from the Water Resources Department can be added and will show up as more replays.'],
   ['People and places', 'Villages, roads and shelters come from open data, so a few places are missing.'],
   ['Embankments', 'We only show the stretches that are mapped. The colours show how many people live behind them, not where a break will happen.'],
   ['Flood Mirror', 'It is a simulation, not a real photo. The depth comes from the forecast, and the scale comes from a door, a person, or a rough guess from one tap.'],
@@ -126,7 +128,7 @@ function Architecture() {
       {arrow(470, 216, 530, 143)}
       {arrow(470, 219, 530, 197)}
       {arrow(470, 226, 530, 251)}
-      <text x="8" y="286" className="arch-note">Open data: Copernicus DEM and Terrain Tiles (AWS Open Data), OpenStreetMap, Open-Meteo, Sentinel-2 imagery</text>
+      <text x="8" y="286" className="arch-note">Open data: Copernicus DEM, Terrain Tiles (AWS Open Data), OpenStreetMap, Open-Meteo and GloFAS, Sentinel-2</text>
     </svg>
   )
 }
