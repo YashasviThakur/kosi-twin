@@ -52,6 +52,13 @@ python -m pytest tests
 - **2024 replay:** only the ~6.61 lakh cusec peak is from reports; the rest of the curve is interpolated.
 - This is a planning estimate, not an engineering-grade hydraulic model.
 
+## Live deployment (AWS, us-east-1)
+- Site: https://d34uuvdd8ofh55.cloudfront.net (CloudFront in front of S3 for the web app and flood layers, and API Gateway to Lambda for `/api/*`)
+- Stack: `kosi-twin` (CloudFormation, `infra/template.yaml`). Redeploy with `bash infra/deploy.sh` (needs AWS CLI credentials and `backend/data/out`).
+- Live AWS services: Lambda, API Gateway, S3, CloudFront, DynamoDB (leak reports), Polly (voice), Translate, Rekognition.
+- Bedrock (AI-written advisories, AI-painted water) is wired in but the account has no model access or quota yet, so those two features
+  use the built-in template and app-drawn water. Nothing else changes when access is granted.
+
 ### Flood Mirror example scenes
 The Flood Mirror window offers example cards from `frontend/public/samples/samples.json`. The three shipped examples are
 illustrations drawn by `backend/prep/make_samples.py` (run it to regenerate them), each with a door at a known place, so the

@@ -39,9 +39,9 @@ aws s3 sync "$OUT/layers" "s3://$(output SiteBucket)/layers" --region "$REGION" 
     --cache-control "public, max-age=86400"
 
 echo "==> building and uploading the web app"
-(cd "$ROOT/frontend" && npm ci --silent && npm run build --silent)
+(cd "$ROOT/frontend" && { [ -d node_modules ] || npm ci --silent; } && npm run build --silent)
 aws s3 sync "$ROOT/frontend/dist" "s3://$(output SiteBucket)" --region "$REGION" --only-show-errors     --delete --exclude "layers/*" --exclude "audio/*"
-aws cloudfront create-invalidation --distribution-id "$(output DistributionId)" --paths "/index.html" "/"     --query "Invalidation.Id" --output text >/dev/null
+MSYS_NO_PATHCONV=1 aws cloudfront create-invalidation --distribution-id "$(output DistributionId)" --paths "/index.html" "/"     --query "Invalidation.Id" --output text >/dev/null
 
 echo
 echo "Site:   $(output Url)"

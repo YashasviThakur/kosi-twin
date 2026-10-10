@@ -7,3 +7,5 @@ backend/data/out/
 infra/.build/
 backend/data/*.log
 backend/data/reports.jsonl
+infra/.deploy.log
+frontend/dist/

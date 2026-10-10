@@ -18,7 +18,9 @@ TEXT_MODELS = os.environ.get("KOSI_TEXT_MODELS",
 IMAGE_MODEL = os.environ.get("KOSI_IMAGE_MODEL", "amazon.nova-canvas-v1:0")
 
 # Fail fast: a throttled Bedrock call must not stall the page — the fallback is good enough.
-_FAST = Config(retries={"max_attempts": 1, "mode": "standard"}, connect_timeout=3, read_timeout=25)
+# API Gateway cuts a request off at 29 s, so an AWS call gets 20 s at most (KOSI_READ_TIMEOUT), leaving time to fall back.
+_FAST = Config(retries={"max_attempts": 1, "mode": "standard"}, connect_timeout=3,
+               read_timeout=int(os.environ.get("KOSI_READ_TIMEOUT", "20")))
 
 
 @lru_cache
