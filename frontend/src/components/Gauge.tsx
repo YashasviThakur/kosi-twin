@@ -1,5 +1,5 @@
-// The discharge control, drawn as a river staff gauge: the painted E-pattern post at CWC stations.
-// Drag the water up or down (or use arrow keys) to change the discharge at Birpur.
+// The discharge control, drawn as a water capsule: drag the knob (or the water) up or down, or use the
+// arrow keys, to change the discharge at Birpur. A colour strip beside it shows the level bands.
 import { useCallback, useRef } from 'react'
 
 export interface GaugeMark {
@@ -20,9 +20,17 @@ interface Props {
 }
 
 const H = 520          // SVG units, scaled to the panel height
-const PAD = 14
-const BOARD_X = 6
-const BOARD_W = 44
+const PAD = 22
+const CAP_X = 8
+const CAP_W = 64
+const STRIP_X = 80
+// Level bands, the same thresholds as the level chip in the gauge panel.
+const BANDS = [
+  { from: 0, to: 1.5, color: '#3F7552' },
+  { from: 1.5, to: 4, color: '#D9902B' },
+  { from: 4, to: 6, color: '#D64533' },
+  { from: 6, to: 100, color: '#8E2A1A' },
+]
 
 export function Gauge({ value, min, max, marks, disabled, label, valueText, onChange }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
@@ -53,20 +61,9 @@ export function Gauge({ value, min, max, marks, disabled, label, valueText, onCh
     onChange(Math.round(Math.min(max, Math.max(min, next)) * 20) / 20)
   }
 
-  // E-pattern graduations: alternating black blocks every 0.1 lakh, a full bar at each whole number.
-  const blocks = []
-  for (let v = Math.ceil(min * 10) / 10; v < max; v = Math.round((v + 0.1) * 10) / 10) {
-    const tenth = Math.round(v * 10) % 10
-    if (tenth % 2 === 0) {
-      blocks.push(<rect key={`b${v}`} x={BOARD_X + 4} y={y(v + 0.05)} width={tenth === 0 ? BOARD_W - 8 : 18}
-        height={y(v) - y(v + 0.05)} fill="var(--ink)" />)
-    }
-  }
-  const numbers = []
-  for (let v = Math.ceil(min); v <= max; v++) {
-    numbers.push(<text key={`n${v}`} x={BOARD_X + BOARD_W - 6} y={y(v) - 4} textAnchor="end" className="gauge-num">{v}</text>)
-  }
   const waterY = y(value)
+  const levels = []
+  for (let v = Math.ceil(min); v <= max; v++) levels.push(v)
 
   return (
     <svg
@@ -87,40 +84,53 @@ export function Gauge({ value, min, max, marks, disabled, label, valueText, onCh
       onKeyDown={onKeyDown}
     >
       <defs>
-        <clipPath id="board"><rect x={BOARD_X} y={PAD - 6} width={BOARD_W} height={H - 2 * PAD + 12} rx="3" /></clipPath>
-        {/* Measured from the water surface down (user units): light at the top, navy one gauge-height below. */}
+        <clipPath id="capsule"><rect x={CAP_X} y={PAD - 12} width={CAP_W} height={H - 2 * PAD + 24} rx={CAP_W / 2} /></clipPath>
+        {/* Measured from the water surface down: light at the top, navy one gauge-height below. */}
         <linearGradient id="water" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2={H - 2 * PAD}>
-          <stop offset="0" stopColor="var(--flood-2)" />
-          <stop offset="0.5" stopColor="var(--flood-3)" />
+          <stop offset="0" stopColor="var(--flood-1)" />
+          <stop offset="0.35" stopColor="var(--flood-2)" />
           <stop offset="1" stopColor="var(--flood-5)" />
+        </linearGradient>
+        <linearGradient id="gloss" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.55" />
+          <stop offset="0.45" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
       </defs>
 
-      <rect x={BOARD_X} y={PAD - 6} width={BOARD_W} height={H - 2 * PAD + 12} rx="3" fill="#fff" stroke="var(--line)" />
-      {blocks}
-      {numbers}
-
-      <g clipPath="url(#board)">
+      <rect className="gauge-capsule" x={CAP_X} y={PAD - 12} width={CAP_W} height={H - 2 * PAD + 24} rx={CAP_W / 2} />
+      <g clipPath="url(#capsule)">
         <g className="gauge-water" style={{ transform: `translateY(${waterY}px)` }}>
-          <path className="gauge-wave" d={wavePath(BOARD_X - 40, BOARD_W + 80)} fill="url(#water)" opacity="0.82" />
+          <path className="gauge-wave" d={wavePath(CAP_X - 40, CAP_W + 80)} fill="url(#water)" />
         </g>
+        <rect x={CAP_X + 8} y={PAD - 12} width={14} height={H - 2 * PAD + 24} rx="7" fill="url(#gloss)" pointerEvents="none" />
+        {levels.map((v) => <line key={v} className="gauge-grid" x1={CAP_X + 8} x2={CAP_X + CAP_W - 8} y1={y(v)} y2={y(v)} />)}
       </g>
+      <rect className="gauge-rim" x={CAP_X} y={PAD - 12} width={CAP_W} height={H - 2 * PAD + 24} rx={CAP_W / 2} />
+
+      {/* Level bands */}
+      {BANDS.map((b) => {
+        const top = y(Math.min(b.to, max)), bottom = y(Math.max(b.from, min))
+        return top < bottom ? <rect key={b.from} x={STRIP_X} y={top} width="6" height={bottom - top} rx="3" fill={b.color} opacity="0.9" /> : null
+      })}
+
+      {levels.map((v) => <text key={v} x={STRIP_X + 14} y={y(v) + 4} className="gauge-num">{v}</text>)}
 
       {marks.map((m) => (
         <g key={m.label} className={`gauge-mark tone-${m.tone}`}>
-          <line x1={BOARD_X - 4} x2={BOARD_X + BOARD_W + 10} y1={y(m.value)} y2={y(m.value)} />
-          <text x={BOARD_X + BOARD_W + 14} y={y(m.value) + 4}>{m.label}</text>
+          <line x1={CAP_X + 4} x2={STRIP_X + 10} y1={y(m.value)} y2={y(m.value)} />
+          <text x={STRIP_X + 14} y={y(m.value) - 6}>{m.label}</text>
         </g>
       ))}
 
       <g className="gauge-handle" style={{ transform: `translateY(${waterY}px)` }}>
-        <path d={`M${BOARD_X + BOARD_W + 2} 0 l10 -7 v14 z`} />
+        <circle cx={CAP_X + CAP_W / 2} cy="0" r="13" className="gauge-knob" />
+        <path d={`M${CAP_X + CAP_W / 2 - 4} -3 l4 -4 l4 4 M${CAP_X + CAP_W / 2 - 4} 3 l4 4 l4 -4`} className="gauge-knob-arrows" />
       </g>
     </svg>
   )
 }
 
-// A water body whose top edge is a gentle wave starting at y=0; it extends far below so it always fills the board.
+// A water body whose top edge is a gentle wave starting at y=0; it extends far below so it always fills the capsule.
 function wavePath(x0: number, width: number) {
   let d = `M${x0} 0`
   for (let x = 0; x <= width; x += 20) d += ` q5 -3 10 0 t10 0`

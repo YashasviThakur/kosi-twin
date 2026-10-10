@@ -793,3 +793,18 @@
 .peak-share small { display: block; margin-top: 4px; color: var(--muted); font-size: calc(12px * var(--fs)); }
 .peak-share .fact-bar { margin-top: 2px; }
 .gauge-panel .rise { margin-bottom: 2px; }
+
+/* Water capsule gauge */
+.gauge-capsule { fill: rgb(255 255 255 / 70%); }
+.gauge-rim { fill: none; stroke: rgb(60 45 20 / 22%); stroke-width: 2; }
+.gauge-grid { stroke: rgb(60 45 20 / 18%); stroke-width: 1; stroke-dasharray: 3 4; }
+.gauge-num { font: 600 11px var(--font-ui); fill: var(--muted); stroke: none; }
+.gauge-wave { opacity: .9; }
+.gauge-knob { fill: #fff; stroke: var(--ink); stroke-width: 2.5; filter: drop-shadow(0 2px 4px rgb(0 0 0 / 35%)); }
+.gauge-knob-arrows { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.gauge.is-disabled .gauge-knob { stroke: var(--muted); }
+.gauge-handle path { fill: none; }
+.gauge-mark line { stroke: rgb(30 47 54 / 55%); stroke-dasharray: 3 3; }
+.gauge-mark.tone-danger line { stroke: #8E2A1A; }
+.gauge-mark text { font: 600 11px var(--font-ui); fill: var(--ink); paint-order: stroke; stroke: rgb(252 249 242 / 90%); stroke-width: 3px; }
+.gauge-mark.tone-danger text { fill: #8E2A1A; }
