@@ -27,6 +27,7 @@ const LEVELS: Record<Lang, [string, string, string, string]> = {
 }
 const levelOf = (q: number) => (q < 1.5 ? 0 : q < 4 ? 1 : q < 6 ? 2 : 3)
 
+const SHEETS = ['peek', 'half', 'full'] as const
 const GAUGE_MIN = 0.5
 const GAUGE_MAX = 8
 const PEAK_2024 = 6.61
@@ -56,6 +57,9 @@ export default function App() {
   const [draft, setDraft] = useState<{ lon: number; lat: number } | null>(null)
   const [mirror, setMirror] = useState<MirrorTarget | null>(null)
   const [menu, setMenu] = useState<'layers' | 'lang' | null>(null)
+  const [sheet, setSheet] = useState<(typeof SHEETS)[number]>('half')   // phone bottom-sheet height
+  const drag = useRef<number | null>(null)
+  const sbScroll = useRef<HTMLDivElement>(null)
   const menuOpen = menu === 'layers'
   const menuRef = useRef<HTMLDivElement>(null)
   const [meta, setMeta] = useState<Meta | null>(null)
@@ -70,6 +74,7 @@ export default function App() {
   const t = T[lang]
 
   useEffect(() => { api.reports().then(setReports).catch(() => {}) }, [])
+  useEffect(() => { sbScroll.current?.scrollTo({ top: 0 }) }, [selectedId])       // each view starts at its top
   useEffect(() => {                                   // the layers menu closes on an outside tap or Escape
     if (!menu) return
     const away = (e: PointerEvent) => { if (!menuRef.current?.contains(e.target as Node)) setMenu(null) }
@@ -140,6 +145,11 @@ export default function App() {
     : { village: 'Example', displayName: '', depth: 0, when: null, timeline: null })
   const [routeCategory, setRouteCategory] = useState<Category | null>(null)
   const [routeFor, setRouteFor] = useState<number | null>(null)
+  const [sheetFor, setSheetFor] = useState<number | null>(null)
+  if (sheetFor !== selectedId) {              // a village opens the sheet to half height
+    setSheetFor(selectedId)
+    setSheet('half')
+  }
   if (routeFor !== selectedId) {             // new village: back to the recommended route
     setRouteFor(selectedId)
     setRouteCategory(null)
@@ -200,7 +210,18 @@ export default function App() {
             })),
         } : null} />
 
-      <header className="topbar" ref={menuRef}>
+      <aside className="sidebar" data-sheet={sheet}>
+        <div className="sb-top">
+          <button className="sheet-handle" aria-label="Resize panel"
+            onPointerDown={(e) => { drag.current = e.clientY; e.currentTarget.setPointerCapture(e.pointerId) }}
+            onPointerUp={(e) => {
+              const dy = drag.current == null ? 0 : e.clientY - drag.current
+              drag.current = null
+              const i = SHEETS.indexOf(sheet)
+              if (dy < -30) setSheet(SHEETS[Math.min(2, i + 1)])
+              else if (dy > 30) setSheet(SHEETS[Math.max(0, i - 1)])
+              else setSheet(SHEETS[(i + 1) % 3])
+            }}><i /></button>
         <div className="brand" title={t.replayNote}>
           <span className="brand-badge" aria-hidden>कोसी</span>
           <span className="brand-text">
@@ -208,10 +229,56 @@ export default function App() {
             <span className="badge">{t.estimate}</span>
           </span>
         </div>
-        <SearchBox villages={villages} lang={lang} onPick={setSelectedId} />
-        <div className="topbar-right">
-          <button className="pill pill-accent" onClick={openMirror}>
-            <span aria-hidden>🖼️</span><span className="pill-label">{M[lang].title}</span>
+          <SearchBox villages={villages} lang={lang} onPick={setSelectedId} />
+        </div>
+        <div className="sb-scroll" ref={sbScroll}>
+          {selectedId == null ? (
+            <>
+      <Panel id="gauge" className="gauge-panel" collapseLabel={t.collapse} expandLabel={t.expand}
+        title={<h1 className="eyebrow">{t.gaugeTitle}</h1>}
+        summary={<><strong>{q.toFixed(2)}</strong> {t.unit}</>}>
+        <div className="readout num">
+          <strong>{q.toFixed(2)}</strong>
+          <span>{t.unit}</span>
+        </div>
+        <span className={`level level-${levelOf(q)}`}>{LEVELS[lang][levelOf(q)]}</span>
+        <p className="rise num">{t.rise(rise.toFixed(1))}</p>
+        <div className="peak-share num" title={t.peak2024}>
+          <span className="fact-bar"><i style={{ width: `${Math.min(100, (q / PEAK_2024) * 100)}%` }} /></span>
+          <small>{Math.round((q / PEAK_2024) * 100)}% · {t.peak2024}</small>
+        </div>
+        <Gauge
+          value={q} min={GAUGE_MIN} max={GAUGE_MAX} disabled={!!replay}
+          label={t.gaugeTitle} valueText={`${q.toFixed(2)} ${t.unit}`}
+          marks={[
+            { value: 1, label: t.normal, tone: 'muted' },
+            { value: PEAK_2024, label: t.peak2024, tone: 'danger' },
+          ]}
+          onChange={setDischarge}
+        />
+        {!replay && <button className="btn btn-primary" onClick={startReplay}>{t.replay}</button>}
+      </Panel>
+              <SummaryPanel lang={lang} discharge={qExtent} stats={stats} top={scenario?.top_villages ?? []}
+                selectedId={selectedId} onSelect={setSelectedId} />
+            </>
+          ) : (
+            <>
+              <button className="sb-back" onClick={() => setSelectedId(null)}>
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" /></svg>
+                <span className="num">{q.toFixed(2)} {t.unit}</span>
+                <span className={`level level-${levelOf(q)}`}>{LEVELS[lang][levelOf(q)]}</span>
+              </button>
+              <VillageCard card={shownCard} loading={cardLoading} failed={cardFailed} lang={lang} scenario={scenarioRef}
+                routeCategory={routeCategory} onRouteCategory={setRouteCategory} onClose={() => setSelectedId(null)}
+                onMirror={openMirror} />
+            </>
+          )}
+        </div>
+      </aside>
+
+        <div className="map-controls" ref={menuRef}>
+          <button className="round-btn round-accent" onClick={openMirror} aria-label={M[lang].title} title={M[lang].title}>
+            <span aria-hidden>🖼️</span>
           </button>
           <div className="pop-wrap">
             <button className={`round-btn${menuOpen ? ' is-open' : ''}`} aria-expanded={menuOpen} aria-haspopup="true"
@@ -247,10 +314,9 @@ export default function App() {
             )}
           </div>
           <div className="pop-wrap">
-            <button className={`pill pill-lang${menu === 'lang' ? ' is-open' : ''}`} aria-expanded={menu === 'lang'} aria-haspopup="listbox"
-              onClick={() => setMenu(menu === 'lang' ? null : 'lang')}>
+            <button className={`round-btn${menu === 'lang' ? ' is-open' : ''}`} aria-expanded={menu === 'lang'} aria-haspopup="listbox"
+              aria-label={meta.languages[lang]} title={meta.languages[lang]} onClick={() => setMenu(menu === 'lang' ? null : 'lang')}>
               <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" /><path d="M3 10h14M10 3c2.4 2.2 2.4 11.8 0 14M10 3c-2.4 2.2-2.4 11.8 0 14" /></svg>
-              <span>{meta.languages[lang]}</span>
             </button>
             {menu === 'lang' && (
               <ul className="pop-menu lang-menu" role="listbox" aria-label="Language">
@@ -264,41 +330,10 @@ export default function App() {
             )}
           </div>
         </div>
-      </header>
 
-      <Panel id="gauge" className="gauge-panel" collapseLabel={t.collapse} expandLabel={t.expand}
-        title={<h1 className="eyebrow">{t.gaugeTitle}</h1>}
-        summary={<><strong>{q.toFixed(2)}</strong> {t.unit}</>}>
-        <div className="readout num">
-          <strong>{q.toFixed(2)}</strong>
-          <span>{t.unit}</span>
-        </div>
-        <span className={`level level-${levelOf(q)}`}>{LEVELS[lang][levelOf(q)]}</span>
-        <p className="rise num">{t.rise(rise.toFixed(1))}</p>
-        <div className="peak-share num" title={t.peak2024}>
-          <span className="fact-bar"><i style={{ width: `${Math.min(100, (q / PEAK_2024) * 100)}%` }} /></span>
-          <small>{Math.round((q / PEAK_2024) * 100)}% · {t.peak2024}</small>
-        </div>
-        <Gauge
-          value={q} min={GAUGE_MIN} max={GAUGE_MAX} disabled={!!replay}
-          label={t.gaugeTitle} valueText={`${q.toFixed(2)} ${t.unit}`}
-          marks={[
-            { value: 1, label: t.normal, tone: 'muted' },
-            { value: PEAK_2024, label: t.peak2024, tone: 'danger' },
-          ]}
-          onChange={setDischarge}
-        />
-        {!replay && <button className="btn btn-primary" onClick={startReplay}>{t.replay}</button>}
-      </Panel>
 
-      {selectedId == null ? (
-        <SummaryPanel lang={lang} discharge={qExtent} stats={stats} top={scenario?.top_villages ?? []}
-          selectedId={selectedId} onSelect={setSelectedId} />
-      ) : (
-        <VillageCard card={shownCard} loading={cardLoading} failed={cardFailed} lang={lang} scenario={scenarioRef}
-          routeCategory={routeCategory} onRouteCategory={setRouteCategory} onClose={() => setSelectedId(null)}
-          onMirror={openMirror} />
-      )}
+
+
 
       {replay && (
         <ReplayBar lang={lang} replay={replay} frame={frame} playing={playing}

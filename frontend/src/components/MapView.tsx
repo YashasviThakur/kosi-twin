@@ -488,8 +488,8 @@ const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
 // Keep the flood belt visible between the panels: side panels on desktop, bottom panels on phones.
 const isPhone = () => window.matchMedia('(max-width: 860px)').matches
 function framePadding() {
-  if (isPhone()) return { top: 110, bottom: Math.round(window.innerHeight * 0.52) + 16, left: 8, right: 8 }
-  return { top: 80, bottom: 60, left: 280, right: 400 }
+  if (isPhone()) return { top: 70, bottom: Math.round(window.innerHeight * 0.5) + 16, left: 8, right: 64 }
+  return { top: 70, bottom: 70, left: 470, right: 90 }
 }
 
 function escapeHtml(s: string) {

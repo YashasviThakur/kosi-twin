@@ -1104,3 +1104,126 @@
 @media (prefers-reduced-transparency: reduce) {
   .brand, .pill, .round-btn, .legend, .gauge-panel, .pop-menu, .search input { background: #FBF8F1; -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
+
+/* =====================================================================================
+   v10 — Apple-Maps-style layout: one sidebar card on the left (brand, search, then the gauge, summary and
+   villages, or a village's card), a round button stack at the top right, and on phones a draggable bottom
+   sheet (peek / half / full).
+   ===================================================================================== */
+.app { --side-w: calc(404px * var(--fs)); }
+
+.sidebar {
+  --ink: #F5EFE3; --muted: rgb(245 239 227 / 66%); --line: rgb(255 255 255 / 13%); --sand: rgb(255 255 255 / 7%);
+  --grad-side: linear-gradient(90deg, rgb(255 255 255 / 8%), rgb(255 255 255 / 4%));
+  position: absolute; z-index: 5; left: 14px; top: 14px; bottom: 14px; width: var(--side-w);
+  display: flex; flex-direction: column; color: var(--ink); border-radius: 28px; overflow: hidden;
+  background: linear-gradient(180deg, rgb(255 255 255 / 9%), rgb(255 255 255 / 0%) 18%), rgb(22 31 35 / 90%);
+  border: 1px solid rgb(255 255 255 / 14%);
+  box-shadow: inset 0 1.5px 0 rgb(255 255 255 / 22%), 0 24px 60px rgb(0 0 0 / 38%);
+  -webkit-backdrop-filter: blur(26px) saturate(1.6); backdrop-filter: blur(26px) saturate(1.6);
+}
+.sb-top { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 12px; padding: 18px 16px 12px; }
+.sb-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 2px 16px 18px; }
+.sheet-handle { display: none; }
+
+.sidebar .brand { padding: 0; background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; color: var(--ink); }
+.sidebar .brand-name { color: var(--ink); }
+.sidebar .brand .badge { color: var(--muted); }
+.sidebar .search { max-width: none; margin: 0; }
+.sidebar .search input {
+  background: rgb(255 255 255 / 11%); color: var(--ink); box-shadow: none; border: 0; padding: 13px 18px 13px 46px;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.sidebar .search input::placeholder { color: var(--muted); }
+.sidebar .search input:focus { background: rgb(255 255 255 / 17%); box-shadow: 0 0 0 2px rgb(244 196 106 / 60%); }
+.sidebar .search-icon { stroke: var(--muted); }
+.sidebar .search-list { background: rgb(30 42 47 / 98%); border: 1px solid var(--line); box-shadow: 0 16px 40px rgb(0 0 0 / 50%); }
+.sidebar .search-list li.is-hi, .sidebar .search-list li:hover { background: rgb(255 255 255 / 10%); }
+.sidebar .search-list strong { color: var(--ink); }
+
+/* The panels inside the sidebar are grouped cards, not floating glass. */
+.sidebar .panel {
+  position: static; width: auto; max-height: none; flex: none; color: var(--ink);
+  background: rgb(255 255 255 / 6%); border: 1px solid rgb(255 255 255 / 10%); border-radius: 22px; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.sidebar .summary, .sidebar .village-card { background: rgb(255 255 255 / 6%); border-color: rgb(255 255 255 / 10%); color: var(--ink); }
+.sidebar .summary .panel-body, .sidebar .vc-body { overflow: visible; }
+.sidebar .vc-tabs { top: 0; background: rgb(30 42 47 / 94%); }
+.sidebar .panel-toggle, .sidebar .vc-close { background: rgb(255 255 255 / 12%); color: #fff; box-shadow: none; }
+.sidebar .eyebrow { color: var(--muted); }
+
+/* Gauge card: capsule on the left, readout on the right. */
+.sidebar .gauge-panel { position: static; }
+.sidebar .gauge-panel .panel-body { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; row-gap: 6px; align-items: start; padding: 0 18px 18px; }
+.sidebar .gauge-panel .panel-body > .gauge { grid-column: 1; grid-row: 1 / span 6; }
+.sidebar .gauge-panel .panel-body > :not(.gauge) { grid-column: 2; }
+.sidebar .gauge { flex: none; width: calc(170px * var(--fs)); height: calc(320px * var(--fs)); }
+.sidebar .readout strong { background: linear-gradient(135deg, #F5EFE3, #F4C46A); -webkit-background-clip: text; background-clip: text; font-size: calc(46px * var(--fs)); }
+.sidebar .rise { color: #F4C46A; }
+.sidebar .gauge-capsule { fill: rgb(255 255 255 / 8%); }
+.sidebar .gauge-rim { stroke: rgb(255 255 255 / 28%); }
+.sidebar .gauge-grid { stroke: rgb(255 255 255 / 20%); }
+.sidebar .gauge-mark text { fill: var(--ink); stroke: rgb(22 31 35 / 85%); }
+.sidebar .gauge-mark.tone-danger text { fill: #FF9C8C; }
+.sidebar .gauge-mark.tone-danger line { stroke: #FF9C8C; }
+.sidebar .gauge-mark line { stroke: rgb(245 239 227 / 55%); }
+.sidebar .peak-share small, .sidebar .gauge-num { color: var(--muted); fill: var(--muted); }
+.sidebar .fact-bar { background: rgb(255 255 255 / 12%); }
+.sidebar .gauge-panel .btn-primary { background: #F4C46A; color: #2B1D07; box-shadow: none; margin-top: 6px; }
+
+.sb-back {
+  display: flex; align-items: center; gap: 10px; align-self: flex-start; padding: 8px 14px 8px 8px; border: 0; border-radius: 999px;
+  background: rgb(255 255 255 / 10%); color: var(--ink); cursor: pointer; font-weight: 700; font-size: calc(15px * var(--fs)); flex: none;
+}
+.sb-back:hover { background: rgb(255 255 255 / 17%); }
+.sb-back svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Round buttons stacked at the top right. */
+.topbar { display: none; }
+.map-controls { position: absolute; z-index: 6; top: 14px; right: 14px; display: flex; flex-direction: column; gap: 10px; }
+.map-controls .round-btn { width: 48px; height: 48px; }
+.round-accent { background: linear-gradient(180deg, #FADB9B 0%, #F4C46A 45%, #EDB34C 100%) !important; border-color: rgb(255 255 255 / 60%); font-size: 20px; }
+.map-controls .pop-menu { right: calc(100% + 12px); top: 0; }
+
+.map-tools { left: calc(14px + var(--side-w) + 16px); transform: none; align-items: flex-start; bottom: 38px; }
+.gauge-panel.is-collapsed ~ .map-tools { left: calc(14px + var(--side-w) + 16px); }
+.replay { left: calc(14px + var(--side-w) + 16px); right: 76px; }
+.report-form { left: calc(50% + var(--side-w) / 2); top: 14px; }
+
+@media (max-width: 860px) {
+  .app { --side-w: 0px; }
+  .sidebar {
+    left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; border-radius: 28px 28px 22px 22px;
+    transition: height .28s cubic-bezier(.3, .9, .3, 1);
+  }
+  .sidebar[data-sheet="peek"] { height: 142px; }
+  .sidebar[data-sheet="half"] { height: 50dvh; }
+  .sidebar[data-sheet="full"] { height: calc(100dvh - 76px); }
+  .sheet-handle {
+    display: grid; place-items: center; width: 100%; height: 22px; margin: -10px 0 -2px; padding: 0; border: 0; background: none;
+    cursor: grab; touch-action: none;
+  }
+  .sheet-handle i { width: 40px; height: 5px; border-radius: 3px; background: rgb(255 255 255 / 40%); }
+  .sb-top { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 14px 10px; }
+  .sb-top .sheet-handle { flex: 1 1 100%; }
+  .sidebar .brand-text { display: none; }
+  .sidebar .brand-badge { width: 42px; height: 42px; }
+  .sidebar .search { flex: 1 1 0; min-width: 0; }
+  .sb-scroll { padding: 2px 14px 14px; }
+  .sidebar .gauge { width: 150px; height: 282px; }
+  .peak-share { display: block; }
+  .map-controls { top: 8px; right: 8px; }
+  .map-controls .round-btn { width: 44px; height: 44px; }
+  .replay { left: 8px; right: 64px; top: 8px; bottom: auto; }
+  .report-form { left: 50%; top: 70px; }
+}
+
+.level { justify-self: start; }
+.gauge-num { paint-order: stroke; stroke: rgb(22 31 35 / 55%); stroke-width: 2.5px; }
+.sidebar .gauge-num { fill: rgb(245 239 227 / 85%); }
+
+.sb-scroll { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 28%) transparent; }
+.sb-scroll::-webkit-scrollbar { width: 8px; }
+.sb-scroll::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 28%); border-radius: 4px; }
+.sb-scroll::-webkit-scrollbar-track { background: transparent; }

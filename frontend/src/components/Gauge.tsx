@@ -19,7 +19,7 @@ interface Props {
   onChange: (v: number) => void
 }
 
-const H = 520          // SVG units, scaled to the panel height
+const H = 320          // SVG units, drawn at 1 unit = 1 px so the scale text stays readable
 const PAD = 22
 const CAP_X = 8
 const CAP_W = 64
@@ -103,8 +103,9 @@ export function Gauge({ value, min, max, marks, disabled, label, valueText, onCh
           <path className="gauge-wave" d={wavePath(CAP_X - 40, CAP_W + 80)} fill="url(#water)" />
         </g>
         <rect x={CAP_X + 8} y={PAD - 12} width={14} height={H - 2 * PAD + 24} rx="7" fill="url(#gloss)" pointerEvents="none" />
-        {levels.map((v) => <line key={v} className="gauge-grid" x1={CAP_X + 8} x2={CAP_X + CAP_W - 8} y1={y(v)} y2={y(v)} />)}
+        {levels.map((v) => <line key={v} className="gauge-grid" x1={CAP_X + 12} x2={CAP_X + CAP_W - 30} y1={y(v)} y2={y(v)} />)}
       </g>
+      {levels.map((v) => <text key={v} x={CAP_X + CAP_W - 16} y={y(v) + 4} textAnchor="end" className="gauge-num">{v}</text>)}
       <rect className="gauge-rim" x={CAP_X} y={PAD - 12} width={CAP_W} height={H - 2 * PAD + 24} rx={CAP_W / 2} />
 
       {/* Level bands */}
@@ -113,8 +114,7 @@ export function Gauge({ value, min, max, marks, disabled, label, valueText, onCh
         return top < bottom ? <rect key={b.from} x={STRIP_X} y={top} width="6" height={bottom - top} rx="3" fill={b.color} opacity="0.9" /> : null
       })}
 
-      {levels.map((v) => <text key={v} x={STRIP_X + 14} y={y(v) + 4} className="gauge-num">{v}</text>)}
-
+      
       {marks.map((m) => (
         <g key={m.label} className={`gauge-mark tone-${m.tone}`}>
           <line x1={CAP_X + 4} x2={STRIP_X + 10} y1={y(m.value)} y2={y(m.value)} />
