@@ -139,15 +139,15 @@ def flood_stage(hand, river):
     return stage
 
 
-# Flood depth ramp: glassy cyan at the shallow edge -> clear blue -> deep indigo (stands out against green fields
-# and the brown/orange of roads). (depth m, colour, opacity) — opacity rises with depth so shallow water still
-# shows the fields below.
+# Flood depth ramp: bright aqua at the shallow edge -> sky -> indigo -> violet -> magenta for the deepest water. It stays
+# a "water" colour but is clearly different from the blue rivers and satellite water. (depth m, colour, opacity):
+# opacity rises with depth so shallow water still shows the fields below.
 DEPTH_RAMP = [
-    (0.0, (0x9F, 0xEA, 0xF5), 115),
-    (0.5, (0x38, 0xC6, 0xE0), 160),
-    (1.5, (0x1C, 0x94, 0xD1), 198),
-    (3.0, (0x1B, 0x5F, 0xB8), 225),
-    (5.0, (0x2B, 0x2E, 0x8F), 240),
+    (0.0, (0xA5, 0xF3, 0xFC), 115),
+    (0.5, (0x38, 0xBD, 0xF8), 165),
+    (1.5, (0x63, 0x66, 0xF1), 200),
+    (3.0, (0x8B, 0x5C, 0xF6), 225),
+    (5.0, (0xC0, 0x26, 0xD3), 240),
 ]
 EDGE_RGBA = (0xEA, 0xFB, 0xFF, 235)     # bright water's edge: where flooding stops
 

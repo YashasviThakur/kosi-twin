@@ -89,7 +89,7 @@ export function Gauge({ value, min, max, marks, disabled, label, valueText, onCh
         <linearGradient id="water" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2={H - 2 * PAD}>
           <stop offset="0" stopColor="var(--flood-1)" />
           <stop offset="0.35" stopColor="var(--flood-2)" />
-          <stop offset="1" stopColor="var(--flood-5)" />
+          <stop offset="1" stopColor="var(--flood-4)" />
         </linearGradient>
         <linearGradient id="gloss" x1="0" x2="1" y1="0" y2="0">
           <stop offset="0" stopColor="#fff" stopOpacity="0.55" />

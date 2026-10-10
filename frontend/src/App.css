@@ -358,7 +358,7 @@
 .ds-col.is-under .ds-bar { background: linear-gradient(180deg, #c3c8dc, #9aa0bd); }
 .ds-water {
   position: absolute; left: 26px; right: 0; bottom: 0; z-index: 2; pointer-events: none;
-  background: linear-gradient(180deg, rgb(108 184 236 / 55%), rgb(18 53 122 / 55%));
+  background: linear-gradient(180deg, rgb(56 189 248 / 55%), rgb(139 92 246 / 60%));
   border-top: 2px solid var(--flood-4);
 }
 .ds-level {
@@ -545,7 +545,7 @@
   position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 8px; color: #fff; text-align: center;
   background: rgb(var(--pd-rgb) / 45%); font-size: calc(20px * var(--fs)); overflow: hidden;
 }
-.mm-rise { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: linear-gradient(180deg, rgb(108 184 236 / 70%), rgb(18 53 122 / 80%)); animation: mm-rise 2.4s ease-in-out infinite alternate; }
+.mm-rise { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: linear-gradient(180deg, rgb(56 189 248 / 70%), rgb(139 92 246 / 80%)); animation: mm-rise 2.4s ease-in-out infinite alternate; }
 @keyframes mm-rise { to { height: 70%; } }
 .mm-working strong { position: relative; }
 
@@ -930,7 +930,7 @@
 .village-card .fact-bar { background: rgb(255 255 255 / 12%); }
 .village-card .ds-plot { border-bottom-color: rgb(var(--txt-rgb) / 70%); }
 .village-card .chart-grid text, .village-card .chart-tick { fill: rgb(var(--txt-rgb) / 65%); }
-.village-card .chart-line { stroke: #8EC9F0; }
+.village-card .chart-line { stroke: #38BDF8; }
 .village-card .vc-facilities li { border-bottom-color: rgb(255 255 255 / 12%); }
 .village-card .panel-toggle, .village-card .vc-close { color: #fff; }
 .village-card .sos { box-shadow: none; }
@@ -1513,7 +1513,7 @@
 .arch { width: 100%; height: auto; display: block; }
 .arch-box rect { fill: rgb(255 255 255 / 7%); stroke: rgb(255 255 255 / 22%); }
 .arch-box.is-core rect { fill: rgb(var(--acc-rgb) / 18%); stroke: var(--acc); }
-.arch-box.is-user rect { fill: rgb(142 201 240 / 14%); stroke: #8EC9F0; }
+.arch-box.is-user rect { fill: rgb(142 201 240 / 14%); stroke: #38BDF8; }
 .arch-t { font: 700 13px var(--font-ui); fill: var(--txt); }
 .arch-s { font: 500 10.5px var(--font-ui); fill: rgb(var(--txt-rgb) / 65%); }
 .arch-line { stroke: rgb(var(--txt-rgb) / 45%); stroke-width: 1.6; }

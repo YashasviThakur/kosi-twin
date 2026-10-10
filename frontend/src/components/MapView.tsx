@@ -12,6 +12,7 @@ import type { IconName } from '../icons'
 
 export type Basemap = 'map' | 'satellite'
 
+const FLOOD_V = 'v3'   // bump when the flood overlay images are re-rendered (same file names)
 const STYLE = 'https://tiles.openfreemap.org/styles/liberty'   // colourful, with 3D buildings
 const TERRARIUM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'
 const SATELLITE = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2023_3857/default/g/{z}/{y}/{x}.jpg'
@@ -324,7 +325,7 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
     })
     // Once the map has drawn, fetch every flood layer in the background so dragging the gauge never waits.
     map.once('idle', () => {
-      for (let r = 0.5; r <= 10; r += 0.5) tiles.forEach((_, i) => { new Image().src = `/layers/flood_${r.toFixed(1)}_${i}.png` })
+      for (let r = 0.5; r <= 10; r += 0.5) tiles.forEach((_, i) => { new Image().src = `/layers/flood_${r.toFixed(1)}_${i}.png?${FLOOD_V}` })
     })
     return () => { window.clearInterval(pulseTimer.current); map.remove() }
     // The map is created once; data changes flow through the effects below.
@@ -335,7 +336,7 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
     const map = mapRef.current
     if (!ready || !map) return
     tiles.forEach((_, i) => {
-      (map.getSource(`flood-${i}`) as maplibregl.ImageSource).updateImage({ url: layer ? `${layer}_${i}.png` : BLANK })
+      (map.getSource(`flood-${i}`) as maplibregl.ImageSource).updateImage({ url: layer ? `${layer}_${i}.png?${FLOOD_V}` : BLANK })
     })
   }, [ready, layer, tiles])
 
