@@ -36,17 +36,18 @@ const levelOf = (q: number) => (q < 1.5 ? 0 : q < 4 ? 1 : q < 6 ? 2 : 3)
 
 // Colour themes (variables live in theme.css); `accent` is the hex used by the map's selected village dot.
 const THEMES = [
+  { id: 'plum', name: 'Plum', swatch: ['#2a1530', '#ff8fb8'], accent: '#ff7aa6' },
+  { id: 'slate', name: 'Slate', swatch: ['#1a222c', '#7dd3fc'], accent: '#38bdf8' },
   { id: 'ocean', name: 'Ocean', swatch: ['#0c2a36', '#ff7a66'], accent: '#ff7a66' },
-  { id: 'forest', name: 'Forest', swatch: ['#10261f', '#b7e36b'], accent: '#9fd44f' },
   { id: 'indigo', name: 'Midnight', swatch: ['#141a33', '#5eead4'], accent: '#2dd4bf' },
 ] as const
 type ThemeId = (typeof THEMES)[number]['id']
 function loadTheme(): ThemeId {
   try {
     const v = localStorage.getItem('kosi.theme')
-    return THEMES.some((t) => t.id === v) ? (v as ThemeId) : 'ocean'
+    return THEMES.some((t) => t.id === v) ? (v as ThemeId) : 'plum'
   } catch {
-    return 'ocean'
+    return 'plum'
   }
 }
 document.documentElement.dataset.theme = loadTheme()      // before the first paint, so the loading screen is themed too
