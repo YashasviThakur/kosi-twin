@@ -116,8 +116,9 @@ export default function App() {
     ? {
         village: shownCard.name, displayName: lang === 'en' ? shownCard.name : (shownCard.name_hi ?? shownCard.name),
         depth: shownCard.edge_only ? 0 : (shownCard.max_depth_m ?? 0), when: shownCard.eta_time ?? null,
+        timeline: shownCard.timeline?.map((p) => ({ time: p.time, depth_m: p.depth_m })) ?? null,
       }
-    : { village: 'Example', displayName: '', depth: 0, when: null })
+    : { village: 'Example', displayName: '', depth: 0, when: null, timeline: null })
   const [routeCategory, setRouteCategory] = useState<Category | null>(null)
   const [routeFor, setRouteFor] = useState<number | null>(null)
   if (routeFor !== selectedId) {             // new village: back to the recommended route

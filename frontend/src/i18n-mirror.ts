@@ -20,8 +20,6 @@ type Strings = {
   refDoor: string
   refPerson: string
   depth: string
-  depthExample: string
-  forecastDepth: (m: string) => string
   presets: { knee: string; waist: string; chest: string; head: string }
   show: string
   working: string
@@ -38,6 +36,11 @@ type Strings = {
   shareText: (village: string, depth: string, when: string) => string
   shareExample: (depth: string) => string
   depthPick: string
+  forecastTime: string
+  peak: string
+  dry: string
+  whatIf: string
+  useForecast: string
 }
 
 export const M: Record<Lang, Strings> = {
@@ -58,8 +61,6 @@ export const M: Record<Lang, Strings> = {
     refDoor: 'a 2.1 m door',
     refPerson: 'a 1.6 m adult',
     depth: 'Flood depth',
-    depthExample: 'This village floods only at its edge, so pick an example depth.',
-    forecastDepth: (m) => `Forecast for this village: ${m} m`,
     presets: { knee: 'Knee', waist: 'Waist', chest: 'Chest', head: 'Over head' },
     show: 'Show the flood',
     working: 'Water is rising…',
@@ -76,6 +77,11 @@ export const M: Record<Lang, Strings> = {
     shareText: (v, d, w) => `Flood forecast for ${v}: about ${d} m of water, expected ${w}. Made with Kosi Twin (AI simulation).`,
     shareExample: (d) => `What a ${d} m flood could look like. Made with Kosi Twin (AI simulation).`,
     depthPick: 'Pick a depth to try.',
+    forecastTime: 'Forecast time',
+    peak: 'Peak',
+    dry: 'No water reaches the streets of this village at this time, so there is nothing to show.',
+    whatIf: 'Try a what-if depth instead',
+    useForecast: 'Use the forecast for this village',
   },
   hi: {
     open: 'अपनी गली में देखें',
@@ -94,8 +100,6 @@ export const M: Record<Lang, Strings> = {
     refDoor: '2.1 मी का दरवाज़ा',
     refPerson: '1.6 मी का बड़ा इंसान',
     depth: 'बाढ़ की गहराई',
-    depthExample: 'यह गाँव सिर्फ़ किनारे पर डूबता है, इसलिए उदाहरण के लिए गहराई चुनें।',
-    forecastDepth: (m) => `इस गाँव का अनुमान: ${m} मी`,
     presets: { knee: 'घुटना', waist: 'कमर', chest: 'छाती', head: 'सिर से ऊपर' },
     show: 'बाढ़ दिखाएँ',
     working: 'पानी भर रहा है…',
@@ -112,6 +116,11 @@ export const M: Record<Lang, Strings> = {
     shareText: (v, d, w) => `${v} के लिए बाढ़ का अनुमान: लगभग ${d} मी पानी, ${w} तक। कोसी ट्विन से बनाया (AI चित्रण)।`,
     shareExample: (d) => `${d} मी की बाढ़ ऐसी दिख सकती है। कोसी ट्विन से बनाया (AI चित्रण)।`,
     depthPick: 'आज़माने के लिए गहराई चुनें।',
+    forecastTime: 'अनुमान का समय',
+    peak: 'चरम',
+    dry: 'इस समय इस गाँव की गलियों में पानी नहीं पहुँचता, इसलिए दिखाने को कुछ नहीं है।',
+    whatIf: 'कोई और गहराई आज़माएँ',
+    useForecast: 'इस गाँव का अनुमान इस्तेमाल करें',
   },
   bho: {
     open: 'आपन गली में देखीं',
@@ -130,8 +139,6 @@ export const M: Record<Lang, Strings> = {
     refDoor: '2.1 मी के दरवाजा',
     refPerson: '1.6 मी के बड़ आदमी',
     depth: 'बाढ़ के गहराई',
-    depthExample: 'ई गाँव खाली किनारा पर डूबेला, एहसे उदाहरण खातिर गहराई चुनीं।',
-    forecastDepth: (m) => `एह गाँव के अंदाजा: ${m} मी`,
     presets: { knee: 'ठेहुना', waist: 'कमर', chest: 'छाती', head: 'मूड़ी से ऊपर' },
     show: 'बाढ़ देखाईं',
     working: 'पानी भर रहल बा…',
@@ -148,6 +155,11 @@ export const M: Record<Lang, Strings> = {
     shareText: (v, d, w) => `${v} खातिर बाढ़ के अंदाजा: लगभग ${d} मी पानी, ${w} ले। कोसी ट्विन से बनल (AI चित्र)।`,
     shareExample: (d) => `${d} मी के बाढ़ अइसन लउक सकेला। कोसी ट्विन से बनल (AI चित्र)।`,
     depthPick: 'आजमावे खातिर गहराई चुनीं।',
+    forecastTime: 'अंदाजा के समय',
+    peak: 'चरम',
+    dry: 'एह समय एह गाँव के गली में पानी ना पहुँचेला, एहसे देखावे के कुछ नइखे।',
+    whatIf: 'कवनो दोसर गहराई आजमाईं',
+    useForecast: 'एह गाँव के अंदाजा इस्तेमाल करीं',
   },
   mai: {
     open: 'अपन गली मे देखू',
@@ -166,8 +178,6 @@ export const M: Record<Lang, Strings> = {
     refDoor: '2.1 मीक केबाड़',
     refPerson: '1.6 मीक पैघ लोक',
     depth: 'बाढ़िक गहराइ',
-    depthExample: 'ई गाम मात्र किनार पर डूबैत अछि, तेँ उदाहरणक लेल गहराइ चुनू।',
-    forecastDepth: (m) => `एहि गामक अनुमान: ${m} मी`,
     presets: { knee: 'ठेहुन', waist: 'डाँड़', chest: 'छाती', head: 'माथ सँ ऊपर' },
     show: 'बाढ़ि देखाउ',
     working: 'पानि भरि रहल अछि…',
@@ -184,5 +194,10 @@ export const M: Record<Lang, Strings> = {
     shareText: (v, d, w) => `${v} लेल बाढ़िक अनुमान: लगभग ${d} मी पानि, ${w} धरि। कोसी ट्विन सँ बनल (AI चित्र)।`,
     shareExample: (d) => `${d} मीक बाढ़ि एहन देखा सकैत अछि। कोसी ट्विन सँ बनल (AI चित्र)।`,
     depthPick: 'आजमाबक लेल गहराइ चुनू।',
+    forecastTime: 'अनुमानक समय',
+    peak: 'चरम',
+    dry: 'एहि समय एहि गामक गली मे पानि नहि पहुँचैत अछि, तेँ देखाबक लेल किछु नहि अछि।',
+    whatIf: 'कोनो आन गहराइ आजमाउ',
+    useForecast: 'एहि गामक अनुमान उपयोग करू',
   },
 }

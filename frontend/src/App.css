@@ -576,3 +576,8 @@
 @media (max-width: 860px) {
   .topbar-mirror { order: 4; }
 }
+
+/* Flood Mirror: forecast time slider */
+.mm-time { display: flex; align-items: center; gap: 14px; margin: 8px 0 4px; }
+.mm-time input[type=range] { flex: 1; accent-color: var(--flood-4); height: 28px; }
+.mm-readout { margin: 0 0 6px; font-size: calc(16px * var(--fs)); }

@@ -15,6 +15,7 @@ export interface MirrorTarget {
   displayName: string       // name in the interface language; empty when opened without a village
   depth: number             // forecast depth in metres (0 = the village floods only at its edge)
   when: string | null       // forecast arrival, zone-less local time from the API
+  timeline: { time: string; depth_m: number }[] | null   // depth at the village hour by hour; null without a village
 }
 
 interface Props {
@@ -37,7 +38,15 @@ export function MirrorModal({ lang, target, onClose }: Props) {
   const [detect, setDetect] = useState<Detect>({ status: 'idle' })
   const [taps, setTaps] = useState<{ x: number; y: number }[]>([])      // 0–1 of the displayed photo
   const [refHeight, setRefHeight] = useState(2.1)
-  const [depth, setDepth] = useState(target.depth > 0 ? Math.min(target.depth, 6) : 1.0)
+  // With a village forecast the picture shows the depth forecast at that village for the chosen time;
+  // choosing a depth by hand ("what-if") is opt-in, and the default when there is no forecast to use.
+  const forecast = target.displayName && target.timeline?.length ? target.timeline : null
+  const peakIdx = forecast ? forecast.reduce((best, p, i) => (p.depth_m > forecast[best].depth_m ? i : best), 0) : 0
+  const [timeIdx, setTimeIdx] = useState(peakIdx)
+  const [whatIf, setWhatIf] = useState(!forecast)
+  const [presetDepth, setPresetDepth] = useState(target.depth > 0 ? Math.min(target.depth, 6) : 1.0)
+  const fromForecast = !!forecast && !whatIf
+  const depth = Math.min(fromForecast ? forecast[timeIdx].depth_m : presetDepth, 6)
   const [result, setResult] = useState<Result | null>(null)
   const [failed, setFailed] = useState(false)
   const [samples, setSamples] = useState<{ file: string; label: string }[]>([])
@@ -84,7 +93,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
 
   const detected = detect.status === 'done' ? detect.found : null
   const marked = taps.length === 2
-  const canShow = !!photo && (marked || !!detected)
+  const canShow = !!photo && depth > 0 && (marked || !!detected)
 
   const show = async () => {
     if (!photo) return
@@ -105,8 +114,9 @@ export function MirrorModal({ lang, target, onClose }: Props) {
     }
   }
 
-  const when = target.when ? dayTime(target.when, lang) : ''
-  const text = target.when ? m.shareText(target.displayName, depth.toFixed(1), when) : m.shareExample(depth.toFixed(1))
+  const shownTime = fromForecast ? forecast[timeIdx].time : null            // the moment the picture is for
+  const when = shownTime ? dayTime(shownTime, lang) : ''
+  const text = shownTime ? m.shareText(target.displayName, depth.toFixed(1), when) : m.shareExample(depth.toFixed(1))
 
   const save = () => {
     if (!result) return
@@ -220,24 +230,35 @@ export function MirrorModal({ lang, target, onClose }: Props) {
               </div>
             )}
 
-            <div className="mm-depth">
-              <span className="eyebrow">{m.depth}</span>
-              <div className="mm-presets" role="group" aria-label={m.depth}>
-                {PRESETS.map((d, i) => (
-                  <button key={d} className={Math.abs(depth - d) < 0.05 ? 'is-active' : ''} aria-pressed={Math.abs(depth - d) < 0.05}
-                    onClick={() => setDepth(d)}>
-                    {m.presets[PRESET_KEYS[i]]}<small className="num">{d.toFixed(1)} m</small>
-                  </button>
-                ))}
+            {fromForecast ? (
+              <div className="mm-depth">
+                <span className="eyebrow">{m.forecastTime}</span>
+                <div className="mm-time">
+                  <input type="range" min={0} max={forecast.length - 1} value={timeIdx} aria-label={m.forecastTime}
+                    onChange={(e) => setTimeIdx(Number(e.target.value))} />
+                  <button className="btn btn-quiet" onClick={() => setTimeIdx(peakIdx)}>{m.peak}</button>
+                </div>
+                <p className="mm-readout num">
+                  <strong>{dayTime(forecast[timeIdx].time, lang)}</strong>
+                  {' · '}{depth > 0 ? `${depth.toFixed(1)} m · ${depthSentence(depth, lang)}` : m.dry}
+                </p>
+                <button className="btn btn-quiet" onClick={() => { setPresetDepth(depth > 0 ? depth : 1.0); setWhatIf(true) }}>{m.whatIf}</button>
               </div>
-              <p className="vc-note">
-                {target.depth > 0 ? m.forecastDepth(target.depth.toFixed(1)) : target.displayName ? m.depthExample : m.depthPick}
-                {' · '}{depthSentence(depth, lang)}
-              </p>
-              {target.depth > 0 && Math.abs(depth - target.depth) > 0.05 && (
-                <button className="btn btn-quiet" onClick={() => setDepth(Math.min(target.depth, 6))}>{m.forecastDepth(target.depth.toFixed(1))}</button>
-              )}
-            </div>
+            ) : (
+              <div className="mm-depth">
+                <span className="eyebrow">{m.depth}</span>
+                <div className="mm-presets" role="group" aria-label={m.depth}>
+                  {PRESETS.map((d, i) => (
+                    <button key={d} className={Math.abs(depth - d) < 0.05 ? 'is-active' : ''} aria-pressed={Math.abs(depth - d) < 0.05}
+                      onClick={() => setPresetDepth(d)}>
+                      {m.presets[PRESET_KEYS[i]]}<small className="num">{d.toFixed(1)} m</small>
+                    </button>
+                  ))}
+                </div>
+                <p className="vc-note">{m.depthPick} · {depthSentence(depth, lang)}</p>
+                {forecast && <button className="btn btn-quiet" onClick={() => setWhatIf(false)}>{m.useForecast}</button>}
+              </div>
+            )}
 
             {failed && <p className="vc-note is-error" role="alert">{m.error}</p>}
             <div className="mm-actions">
