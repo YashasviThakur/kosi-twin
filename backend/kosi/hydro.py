@@ -75,12 +75,13 @@ class Hydrograph:
     def peak(self):
         return max(q for _, q in self.points)
 
-    def wet_time(self, stage_m, lag_h, step_h=0.5, horizon_h=168):
+    def wet_time(self, stage_m, lag_h, step_h=0.5, horizon_h=None):
         """First hour (since t=0) when the rise at a spot `lag_h` downstream reaches `stage_m`; inf if never."""
         if stage_m is None or rise_for(self.peak()) < stage_m:
             return float("inf")
         if len(self.points) == 1:
             return lag_h
+        horizon_h = horizon_h or max(168, self.points[-1][0] + 72)      # long floods: until the water has crossed the region
         t = lag_h
         while t <= horizon_h:
             if rise_for(self.at(t - lag_h)) >= stage_m:
@@ -94,14 +95,14 @@ class Hydrograph:
 
 def replay_source(name):
     """A modelled replay ('glofas:YYYY-MM-DD') or a replay file (kosi/replays/<name>.json)."""
-    from . import live          # imported here because live imports this module
-    return live.replay_data(name) or store.replay(name)
+    from . import barrage       # imported here because barrage imports this module
+    return barrage.replay_data(name) or store.replay(name)
 
 
 def replay_frames(name, step_h=None):
-    """Frames for the replay animation: hourly for a recorded flood, every 3 hours for a modelled one (daily values)."""
-    step_h = step_h or (3.0 if name.startswith("glofas:") else 1.0)
+    """Frames for the replay animation: hourly for a short event, coarser for a long one (about 160 frames at most)."""
     hg = Hydrograph.from_replay(name)
+    step_h = step_h or max(1.0, float(-(-hg.points[-1][0] // 160)))
     end = hg.points[-1][0] + 36                 # let the wave travel through the region
     frames, t = [], 0.0
     while t <= end:

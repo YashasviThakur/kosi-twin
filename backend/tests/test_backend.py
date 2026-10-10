@@ -155,40 +155,59 @@ def test_leak_reports_are_validated_and_stored(tmp_path, monkeypatch):
         assert client.post("/api/reports", data=bad).status_code == 400
 
 
-def test_live_flow_is_a_trend_anchored_on_the_2024_reading(monkeypatch):
-    from kosi import live
-    days = [("2026-10-08", 2000.0), ("2026-10-09", 2400.0), ("2026-10-10", 2800.0),    # today = 10 Oct
-            ("2026-10-11", 3600.0), ("2026-10-12", 4200.0), ("2026-10-13", 4800.0)]
-    monkeypatch.setattr(live, "_fetch", lambda: (days, (26.525, 86.875)))
-    live._cache.update(t=0.0, data=None)
-    d = live.get(today="2026-10-10")
-    assert d["modelled"] and d["now"]["date"] == "2026-10-10"
-    assert d["now"]["pct"] == round(2800 / live.GLOFAS_2024_PEAK_M3S * 100, 1)
-    assert d["trend"] == "rising" and d["peak_ahead"]["date"] == "2026-10-13"
-    # the model's own 2024 reading maps to the reported 2024 peak, and nothing is invented beyond that ratio
-    assert round(live.to_lakh(live.GLOFAS_2024_PEAK_M3S), 2) == live.REPORTED_2024_PEAK_LAKH
-    assert [p["forecast"] for p in d["series"]] == [False, False, False, True, True, True]
-
-
 def test_replays_are_listed_from_files():
     from kosi import store
     names = [r["name"] for r in store.replays()]
     assert "2024" in names and all(r["peak_lakh"] > 0 for r in store.replays())
 
 
-def test_history_and_modelled_replay(monkeypatch):
-    from kosi import hydro, live
-    monkeypatch.setattr(live, "_fetch", lambda: ([("2026-01-01", 2000.0), ("2026-01-02", 2200.0)], (26.525, 86.875)))
-    live._cache.update(t=0.0, data=None)
-    h = live.history(today="2026-01-02")
-    assert h["start"] == "1997-01-02" and h["end"] == "2026-01-02" and len(h["values"]) == 10591 + 2 and h["modelled"]
-    # a modelled replay is built from the days around a date, in app discharge units, and plays like a recorded one
-    r = live.replay_data("glofas:2024-09-30")
-    assert r["series"][0]["time"] == "2024-09-27T00:00" and len(r["series"]) == 9
-    assert max(p["discharge_lakh"] for p in r["series"]) <= live.REPORTED_2024_PEAK_LAKH + 0.01
-    assert live.replay_data("2024") is None
-    frames = hydro.replay_frames("glofas:2024-09-30")
-    assert frames["frames"][1]["hours"] - frames["frames"][0]["hours"] == 3.0 and "MODELLED" in frames["note"]
+
+def _fake_record(monkeypatch):
+    """Two floods in a synthetic official record: 2 lakh+ on 8-10 Aug and a bigger one peaking 29 Sept."""
+    from datetime import datetime, timedelta
+    from kosi import barrage
+    rows, day = [], datetime(2024, 7, 1)
+    big = {datetime(2024, 8, 8).date(): 2.3, datetime(2024, 8, 9).date(): 3.1, datetime(2024, 8, 10).date(): 2.2,
+           datetime(2024, 9, 28).date(): 5.0, datetime(2024, 9, 29).date(): 6.61, datetime(2024, 9, 30).date(): 3.0}
+    while day < datetime(2024, 10, 10):
+        lakh = big.get(day.date(), 0.9)
+        rows += [(day.replace(hour=10), int(lakh * 1e5), 250.0, 245.0), (day.replace(hour=15), int(lakh * 1e5) + 500, 250.0, 245.1)]
+        day += timedelta(days=1)
+    monkeypatch.setattr(barrage, "_readings", lambda: rows)
+    monkeypatch.setattr(barrage, "_newest", lambda: {"time": rows[-1][0], "cusec": rows[-1][1], "up_ft": 250.0, "down_ft": 245.1,
+                                                      "url": None, "fresh": False})
+    monkeypatch.setattr(barrage, "outlook", lambda lakh: [])
+    return barrage
+
+
+def test_official_floods_are_found_from_the_record(monkeypatch):
+    barrage = _fake_record(monkeypatch)
+    events = barrage.floods()
+    assert [e["id"] for e in events] == ["2024-09-29", "2024-08-09"]                  # newest first
+    big = events[0]
+    assert big["peak_cusec"] == 661500 and big["peak_lakh"] == 6.62 and big["days"] == 3 and big["start"] == "2024-09-28"
+    assert events[1]["days"] == 3 and events[1]["peak_cusec"] == 310500
+    assert barrage.floods_payload()["threshold_lakh"] == barrage.FLOOD_LAKH
+
+
+def test_live_counter_reports_the_newest_official_reading(monkeypatch):
+    barrage = _fake_record(monkeypatch)
+    from datetime import datetime
+    d = barrage.live_counter(now=datetime(2024, 10, 9, 19, 0))
+    assert d["official"] and d["cusec"] == 90500 and d["lakh"] == 0.905 and d["fresh"] is False
+    assert d["age_min"] == 240 and d["trend"] == "steady" and d["recent"][-1]["cusec"] == 90500
+    assert d["up_ft"] == 250.0 and d["down_ft"] == 245.1
+
+
+def test_replay_is_built_from_the_recorded_readings(monkeypatch):
+    barrage = _fake_record(monkeypatch)
+    from kosi import hydro
+    r = barrage.replay_data("wrd:2024-09-29")
+    assert r["series"][0]["time"] == "2024-09-26T10:00" and "RECORDED" in r["note"]
+    assert max(p["discharge_lakh"] for p in r["series"]) == 6.615
+    assert barrage.replay_data("2024") is None
+    frames = hydro.replay_frames("wrd:2024-09-29")
+    assert frames["frames"][0]["time"] == "2024-09-26T10:00" and len(frames["frames"]) < 200
     import pytest
     with pytest.raises(FileNotFoundError):
-        live.replay_data("glofas:1990-01-01")
+        barrage.replay_data("wrd:2020-01-01")

@@ -1,11 +1,11 @@
 """Kosi Twin HTTP API. Local: `uvicorn kosi.api:app --reload`. Lambda: `kosi.api.handler`."""
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
 
-from . import advisory, cloud, hydro, live, mirror, reports, speech, store
+from . import advisory, barrage, cloud, hydro, mirror, reports, speech, store
 from .config import D0_M, DATA_DIR, EXPONENT, Q0_LAKH
 from .lang import LANGS
 from .village import affected, card
@@ -81,21 +81,21 @@ def village_audio(village_id: int, lang: str = Query("hi", pattern="^(en|hi|bho|
 
 
 @app.get("/api/live")
-def live_flow():
-    """Modelled river flow near Birpur now and 14 days ahead (a trend, not a gauge reading; see kosi/live.py)."""
+def live_counter():
+    """The Kosi at Birpur now: the newest official barrage discharge (see kosi/barrage.py)."""
     try:
-        return live.get()
+        return barrage.live_counter()
     except Exception:
-        raise HTTPException(503, "live river data is unavailable right now")
+        raise HTTPException(503, "the live barrage reading is unavailable right now")
 
 
-@app.get("/api/history")
-def live_history():
-    """The whole modelled river record, 1997 to 14 days ahead, for the date browser (see kosi/live.py)."""
+@app.get("/api/floods")
+def flood_list():
+    """Every flood since 2018 from the official barrage readings: peaks, dates, durations."""
     try:
-        return JSONResponse(live.history(), headers={"Cache-Control": "public, max-age=3600"})
+        return barrage.floods_payload()
     except Exception:
-        raise HTTPException(503, "river history is unavailable right now")
+        raise HTTPException(503, "the flood record is unavailable right now")
 
 
 @app.get("/api/replays")

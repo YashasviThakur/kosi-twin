@@ -9,3 +9,4 @@ backend/data/*.log
 backend/data/reports.jsonl
 infra/.deploy.log
 frontend/dist/
+backend/data/barrage_cache.json

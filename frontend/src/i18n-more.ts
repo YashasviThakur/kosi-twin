@@ -13,14 +13,18 @@ interface More {
   tour: { next: string; back: string; done: string; skip: string; steps: { title: string; text: string }[] }
   info: string
   retry: string
-  hist: {
-    title: string; modelled: string; pick: (from: string) => string; of2024: string; forecast: string; jump: string
-    show: string; shown: string; replay: string; note: string; unavailable: string; replayTitle: (d: string) => string; replayNote: string; overstated: string
-  }
   live: {
-    title: string; live: string; of2024: string; rising: string; falling: string; steady: string
-    peak: (pct: number, day: string) => string; history: string; outlook: string; apply: string; applied: string
-    note: string; unavailable: string
+    title: string; live: string; last: string; cusecs: string; lakh: (n: string) => string; updated: (when: string, ago: string) => string
+    minAgo: (m: number) => string; hrAgo: (h: number) => string
+    rising: (p: number) => string; falling: (p: number) => string; steady: (p: number) => string
+    levels: (up: string, down: string) => string; history: string; outlook: string; apply: string; applied: string
+    note: string; report: string; unavailable: string
+  }
+  floods: {
+    title: string; official: string; intro: (n: number, thr: number) => string; days: (d: number) => string; lakhCusecs: string
+    peakOn: (d: string) => string; show: string; shown: string; replay: string; note: string; unavailable: string
+    replayTitle: (d: string) => string; replayNote: string
+    all: string; major: string
   }
 }
 
@@ -44,20 +48,23 @@ export const N: Record<Lang, More> = {
     },
     info: 'How this works',
     retry: 'Try again',
-    hist: {
-      title: 'Look back', modelled: 'Modelled', pick: (f) => `Any day from ${f} to now`, of2024: 'of the 2024 flood flow', forecast: 'forecast',
-      jump: 'Jump to a year’s biggest flow', show: 'Show this day on the map', shown: 'Showing this day on the map', replay: 'Replay this flood',
-      note: 'Modelled river flow (GloFAS). It can read big Kosi floods low and rank years differently from official records. Only the September 2024 flood has a reported figure.',
-      unavailable: 'Past river data is unavailable right now.', replayTitle: (d) => `Modelled flow · ${d}`,
-      replayNote: 'MODELLED (GloFAS), not a barrage record. It can read big Kosi floods low and rank years differently from official records.',
-      overstated: 'The model shows this day bigger than the 2024 flood, but news reports called 2024 the biggest Kosi flow in over 50 years. Treat the size of this day as unreliable.',
-    },
     live: {
-      title: 'River now (modelled)', live: 'Live', of2024: 'of the 2024 flood flow', rising: 'Rising over the next 3 days', falling: 'Falling over the next 3 days',
-      steady: 'Steady over the next 3 days', peak: (p, d) => `up to ${p}% by ${d}`, history: 'Last 4 months', outlook: '14-day outlook',
+      title: 'Kosi at Birpur barrage', live: 'Live', last: 'Last reading', cusecs: 'cusecs', lakh: (n) => `${n} lakh cusecs`,
+      updated: (w, a) => `official reading, ${w} (${a})`, minAgo: (m) => `${m} min ago`, hrAgo: (h) => `${h} h ago`,
+      rising: (p) => `Rising, up ${p}% on yesterday`, falling: (p) => `Falling, down ${p}% on yesterday`, steady: () => 'Steady since yesterday',
+      levels: (u, d) => `Upstream ${u} ft · Downstream ${d} ft`, history: 'Last 60 days', outlook: '14-day trend (modelled)',
       apply: 'Show this level on the map', applied: 'Showing this level on the map',
-      note: 'Modelled river flow (GloFAS), compared with the same model’s reading for the 2024 flood. Not a gauge reading, and the model reads big Kosi floods low.',
-      unavailable: 'Live river data is unavailable right now.',
+      note: 'Official Bihar WRD readings, taken at 10 AM and 3 PM. The dashed trend ahead is modelled (GloFAS), not a forecast in cusecs.',
+      report: 'See the report', unavailable: 'The live barrage reading is unavailable right now.',
+    },
+    floods: {
+      title: 'Floods since {year}', official: 'Official', intro: (n, t) => `${n} floods when the barrage released ${t} lakh cusecs or more`,
+      days: (d) => (d === 1 ? '1 day' : `${d} days`), lakhCusecs: 'lakh cusecs', peakOn: (d) => `peak on ${d}`,
+      show: 'Show the peak on the map', shown: 'Showing the peak on the map', replay: 'Replay',
+      note: 'Official Bihar WRD barrage readings (10 AM and 3 PM). The department’s reports before 2018 show gate positions but no discharge, so the record starts in 2018.',
+      unavailable: 'The flood record is unavailable right now.', replayTitle: (d) => `Recorded flood · ${d}`,
+      replayNote: 'RECORDED: Bihar WRD barrage readings (10 AM and 3 PM) at Birpur.',
+      all: 'All', major: 'Major (3 lakh+)',
     },
   },
   hi: {
@@ -79,20 +86,23 @@ export const N: Record<Lang, More> = {
     },
     info: 'यह कैसे काम करता है',
     retry: 'फिर कोशिश करें',
-    hist: {
-      title: 'पीछे देखें', modelled: 'मॉडल से', pick: (f) => `${f} से अब तक कोई भी दिन`, of2024: '2024 की बाढ़ के बहाव का', forecast: 'अनुमान',
-      jump: 'किसी साल का सबसे बड़ा बहाव चुनें', show: 'यह दिन नक्शे पर दिखाएँ', shown: 'नक्शे पर यही दिन दिख रहा है', replay: 'यह बाढ़ दोबारा चलाएँ',
-      note: 'मॉडल से निकाला नदी का बहाव (GloFAS)। यह कोसी की बड़ी बाढ़ को कम आँक सकता है और सालों का क्रम सरकारी रिकॉर्ड से अलग दिखा सकता है। केवल सितंबर 2024 की बाढ़ का रिपोर्ट किया आँकड़ा है।',
-      unavailable: 'पिछला नदी डेटा अभी उपलब्ध नहीं है।', replayTitle: (d) => `मॉडल से बहाव · ${d}`,
-      replayNote: 'मॉडल से (GloFAS), बराज का रिकॉर्ड नहीं। यह कोसी की बड़ी बाढ़ को कम आँक सकता है और सालों का क्रम सरकारी रिकॉर्ड से अलग दिखा सकता है।',
-      overstated: 'मॉडल इस दिन को 2024 की बाढ़ से बड़ा दिखा रहा है, पर समाचारों में 2024 को 50 साल से ज़्यादा में कोसी का सबसे बड़ा बहाव बताया गया था। इस दिन के आकार को भरोसेमंद न मानें।',
-    },
     live: {
-      title: 'नदी अभी (मॉडल से)', live: 'लाइव', of2024: '2024 की बाढ़ के बहाव का', rising: 'अगले 3 दिन बढ़ेगा', falling: 'अगले 3 दिन घटेगा',
-      steady: 'अगले 3 दिन लगभग स्थिर', peak: (p, d) => `${d} तक ${p}% तक`, history: 'पिछले 4 महीने', outlook: '14 दिन का अनुमान',
+      title: 'बीरपुर बराज पर कोसी', live: 'लाइव', last: 'आख़िरी रीडिंग', cusecs: 'क्यूसेक', lakh: (n) => `${n} लाख क्यूसेक`,
+      updated: (w, a) => `सरकारी रीडिंग, ${w} (${a})`, minAgo: (m) => `${m} मिनट पहले`, hrAgo: (h) => `${h} घंटे पहले`,
+      rising: (p) => `बढ़ रहा है, कल से ${p}% ऊपर`, falling: (p) => `घट रहा है, कल से ${p}% नीचे`, steady: () => 'कल से लगभग स्थिर',
+      levels: (u, d) => `ऊपरी स्तर ${u} फ़ीट · निचला स्तर ${d} फ़ीट`, history: 'पिछले 60 दिन', outlook: '14 दिन का रुझान (मॉडल से)',
       apply: 'यह स्तर नक्शे पर दिखाएँ', applied: 'नक्शे पर यही स्तर दिख रहा है',
-      note: 'मॉडल से निकाला नदी का बहाव (GloFAS), उसी मॉडल की 2024 की बाढ़ के आँकड़े से तुलना में। यह गेज की रीडिंग नहीं है, और मॉडल कोसी की बड़ी बाढ़ को कम आँकता है।',
-      unavailable: 'नदी का लाइव डेटा अभी उपलब्ध नहीं है।',
+      note: 'बिहार जल संसाधन विभाग की सरकारी रीडिंग, सुबह 10 और दोपहर 3 बजे की। आगे का बिंदीदार रुझान मॉडल (GloFAS) से है, क्यूसेक का पूर्वानुमान नहीं।',
+      report: 'रिपोर्ट देखें', unavailable: 'बराज की लाइव रीडिंग अभी उपलब्ध नहीं है।',
+    },
+    floods: {
+      title: '{year} से अब तक की बाढ़ें', official: 'सरकारी', intro: (n, t) => `${n} बाढ़ें, जब बराज से ${t} लाख क्यूसेक या ज़्यादा छोड़ा गया`,
+      days: (d) => `${d} दिन`, lakhCusecs: 'लाख क्यूसेक', peakOn: (d) => `${d} को चरम`,
+      show: 'चरम स्तर नक्शे पर दिखाएँ', shown: 'नक्शे पर चरम स्तर दिख रहा है', replay: 'दोबारा चलाएँ',
+      note: 'बिहार जल संसाधन विभाग की सरकारी बराज रीडिंग (सुबह 10 और दोपहर 3 बजे)। 2018 से पहले की रिपोर्टों में फाटकों की स्थिति है पर बहाव नहीं, इसलिए रिकॉर्ड 2018 से शुरू होता है।',
+      unavailable: 'बाढ़ का रिकॉर्ड अभी उपलब्ध नहीं है।', replayTitle: (d) => `दर्ज बाढ़ · ${d}`,
+      replayNote: 'दर्ज: बीरपुर पर बिहार जल संसाधन विभाग की बराज रीडिंग (सुबह 10 और दोपहर 3 बजे)।',
+      all: 'सभी', major: 'बड़ी (3 लाख+)',
     },
   },
   bho: {
@@ -114,20 +124,23 @@ export const N: Record<Lang, More> = {
     },
     info: 'ई कइसे काम करेला',
     retry: 'फेर कोशिश करीं',
-    hist: {
-      title: 'पीछे देखीं', modelled: 'मॉडल से', pick: (f) => `${f} से अब ले कवनो दिन`, of2024: '2024 के बाढ़ के बहाव के', forecast: 'अंदाजा',
-      jump: 'कवनो साल के सबसे बड़ बहाव चुनीं', show: 'ई दिन नक्सा पर देखाईं', shown: 'नक्सा पर इहे दिन देखात बा', replay: 'ई बाढ़ फेर चलाईं',
-      note: 'मॉडल से निकारल नदी के बहाव (GloFAS)। ई कोसी के बड़ बाढ़ के कम आँक सकेला आ सालन के क्रम सरकारी रिकॉर्ड से अलग देखा सकेला। खाली सितंबर 2024 के बाढ़ के रिपोर्ट कइल आँकड़ा बा।',
-      unavailable: 'पिछला नदी डेटा अबहीं ना मिलल।', replayTitle: (d) => `मॉडल से बहाव · ${d}`,
-      replayNote: 'मॉडल से (GloFAS), बराज के रिकॉर्ड ना। ई कोसी के बड़ बाढ़ के कम आँक सकेला आ सालन के क्रम सरकारी रिकॉर्ड से अलग देखा सकेला।',
-      overstated: 'मॉडल ई दिन के 2024 के बाढ़ से बड़ देखावत बा, बाकिर समाचार में 2024 के 50 साल से बेसी में कोसी के सबसे बड़ बहाव बतावल गइल रहे। ई दिन के आकार पर भरोसा मत करीं।',
-    },
     live: {
-      title: 'नदी अब (मॉडल से)', live: 'लाइव', of2024: '2024 के बाढ़ के बहाव के', rising: 'अगिला 3 दिन बढ़ी', falling: 'अगिला 3 दिन घटी',
-      steady: 'अगिला 3 दिन लगभग स्थिर', peak: (p, d) => `${d} ले ${p}% तक`, history: 'पिछला 4 महीना', outlook: '14 दिन के अंदाजा',
+      title: 'बीरपुर बराज पर कोसी', live: 'लाइव', last: 'आखिरी रीडिंग', cusecs: 'क्यूसेक', lakh: (n) => `${n} लाख क्यूसेक`,
+      updated: (w, a) => `सरकारी रीडिंग, ${w} (${a})`, minAgo: (m) => `${m} मिनट पहिले`, hrAgo: (h) => `${h} घंटा पहिले`,
+      rising: (p) => `बढ़त बा, काल्ह से ${p}% ऊपर`, falling: (p) => `घटत बा, काल्ह से ${p}% नीचे`, steady: () => 'काल्ह से लगभग स्थिर',
+      levels: (u, d) => `ऊपरी स्तर ${u} फीट · निचला स्तर ${d} फीट`, history: 'पिछला 60 दिन', outlook: '14 दिन के रुझान (मॉडल से)',
       apply: 'ई स्तर नक्सा पर देखाईं', applied: 'नक्सा पर इहे स्तर देखात बा',
-      note: 'मॉडल से निकारल नदी के बहाव (GloFAS), ओही मॉडल के 2024 के बाढ़ के आँकड़ा से तुलना में। ई गेज के रीडिंग ना ह, आ मॉडल कोसी के बड़ बाढ़ के कम आँकेला।',
-      unavailable: 'नदी के लाइव डेटा अबहीं ना मिलल।',
+      note: 'बिहार जल संसाधन विभाग के सरकारी रीडिंग, सबेरे 10 आ दुपहर 3 बजे के। आगे के बिंदी वाला रुझान मॉडल (GloFAS) से बा, क्यूसेक के पूर्वानुमान ना।',
+      report: 'रिपोर्ट देखीं', unavailable: 'बराज के लाइव रीडिंग अबहीं ना मिलल।',
+    },
+    floods: {
+      title: '{year} से अब ले के बाढ़', official: 'सरकारी', intro: (n, t) => `${n} बाढ़, जब बराज से ${t} लाख क्यूसेक भा बेसी छोड़ल गइल`,
+      days: (d) => `${d} दिन`, lakhCusecs: 'लाख क्यूसेक', peakOn: (d) => `${d} के चरम`,
+      show: 'चरम स्तर नक्सा पर देखाईं', shown: 'नक्सा पर चरम स्तर देखात बा', replay: 'फेर चलाईं',
+      note: 'बिहार जल संसाधन विभाग के सरकारी बराज रीडिंग (सबेरे 10 आ दुपहर 3 बजे)। 2018 से पहिले के रिपोर्ट में फाटक के स्थिति बा बाकिर बहाव ना, एहसे रिकॉर्ड 2018 से शुरू होला।',
+      unavailable: 'बाढ़ के रिकॉर्ड अबहीं ना मिलल।', replayTitle: (d) => `दर्ज बाढ़ · ${d}`,
+      replayNote: 'दर्ज: बीरपुर पर बिहार जल संसाधन विभाग के बराज रीडिंग (सबेरे 10 आ दुपहर 3 बजे)।',
+      all: 'सब', major: 'बड़ (3 लाख+)',
     },
   },
   mai: {
@@ -149,20 +162,23 @@ export const N: Record<Lang, More> = {
     },
     info: 'ई कोना काज करैत अछि',
     retry: 'फेर प्रयास करू',
-    hist: {
-      title: 'पाछू देखू', modelled: 'मॉडल सँ', pick: (f) => `${f} सँ आब धरि कोनो दिन`, of2024: '2024 क बाढ़िक बहावक', forecast: 'अनुमान',
-      jump: 'कोनो सालक सभसँ पैघ बहाव चुनू', show: 'ई दिन नक्शा पर देखाउ', shown: 'नक्शा पर यैह दिन देखा रहल अछि', replay: 'ई बाढ़ि फेर चलाउ',
-      note: 'मॉडल सँ निकालल नदीक बहाव (GloFAS)। ई कोसीक पैघ बाढ़िकेँ कम आँकि सकैत अछि आ सभक क्रम सरकारी रिकॉर्ड सँ अलग देखा सकैत अछि। मात्र सितम्बर 2024 क बाढ़िक रिपोर्ट कएल आँकड़ा अछि।',
-      unavailable: 'पछिला नदी डेटा एखन उपलब्ध नहि अछि।', replayTitle: (d) => `मॉडल सँ बहाव · ${d}`,
-      replayNote: 'मॉडल सँ (GloFAS), बराजक रिकॉर्ड नहि। ई कोसीक पैघ बाढ़िकेँ कम आँकि सकैत अछि आ सभक क्रम सरकारी रिकॉर्ड सँ अलग देखा सकैत अछि।',
-      overstated: 'मॉडल ई दिनकेँ 2024 क बाढ़ि सँ पैघ देखा रहल अछि, मुदा समाचार मे 2024 केँ 50 सालसँ बेसी मे कोसीक सभसँ पैघ बहाव कहल गेल छल। ई दिनक आकार पर भरोसा नहि करू।',
-    },
     live: {
-      title: 'नदी एखन (मॉडल सँ)', live: 'लाइव', of2024: '2024 क बाढ़िक बहावक', rising: 'अगिला 3 दिन बढ़त', falling: 'अगिला 3 दिन घटत',
-      steady: 'अगिला 3 दिन लगभग स्थिर', peak: (p, d) => `${d} धरि ${p}% धरि`, history: 'पछिला 4 मास', outlook: '14 दिनक अनुमान',
+      title: 'बीरपुर बराज पर कोसी', live: 'लाइव', last: 'अंतिम रीडिंग', cusecs: 'क्यूसेक', lakh: (n) => `${n} लाख क्यूसेक`,
+      updated: (w, a) => `सरकारी रीडिंग, ${w} (${a})`, minAgo: (m) => `${m} मिनट पहिने`, hrAgo: (h) => `${h} घंटा पहिने`,
+      rising: (p) => `बढ़ि रहल अछि, काल्हिसँ ${p}% ऊपर`, falling: (p) => `घटि रहल अछि, काल्हिसँ ${p}% नीचाँ`, steady: () => 'काल्हिसँ लगभग स्थिर',
+      levels: (u, d) => `ऊपरी स्तर ${u} फीट · निचला स्तर ${d} फीट`, history: 'पछिला 60 दिन', outlook: '14 दिनक रुझान (मॉडल सँ)',
       apply: 'ई स्तर नक्शा पर देखाउ', applied: 'नक्शा पर यैह स्तर देखा रहल अछि',
-      note: 'मॉडल सँ निकालल नदीक बहाव (GloFAS), ओही मॉडलक 2024 क बाढ़िक आँकड़ा सँ तुलना मे। ई गेजक रीडिंग नहि अछि, आ मॉडल कोसीक पैघ बाढ़िकेँ कम आँकैत अछि।',
-      unavailable: 'नदीक लाइव डेटा एखन उपलब्ध नहि अछि।',
+      note: 'बिहार जल संसाधन विभागक सरकारी रीडिंग, भोर 10 आ दुपहर 3 बजेक। आगुक बिन्दीदार रुझान मॉडल (GloFAS) सँ अछि, क्यूसेकक पूर्वानुमान नहि।',
+      report: 'रिपोर्ट देखू', unavailable: 'बराजक लाइव रीडिंग एखन उपलब्ध नहि अछि।',
+    },
+    floods: {
+      title: '{year} सँ आब धरिक बाढ़ि', official: 'सरकारी', intro: (n, t) => `${n} बाढ़ि, जखन बराज सँ ${t} लाख क्यूसेक वा बेसी छोड़ल गेल`,
+      days: (d) => `${d} दिन`, lakhCusecs: 'लाख क्यूसेक', peakOn: (d) => `${d} केँ चरम`,
+      show: 'चरम स्तर नक्शा पर देखाउ', shown: 'नक्शा पर चरम स्तर देखा रहल अछि', replay: 'फेर चलाउ',
+      note: 'बिहार जल संसाधन विभागक सरकारी बराज रीडिंग (भोर 10 आ दुपहर 3 बजे)। 2018 सँ पहिनुक रिपोर्ट मे फाटकक स्थिति अछि मुदा बहाव नहि, तेँ रिकॉर्ड 2018 सँ शुरू होइत अछि।',
+      unavailable: 'बाढ़िक रिकॉर्ड एखन उपलब्ध नहि अछि।', replayTitle: (d) => `दर्ज बाढ़ि · ${d}`,
+      replayNote: 'दर्ज: बीरपुर पर बिहार जल संसाधन विभागक बराज रीडिंग (भोर 10 आ दुपहर 3 बजे)।',
+      all: 'सभ', major: 'पैघ (3 लाख+)',
     },
   },
 }

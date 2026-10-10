@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, layerPrefix, riseFor, statsAt } from './api'
-import type { Lang, LiveFlow, Meta, Replay, Report, Risk, Scenario, ScenarioRef, Village, VillageCard as Card } from './api'
+import type { Lang, LiveCounter, Floods, Meta, Replay, Report, Risk, Scenario, ScenarioRef, Village, VillageCard as Card } from './api'
 import { Gauge } from './components/Gauge'
 import { MapView } from './components/MapView'
 import { Panel } from './components/Panel'
@@ -19,7 +19,7 @@ import { InfoModal } from './components/InfoModal'
 import { Tour } from './components/Tour'
 import { Splash } from './components/Splash'
 import { LiveCard } from './components/LiveCard'
-import { HistoryCard } from './components/HistoryCard'
+import { FloodsCard } from './components/FloodsCard'
 import { N } from './i18n-more'
 import { Logo } from './components/Logo'
 import { M } from './i18n-mirror'
@@ -94,8 +94,9 @@ export default function App() {
   const [theme, setTheme] = useState<ThemeId>(loadTheme)
   const [info, setInfo] = useState(false)
   const [liveApplied, setLiveApplied] = useState(false)     // the gauge is showing the live river level
-  const [live, setLive] = useState<LiveFlow | null | 'error'>(null)
-  const [historyDate, setHistoryDate] = useState<string | null>(null)   // a past day is showing on the map
+  const [live, setLive] = useState<LiveCounter | null | 'error'>(null)
+  const [floods, setFloods] = useState<Floods | 'error' | null>(null)
+  const [shownFlood, setShownFlood] = useState<string | null>(null)   // a past flood's peak is on the map
   const autoLive = useRef(false)                            // the app opens on the live level once
   const touched = useRef(false)                             // ...unless the person has already moved the gauge
   const [tour, setTour] = useState(false)
@@ -120,18 +121,18 @@ export default function App() {
     try { localStorage.setItem('kosi.theme', theme) } catch { /* the choice just isn't remembered */ }
   }, [theme])
   useEffect(() => { api.reports().then(setReports).catch(() => {}) }, [])
-  // The river now: open on the live level, refresh every 30 minutes, and never hold the loading screen for more than 4 s.
+  // The river now: open on the live level, refresh every 5 minutes (the department issues two reports a day), and never hold the loading screen for more than 4 s.
   useEffect(() => {
     const load = () => api.live().then((d) => {
       setLive(d)
       if (!autoLive.current && !touched.current) {
         autoLive.current = true
-        setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, d.now.lakh)))
+        setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, d.lakh)))
         setLiveApplied(true)
       }
     }).catch(() => setLive((l) => l ?? 'error'))
     load()
-    const refresh = window.setInterval(load, 30 * 60 * 1000)
+    const refresh = window.setInterval(load, 5 * 60 * 1000)
     const giveUp = window.setTimeout(() => setLive((l) => l ?? 'error'), 4000)
     return () => { window.clearInterval(refresh); window.clearTimeout(giveUp) }
   }, [])
@@ -255,7 +256,11 @@ export default function App() {
     return () => window.clearInterval(id)
   }, [playing, replay])
 
-  const startReplay = async (name = '2024') => {
+  useEffect(() => { api.floods().then(setFloods).catch(() => setFloods('error')) }, [])
+  // "Replay Sept 2024" plays the recorded flood: the biggest 2024 stretch in the official readings (the curated file is the fallback).
+  const sept2024 = floods && floods !== 'error'
+    ? floods.events.filter((e) => e.start.startsWith('2024')).sort((a, b) => b.peak_lakh - a.peak_lakh)[0] : undefined
+  const startReplay = async (name = sept2024 ? `wrd:${sept2024.id}` : '2024') => {
     const r = replay?.name === name ? replay : await api.replay(name)
     setReplay(r)
     setFrame(0)
@@ -328,15 +333,15 @@ export default function App() {
             { value: 1, label: t.normal, tone: 'muted' },
             { value: PEAK_2024, label: t.peak2024, tone: 'danger' },
           ]}
-          onChange={(v) => { touched.current = true; setLiveApplied(false); setHistoryDate(null); setDischarge(v) }}
+          onChange={(v) => { touched.current = true; setLiveApplied(false); setShownFlood(null); setDischarge(v) }}
         />
-        {!replay && <button className="btn btn-primary" onClick={() => void startReplay('2024')}>{t.replay}</button>}
+        {!replay && <button className="btn btn-primary" onClick={() => void startReplay()}>{t.replay}</button>}
       </Panel>
               <LiveCard lang={lang} live={live} applied={liveApplied}
-                onApply={(lakh) => { setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(true); setHistoryDate(null) }} />
-              <HistoryCard lang={lang} shownDate={historyDate}
-                onShow={(lakh, date) => { touched.current = true; setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(false); setHistoryDate(date) }}
-                onReplay={(date) => void startReplay(`glofas:${date}`)} />
+                onApply={(lakh) => { setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(true); setShownFlood(null) }} />
+              <FloodsCard lang={lang} floods={floods} shownId={shownFlood}
+                onShow={(lakh, id) => { touched.current = true; setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(false); setShownFlood(id) }}
+                onReplay={(id) => void startReplay(`wrd:${id}`)} />
               <SummaryPanel lang={lang} discharge={qExtent} stats={stats} affected={scenario?.affected ?? []} villages={villages}
                 selectedId={selectedId} onSelect={setSelectedId} />
             </>

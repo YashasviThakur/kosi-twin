@@ -55,7 +55,7 @@ python -m pytest tests
 ## Live deployment (AWS, us-east-1)
 - Site: https://d34uuvdd8ofh55.cloudfront.net (CloudFront in front of S3 for the web app and flood layers, and API Gateway to Lambda for `/api/*`)
 - Stack: `kosi-twin` (CloudFormation, `infra/template.yaml`). Redeploy with `bash infra/deploy.sh` (needs AWS CLI credentials and `backend/data/out`).
-- Live river data: `/api/live` and `/api/history` (GloFAS modelled flow via Open-Meteo; 1997 to last year is a snapshot in `backend/kosi/glofas_history.json`, refresh with `backend/prep/fetch_glofas.py`). Modelled, not a gauge: see `backend/kosi/live.py`.
+- Live river data: the Kosi counter and the flood list use the **official Bihar WRD Koshi Barrage Gate Status Reports** (discharge at Birpur, issued 10 AM and 3 PM). `GET /api/live` fetches the newest report (cached 10 minutes; if the department's server cannot be reached it shows the last stored reading, marked stale). `GET /api/floods` lists every flood since 2018 (barrage at 2 lakh cusecs or more) from `backend/kosi/barrage_history.json`, built by `backend/prep/fetch_barrage.py` (re-run it to pick up new reports). The department's reports before 2018 show gate positions but no discharge. The 14-day trend ahead is the GloFAS model applied to today's real reading (`backend/kosi/live.py`): a trend, not a forecast in cusecs.
 - Live AWS services: Lambda, API Gateway, S3, CloudFront, DynamoDB (leak reports), Polly (voice), Translate, Rekognition.
 - Bedrock (AI-written advisories, AI-painted water) is wired in but the account has no model access or quota yet, so those two features
   use the built-in template and app-drawn water. Nothing else changes when access is granted.

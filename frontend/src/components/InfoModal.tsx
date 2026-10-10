@@ -19,12 +19,11 @@ const STEPS = [
 ]
 
 const LIMITS = [
-  ['River height', 'We use a simple rule to turn flow into river height. It is our best estimate, not a calibrated one. The only real number we have is the 2024 peak of 6.61 lakh cusecs.'],
+  ['River height', 'We use a simple rule to turn flow into river height. It is our best estimate, not a calibrated one: it is set so the 2024 flood (6.61 lakh cusecs) gives about a 5 m rise.'],
   ['Flooded area', 'It shows where water can flow across the land. It cannot predict embankment breaks, blocked drains, or puddles that stay behind.'],
   ['Timing', 'Arrival times come from a rule of thumb for how fast a flood moves, not from measured travel times.'],
-  ['Live river flow', 'The "River now" card uses a global flood model (GloFAS), not a gauge. It reads the 2024 flood at about half the reported size, so we only show today\'s flow against the model\'s own 2024 reading, as a trend.'],
-  ['Past dates', 'Any day since 1997 can be browsed as modelled river flow and replayed, but only the September 2024 flood has a reported figure. The model can rank years differently from official records. Official Water Resources Department records can be added and will show up as more replays.'],
-  ['People and places', 'Villages, roads and shelters come from open data, so a few places are missing.'],
+  ['The live counter', 'It shows the newest official reading from the Bihar Water Resources Department’s Koshi barrage report, issued at 10 AM and 3 PM, so it can be a few hours old. It is not a continuous sensor feed. The dashed 14-day trend ahead comes from a global model (GloFAS) applied to that reading: a trend, not a forecast in cusecs.'],
+  ['Past floods', 'The floods since 2018 come from the department’s own barrage readings. Its reports before 2018 show gate positions but not discharge, so earlier floods are not included. A few reports could not be read and are skipped.'],
   ['Embankments', 'We only show the stretches that are mapped. The colours show how many people live behind them, not where a break will happen.'],
   ['Flood Mirror', 'It is a simulation, not a real photo. The depth comes from the forecast, and the scale comes from a door, a person, or a rough guess from one tap.'],
 ]
@@ -128,7 +127,7 @@ function Architecture() {
       {arrow(470, 216, 530, 143)}
       {arrow(470, 219, 530, 197)}
       {arrow(470, 226, 530, 251)}
-      <text x="8" y="286" className="arch-note">Open data: Copernicus DEM, Terrain Tiles (AWS Open Data), OpenStreetMap, Open-Meteo and GloFAS, Sentinel-2</text>
+      <text x="8" y="286" className="arch-note">Data: Bihar WRD barrage reports, Copernicus DEM and Terrain Tiles (AWS Open Data), OpenStreetMap, Open-Meteo and GloFAS, Sentinel-2</text>
     </svg>
   )
 }

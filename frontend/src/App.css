@@ -1718,3 +1718,41 @@
 .hist-card.is-loading { min-height: 90px; }
 
 .hist-warn { margin: 2px 0; padding: 10px 12px; border-radius: 14px; background: rgb(255 180 168 / 12%); border: 1px solid rgb(255 180 168 / 35%); color: #FFB4A8; font-size: calc(13px * var(--fs)); line-height: 1.45; }
+
+/* =====================================================================================
+   v18 — the live counter (official barrage reading) and "Floods since 2018" (official records).
+   ===================================================================================== */
+.live-main strong { font-size: calc(46px * var(--fs)); font-variant-numeric: tabular-nums; }
+.live-main span { font-size: calc(15px * var(--fs)); }
+.live-sub { margin: 0; font-size: calc(13px * var(--fs)); color: rgb(var(--txt-rgb) / 70%); }
+.live-levels { margin: 0; font-size: calc(13px * var(--fs)); color: rgb(var(--txt-rgb) / 62%); }
+.live-chip.is-stale { background: rgb(255 180 100 / 16%); color: #FFC987; }
+.live-chip.is-stale i { background: #FFB45C; animation: none; }
+.live-note a { color: var(--accl); }
+.live-line.is-forecast { stroke: var(--accl); }
+
+.floods-card { display: grid; gap: 8px; padding: 16px 18px; border-radius: 22px; color: var(--txt); background: rgb(255 255 255 / 6%); border: 1px solid rgb(255 255 255 / 10%); }
+.floods-card header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.floods-card .eyebrow { color: rgb(var(--txt-rgb) / 62%); }
+.floods-card.is-loading { min-height: 90px; }
+.floods-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 10px; }
+.floods-list li { display: grid; gap: 6px; padding: 12px 14px; border-radius: 18px; background: rgb(255 255 255 / 5%); border: 1px solid transparent; }
+.floods-list li.is-shown { border-color: rgb(var(--acc-rgb) / 55%); background: rgb(var(--acc-rgb) / 10%); }
+.fl-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.fl-head strong { font-size: calc(18px * var(--fs)); }
+.fl-head span { font-size: calc(12px * var(--fs)); color: rgb(var(--txt-rgb) / 65%); text-align: right; }
+.fl-peak { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.fl-peak b { font-size: calc(24px * var(--fs)); color: var(--acc); line-height: 1.1; }
+.fl-peak small { font-size: calc(12px * var(--fs)); color: rgb(var(--txt-rgb) / 70%); }
+.fl-peak span { margin-left: auto; font-size: calc(12px * var(--fs)); color: rgb(var(--txt-rgb) / 60%); }
+.fl-bar { display: block; height: 5px; border-radius: 3px; background: rgb(255 255 255 / 10%); overflow: hidden; }
+.fl-bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--acc2), var(--acc)); }
+.fl-actions { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+.fl-actions button {
+  padding: 9px 8px; border: 1px solid rgb(var(--acc-rgb) / 40%); border-radius: 999px; cursor: pointer; background: rgb(var(--acc-rgb) / 14%);
+  color: var(--acc); font-weight: 700; font-size: calc(12.5px * var(--fs));
+}
+.fl-actions button:hover { background: rgb(var(--acc-rgb) / 26%); }
+.fl-actions button[aria-pressed="true"] { background: var(--acc); color: var(--on-acc); }
+
+.floods-list { max-height: 460px; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 28%) transparent; }
