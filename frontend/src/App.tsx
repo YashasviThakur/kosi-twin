@@ -14,6 +14,7 @@ import { SummaryPanel } from './components/SummaryPanel'
 import { VillageCard } from './components/VillageCard'
 import { duration } from './format'
 import { CATEGORY_ICON, X } from './i18n-extra'
+import { M } from './i18n-mirror'
 import type { Category } from './i18n-extra'
 import { T } from './i18n'
 import './App.css'
@@ -109,6 +110,14 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
   const shownCard = card && card.id === selectedId ? card : null
+  // Flood Mirror: for the selected village when there is one (its forecast depth and arrival), otherwise
+  // a general try-it mode with an example depth.
+  const openMirror = () => setMirror(shownCard && shownCard.risk !== 'SAFE'
+    ? {
+        village: shownCard.name, displayName: lang === 'en' ? shownCard.name : (shownCard.name_hi ?? shownCard.name),
+        depth: shownCard.edge_only ? 0 : (shownCard.max_depth_m ?? 0), when: shownCard.eta_time ?? null,
+      }
+    : { village: 'Example', displayName: '', depth: 0, when: null })
   const [routeCategory, setRouteCategory] = useState<Category | null>(null)
   const [routeFor, setRouteFor] = useState<number | null>(null)
   if (routeFor !== selectedId) {             // new village: back to the recommended route
@@ -176,6 +185,7 @@ export default function App() {
         </div>
         <span className="badge" title={t.replayNote}>{t.estimate}</span>
         <SearchBox villages={villages} lang={lang} onPick={setSelectedId} />
+        <button className="topbar-mirror" onClick={openMirror}><span aria-hidden>🖼️</span> {M[lang].title}</button>
         <nav className="text-size" aria-label={t.textSize}>
           {TEXT_SIZES.map((s) => (
             <button key={s} className={`ts-${s}${s === textSize ? ' is-active' : ''}`} aria-pressed={s === textSize}
@@ -217,10 +227,7 @@ export default function App() {
       ) : (
         <VillageCard card={shownCard} loading={cardLoading} failed={cardFailed} lang={lang} scenario={scenarioRef}
           routeCategory={routeCategory} onRouteCategory={setRouteCategory} onClose={() => setSelectedId(null)}
-          onMirror={() => shownCard && setMirror({
-            village: shownCard.name, displayName: lang === 'en' ? shownCard.name : (shownCard.name_hi ?? shownCard.name),
-            depth: shownCard.edge_only ? 0 : (shownCard.max_depth_m ?? 0), when: shownCard.eta_time ?? null,
-          })} />
+          onMirror={openMirror} />
       )}
 
       {replay && (

@@ -12,12 +12,12 @@ import os
 from datetime import datetime
 
 import numpy as np
+from scipy.ndimage import gaussian_filter, map_coordinates
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 from . import cloud
 
 REFERENCE_HEIGHTS_M = {"Door": 2.1, "Person": 1.6, "Motorcycle": 1.1}
-WATER_RGB = np.array([96, 78, 52], dtype="float32")     # murky brown monsoon water
 MAX_SIDE = 1600
 FONT_PATHS = [os.path.join(os.path.dirname(__file__), "fonts", "NotoSansDevanagari-Bold.ttf"),
               "C:/Windows/Fonts/Nirmala.ttc"]
@@ -116,29 +116,84 @@ def _png(img):
     return buf.getvalue()
 
 
-def _fallback_water(img, line_y):
-    a = np.asarray(img, dtype="float32").copy()
+def _smooth_noise(h, w, rng, cell):
+    """Smooth random field in 0..1: a coarse random grid (cell = (rows, cols) per grid cell, in pixels)
+    scaled up with bicubic interpolation. Anisotropic cells give horizontal ripples."""
+    gh, gw = max(2, h // cell[0] + 2), max(2, w // cell[1] + 2)
+    grid = Image.fromarray((rng.random((gh, gw)) * 255).astype("uint8"))
+    return np.asarray(grid.resize((w, h), Image.BICUBIC), dtype="float32") / 255.0
+
+
+def _fallback_water(img, line_y, px_per_m):
+    """Muddy monsoon floodwater drawn below `line_y`, from the photo itself:
+    - a mirrored, ripple-distorted reflection of what stands above the waterline, strongest near the
+      wall (grazing view) and fading toward the camera, where the water looks turbid and brown;
+    - silt colour that varies across the surface and follows the photo's own brightness;
+    - glints, a soft contact shadow and a wavy foam line at the wall;
+    - a damp band on the wall just above the water; and film grain matched to a phone photo.
+    Everything above the waterline except the damp band is the untouched photo."""
+    a = np.asarray(img, dtype="float32")
     h, w, _ = a.shape
-    y0 = int(np.clip(line_y, 0, h))
-    if y0 >= h:
+    y0 = int(np.clip(round(line_y), 0, h))
+    rows = h - y0
+    if rows <= 1:
         return img
-    below = a[y0:]
-    rows = below.shape[0]
-
-    # Reflection of what stands above the waterline, faded.
-    above = a[max(y0 - rows, 0):y0][::-1]
-    refl = np.zeros_like(below)
-    refl[:above.shape[0]] = above
-
-    # Horizontal ripples: noise stretched sideways.
     rng = np.random.default_rng(7)
-    noise = Image.fromarray((rng.random((rows, w // 8 + 1)) * 255).astype("uint8")).resize((w, rows))
-    noise = np.asarray(noise.filter(ImageFilter.GaussianBlur(2)), dtype="float32")[..., None] / 255.0
+    out = a.copy()
 
-    water = WATER_RGB * (0.85 + 0.3 * noise)
-    a[y0:] = 0.62 * water + 0.18 * refl + 0.20 * below
-    a[y0:y0 + 2] = a[y0:y0 + 2] * 0.5 + 200 * 0.5           # thin light edge where water meets walls
-    return Image.fromarray(np.clip(a, 0, 255).astype("uint8"))
+    luminance = float(a.mean()) / 255.0                       # dull, overcast photos get darker water
+    sky = a[: max(1, int(h * 0.12))].reshape(-1, 3).mean(axis=0)
+
+    yy, xx = np.mgrid[y0:h, 0:w].astype("float32")
+    t = (yy - y0) / max(rows - 1, 1)                          # 0 at the waterline, 1 at the bottom of the photo
+
+    # Reflection: mirror image about the waterline, wobbled more the further from the wall.
+    rip_x = _smooth_noise(rows, w, rng, (10, 90)) - 0.5
+    rip_y = _smooth_noise(rows, w, rng, (6, 140)) - 0.5
+    src_y = 2 * y0 - yy + rip_y * (5 + 14 * t)
+    src_x = np.clip(xx + rip_x * (8 + 20 * t), 0, w - 1)
+    inside = src_y >= 0                                       # the mirror image runs off the top of the photo
+    src_y = np.minimum(np.clip(src_y, 0, h - 1), max(y0 - 1, 0))
+    refl = np.stack([map_coordinates(a[..., c], [src_y, src_x], order=1, mode="nearest") for c in range(3)], axis=-1)
+    refl[~inside] = sky
+    soft = gaussian_filter(refl, sigma=(2.0, 3.0, 0))
+    k = np.clip(t * 1.1, 0, 0.8)[..., None]
+    refl = refl * (1 - k) + soft * k
+
+    # Silt-brown body with slow variation across the surface.
+    big = _smooth_noise(rows, w, rng, (70, 240))[..., None]
+    mid = _smooth_noise(rows, w, rng, (22, 90))[..., None]
+    body = np.array([126, 98, 66], "float32") * (1 - big) + np.array([108, 99, 72], "float32") * big
+    body = body * (0.55 + 0.65 * luminance) * (0.9 + 0.2 * mid)
+
+    # Fresnel: mirror-like at a grazing angle (near the wall), see-through brown looking down.
+    reflect = (0.08 + 0.42 * (1 - t) ** 2.2)[..., None]
+    water = body * (1 - reflect) + refl * reflect
+
+    streak = _smooth_noise(rows, w, rng, (3, 70))
+    glint = np.clip((streak - 0.72) * 4, 0, 1)[..., None]
+    water += glint * (sky - water) * 0.28 * (1 - 0.5 * t)[..., None]
+
+    soft_edge = max(4.0, 0.10 * px_per_m)
+    water *= (1 - 0.22 * np.exp(-(yy - y0) / soft_edge))[..., None]            # the wall's contact shadow
+
+    wobble = (_smooth_noise(1, w, rng, (1, 40))[0] - 0.5) * 3.0                  # wavy line where water meets wall
+    edge = np.exp(-(((yy - y0) - wobble[None, :]) / 1.7) ** 2)[..., None]
+    water = water * (1 - 0.38 * edge) + np.array([228, 222, 207], "float32") * 0.38 * edge
+
+    water += rng.normal(0, 2.2, water.shape).astype("float32")                  # sensor grain
+    out[y0:] = water
+
+    # Damp band on the wall just above the waterline: darker and browner, with an uneven top edge.
+    wet_max = max(6, int(0.30 * px_per_m))
+    y1 = max(0, y0 - wet_max)
+    if y1 < y0:
+        wy, _ = np.mgrid[y1:y0, 0:w].astype("float32")
+        reach = (wet_max * (0.65 + 0.7 * _smooth_noise(1, w, rng, (1, 60))[0]))[None, :]
+        damp = np.clip((wy - (y0 - reach)) / reach, 0, 1)[..., None]
+        out[y1:y0] = a[y1:y0] * (1 - 0.22 * damp) + np.array([105, 82, 58], "float32") * 0.10 * damp
+
+    return Image.fromarray(np.clip(out, 0, 255).astype("uint8"))
 
 
 def _keep_above(original, painted, line_y, feather=6):
@@ -157,18 +212,23 @@ def _font(size):
 
 
 def watermark(img, label):
-    img = img.convert("RGB")
-    d = ImageDraw.Draw(img)
+    """A translucent strip along the bottom: AI SIMULATION in yellow, then the label and date in white."""
+    img = img.convert("RGBA")
     w, h = img.size
-    size = max(14, w // 40)
+    size = max(13, w // 46)
     font, devanagari = _font(size)
-    text = " · ".join(filter(None, ["AI SIMULATION", "AI अनुमान" if devanagari else None, label,
-                                    f"{datetime.now():%d %b %Y}"]))
-    box = d.textbbox((0, 0), text, font=font)
-    pad = size // 2
-    d.rectangle([0, h - (box[3] - box[1]) - 2 * pad, w, h], fill=(0, 0, 0))
-    d.text((pad, h - (box[3] - box[1]) - pad - box[1]), text, font=font, fill=(255, 220, 0))
-    return img
+    first = " · ".join(filter(None, ["AI SIMULATION", "AI अनुमान" if devanagari else None]))
+    rest = " · ".join(filter(None, [label, f"{datetime.now():%d %b %Y}"]))
+    overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(overlay)
+    band = int(size * 2.1)
+    d.rectangle([0, h - band, w, h], fill=(11, 26, 32, 165))
+    box = d.textbbox((0, 0), first, font=font)
+    y = h - band + (band - (box[3] - box[1])) // 2 - box[1]
+    x = size // 2 + 4
+    d.text((x, y), first, font=font, fill=(255, 214, 10, 255))
+    d.text((x + d.textlength(first + " · ", font=font), y), rest, font=font, fill=(255, 255, 255, 255))
+    return Image.alpha_composite(img, overlay).convert("RGB")
 
 
 def render(photo_bytes, depth_m, label, ground_frac=None, top_frac=None, ref_height_m=2.1):
@@ -188,8 +248,10 @@ def render(photo_bytes, depth_m, label, ground_frac=None, top_frac=None, ref_hei
 
     painted, engine = ((_inpaint_bedrock(img, line), f"bedrock:{cloud.IMAGE_MODEL}")
                        if cloud.available("bedrock-image") else (None, None))
-    if painted is None:
-        painted, engine = _fallback_water(img, line), "fallback"
-    out = watermark(_keep_above(img, painted, line), label)
-    return _jpeg(out, 88), {"waterline_y": line, "render": engine, "reference": ref, "faces_blurred": faces,
+    if painted is not None:
+        result = _keep_above(img, painted, line)                 # the AI may not move anything above the water
+    else:
+        result, engine = _fallback_water(img, line, (ground_y - top_y) / ref_height_m), "fallback"
+    out = watermark(result, label)
+    return _jpeg(out, 92), {"waterline_y": line, "render": engine, "reference": ref, "faces_blurred": faces,
                             "size": list(img.size)}

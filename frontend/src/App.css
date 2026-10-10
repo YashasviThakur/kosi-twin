@@ -488,13 +488,18 @@
 
 .modal-backdrop {
   position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px;
-  background: rgb(11 26 32 / 55%); backdrop-filter: blur(3px);
+  background: rgb(30 47 54 / 28%); backdrop-filter: blur(6px);      /* a light veil: the map stays readable behind */
 }
 .mirror { width: min(760px, 100%); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; background: rgb(247 249 248 / 98%); }
-.mm-head { display: flex; justify-content: space-between; gap: 12px; padding: 16px 16px 12px 20px; background: var(--grad-deep); color: #fff; }
-.mm-head h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: calc(26px * var(--fs)); }
-.mm-head p { margin: 4px 0 0; font-size: calc(14px * var(--fs)); opacity: .92; }
-.mm-close { position: static; flex: none; }
+.mm-head {
+  position: relative; display: flex; justify-content: space-between; gap: 12px; padding: 20px 16px 14px 20px;
+  background: linear-gradient(180deg, #C9E1E8 0%, #E3EEF0 65%, #F7F9F8 100%); color: var(--ink); border-bottom: 1px solid var(--line);
+}
+.mm-head::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, var(--flood-2), var(--flood-4), var(--flood-5)); }
+.mm-head h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: calc(26px * var(--fs)); color: var(--flood-5); }
+.mm-head p { margin: 4px 0 0; font-size: calc(14px * var(--fs)); color: var(--muted); }
+.mm-close { position: static; flex: none; background: rgb(30 47 54 / 8%); color: var(--ink); }
+.mm-close:hover { background: rgb(30 47 54 / 16%); }
 .mm-body { overflow: auto; padding: 16px 20px 20px; display: grid; gap: 12px; }
 
 .mm-drop {
@@ -509,6 +514,7 @@
 .mm-samples button { padding: 0; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; cursor: pointer; background: none; }
 .mm-samples img { display: block; width: 120px; height: 80px; object-fit: cover; }
 
+.mm-photo, .ba { box-shadow: 0 8px 24px rgb(30 47 54 / 22%); outline: 1px solid var(--line); }
 .mm-photo { position: relative; margin: 0 auto; overflow: hidden; border-radius: 14px; background: #000; touch-action: none; }
 .mm-photo img { display: block; width: 100%; height: 100%; object-fit: fill; }
 .mm-tap { position: absolute; inset: 0; cursor: crosshair; }
@@ -559,4 +565,14 @@
 @media (max-width: 860px) {
   .modal-backdrop { padding: 0; }
   .mirror { width: 100%; max-height: 100dvh; border-radius: 0; }
+}
+
+/* Top-bar entry point for Flood Mirror */
+.topbar-mirror {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--grad-deep); color: #fff; box-shadow: var(--shadow); font-weight: 600; font-size: calc(15px * var(--fs)); white-space: nowrap;
+}
+.topbar-mirror:hover { filter: brightness(1.1); }
+@media (max-width: 860px) {
+  .topbar-mirror { order: 4; }
 }

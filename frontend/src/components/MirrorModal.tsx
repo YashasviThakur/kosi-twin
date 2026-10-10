@@ -12,7 +12,7 @@ import type { RefKind } from '../i18n-mirror'
 
 export interface MirrorTarget {
   village: string           // English name (burned into the image watermark)
-  displayName: string       // name in the interface language
+  displayName: string       // name in the interface language; empty when opened without a village
   depth: number             // forecast depth in metres (0 = the village floods only at its edge)
   when: string | null       // forecast arrival, zone-less local time from the API
 }
@@ -106,7 +106,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
   }
 
   const when = target.when ? dayTime(target.when, lang) : ''
-  const text = m.shareText(target.displayName, depth.toFixed(1), when)
+  const text = target.when ? m.shareText(target.displayName, depth.toFixed(1), when) : m.shareExample(depth.toFixed(1))
 
   const save = () => {
     if (!result) return
@@ -141,7 +141,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
         <header className="mm-head">
           <div>
             <h2>{m.title}</h2>
-            <p>{target.displayName} · {m.intro}</p>
+            <p>{target.displayName && <>{target.displayName} · </>}{m.intro}</p>
           </div>
           <button ref={closeBtn} className="vc-close mm-close" onClick={onClose} aria-label={m.close} title={m.close}>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>
@@ -231,7 +231,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
                 ))}
               </div>
               <p className="vc-note">
-                {target.depth > 0 ? m.forecastDepth(target.depth.toFixed(1)) : m.depthExample}
+                {target.depth > 0 ? m.forecastDepth(target.depth.toFixed(1)) : target.displayName ? m.depthExample : m.depthPick}
                 {' · '}{depthSentence(depth, lang)}
               </p>
               {target.depth > 0 && Math.abs(depth - target.depth) > 0.05 && (
@@ -251,7 +251,7 @@ export function MirrorModal({ lang, target, onClose }: Props) {
           <div className="mm-body">
             <BeforeAfter before={photo.url} after={result.url} labels={[m.before, m.after]} hint={m.compare} width={photo.width} height={photo.height} />
             <p className="mm-caption num">
-              <strong>{target.displayName}</strong> · {depth.toFixed(1)} m · {depthSentence(depth, lang)}
+              {target.displayName && <><strong>{target.displayName}</strong> · </>}{depth.toFixed(1)} m · {depthSentence(depth, lang)}
               {when && <> · {when}</>}
             </p>
             <p className="vc-note">{m.simulation}{result.engine === 'fallback' && <> {m.basic}</>}</p>

@@ -36,6 +36,8 @@ type Strings = {
   close: string
   error: string
   shareText: (village: string, depth: string, when: string) => string
+  shareExample: (depth: string) => string
+  depthPick: string
 }
 
 export const M: Record<Lang, Strings> = {
@@ -65,13 +67,15 @@ export const M: Record<Lang, Strings> = {
     after: 'Forecast',
     compare: 'Drag to compare',
     simulation: 'AI simulation of the forecast, not a real photo.',
-    basic: 'Basic water overlay (AI painting is not enabled).',
+    basic: 'Water drawn by the app, not AI-painted.',
     share: 'Share',
     save: 'Save image',
     another: 'Try another photo',
     close: 'Close',
     error: 'Couldn’t make the image. Try another photo, or mark the door again.',
     shareText: (v, d, w) => `Flood forecast for ${v}: about ${d} m of water, expected ${w}. Made with Kosi Twin (AI simulation).`,
+    shareExample: (d) => `What a ${d} m flood could look like. Made with Kosi Twin (AI simulation).`,
+    depthPick: 'Pick a depth to try.',
   },
   hi: {
     open: 'अपनी गली में देखें',
@@ -99,13 +103,15 @@ export const M: Record<Lang, Strings> = {
     after: 'अनुमान',
     compare: 'तुलना के लिए खींचें',
     simulation: 'अनुमान का AI चित्रण है, असली फ़ोटो नहीं।',
-    basic: 'सामान्य पानी की परत (AI चित्रण चालू नहीं है)।',
+    basic: 'पानी ऐप ने बनाया है, AI से नहीं।',
     share: 'साझा करें',
     save: 'तस्वीर सहेजें',
     another: 'दूसरी फ़ोटो आज़माएँ',
     close: 'बंद करें',
     error: 'तस्वीर नहीं बन सकी। दूसरी फ़ोटो आज़माएँ, या दरवाज़ा फिर से चिह्नित करें।',
     shareText: (v, d, w) => `${v} के लिए बाढ़ का अनुमान: लगभग ${d} मी पानी, ${w} तक। कोसी ट्विन से बनाया (AI चित्रण)।`,
+    shareExample: (d) => `${d} मी की बाढ़ ऐसी दिख सकती है। कोसी ट्विन से बनाया (AI चित्रण)।`,
+    depthPick: 'आज़माने के लिए गहराई चुनें।',
   },
   bho: {
     open: 'आपन गली में देखीं',
@@ -133,13 +139,15 @@ export const M: Record<Lang, Strings> = {
     after: 'अंदाजा',
     compare: 'तुलना खातिर खींचीं',
     simulation: 'अंदाजा के AI चित्र बा, असली फोटो ना।',
-    basic: 'सादा पानी के परत (AI चित्र चालू नइखे)।',
+    basic: 'पानी ऐप बनवले बा, AI से ना।',
     share: 'साझा करीं',
     save: 'तस्वीर सहेजीं',
     another: 'दोसर फोटो आजमाईं',
     close: 'बंद करीं',
     error: 'तस्वीर ना बन सकल। दोसर फोटो आजमाईं, भा दरवाजा फेर से चिन्हित करीं।',
     shareText: (v, d, w) => `${v} खातिर बाढ़ के अंदाजा: लगभग ${d} मी पानी, ${w} ले। कोसी ट्विन से बनल (AI चित्र)।`,
+    shareExample: (d) => `${d} मी के बाढ़ अइसन लउक सकेला। कोसी ट्विन से बनल (AI चित्र)।`,
+    depthPick: 'आजमावे खातिर गहराई चुनीं।',
   },
   mai: {
     open: 'अपन गली मे देखू',
@@ -167,12 +175,14 @@ export const M: Record<Lang, Strings> = {
     after: 'अनुमान',
     compare: 'तुलनाक लेल घिसियाउ',
     simulation: 'अनुमानक AI चित्र अछि, असली फोटो नहि।',
-    basic: 'सादा पानिक परत (AI चित्र चालू नहि अछि)।',
+    basic: 'पानि ऐप बनौने अछि, AI सँ नहि।',
     share: 'साझा करू',
     save: 'तस्वीर सहेजू',
     another: 'दोसर फोटो आजमाउ',
     close: 'बंद करू',
     error: 'तस्वीर नहि बनि सकल। दोसर फोटो आजमाउ, वा केबाड़ फेर चिह्नित करू।',
     shareText: (v, d, w) => `${v} लेल बाढ़िक अनुमान: लगभग ${d} मी पानि, ${w} धरि। कोसी ट्विन सँ बनल (AI चित्र)।`,
+    shareExample: (d) => `${d} मीक बाढ़ि एहन देखा सकैत अछि। कोसी ट्विन सँ बनल (AI चित्र)।`,
+    depthPick: 'आजमाबक लेल गहराइ चुनू।',
   },
 }
