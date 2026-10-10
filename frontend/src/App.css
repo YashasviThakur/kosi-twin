@@ -704,3 +704,61 @@
   .replay { left: 8px; right: 8px; top: var(--top); bottom: auto; }
   .map-tools { display: none; }
 }
+
+/* =====================================================================================
+   v3 — box colours: warm silt cream cards, charcoal buttons and headers, sand tiles, saffron accents.
+   Blue now lives only where it is data (floodwater, the gauge, the depth scale).
+   ===================================================================================== */
+.app {
+  --glass: rgb(252 249 242 / 88%);
+  --glass-solid: rgb(252 249 242 / 95%);
+  --glass-edge: rgb(255 255 255 / 75%);
+  --grad-deep: linear-gradient(135deg, #1F2B30 0%, #34464B 100%);     /* charcoal-teal: buttons, headers, active tabs */
+  --grad-side: linear-gradient(90deg, #FBF7EE 0%, #F0E7D3 100%);       /* sand */
+  --grad-panel: linear-gradient(180deg, #FCF9F2 0%, #F6EFE0 100%);
+  --sand: rgb(236 225 201 / 55%);
+  --accent: #D9902B;                                                   /* saffron */
+  --accent-ink: #6B4519;                                               /* deep brown for numbers and links */
+  --lift: 0 1px 0 rgb(255 255 255 / 70%) inset, 0 2px 6px rgb(40 30 15 / 10%), 0 18px 48px rgb(40 30 15 / 24%);
+}
+.btn-primary, .topbar-mirror { box-shadow: 0 8px 20px rgb(31 43 48 / 30%); }
+.btn-quiet { color: var(--accent-ink); }
+.brand-mark { color: #F4C46A; }                                        /* saffron mark on charcoal */
+.badge { background: rgb(217 144 43 / 18%); color: var(--accent-ink); }
+.brand .badge { background: none; color: rgb(255 255 255 / 75%); }
+.langs, .basemap, .text-size, .layers-btn { background: rgb(60 45 20 / 8%); }
+.layers-btn:hover, .layers-btn.is-open { background: rgb(60 45 20 / 15%); }
+.panel-toggle { background: rgb(60 45 20 / 8%); }
+.panel-toggle:hover { background: rgb(60 45 20 / 15%); }
+.layers-menu .tool-btn { background: rgb(60 45 20 / 7%); }
+.search input { background: rgb(255 255 255 / 75%); border-color: rgb(60 45 20 / 12%); }
+.search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(217 144 43 / 28%); }
+
+/* Readouts and headline numbers in ink, not blue. */
+.readout strong { background: linear-gradient(135deg, #1F2B30, #4B3A1E); -webkit-background-clip: text; background-clip: text; }
+.rise, .facts dt, .replay-clock strong, .dest-km { color: var(--accent-ink); }
+.rise { color: #A5600F; }
+.facts div, .vc-facts > div { background: var(--sand); }
+.vc-advisory { background: linear-gradient(180deg, rgb(244 196 106 / 22%), rgb(236 225 201 / 55%)); }
+.path-item:hover { background: var(--grad-side); }
+.path-item.is-selected { background: linear-gradient(90deg, rgb(244 196 106 / 40%), rgb(236 225 201 / 55%)); }
+.path-item:hover .path-open { stroke: var(--accent-ink); }
+.dest { background: rgb(255 255 255 / 80%); }
+.dest:hover { border-color: var(--accent); }
+.vc-leave { box-shadow: 0 8px 20px rgb(31 43 48 / 28%); }
+.replay { background: var(--glass-solid); }
+.replay-area { fill: rgb(244 196 106 / 45%); }
+.replay-line { stroke: #A5600F; }
+.legend, .search-list, .layers-menu { color: var(--ink); }
+
+/* Flood Mirror window. */
+.mm-head { background: linear-gradient(180deg, #F1E6CC 0%, #F7F0DF 70%, #FCF9F2 100%); }
+.mm-head::before { background: linear-gradient(90deg, #F4C46A, #D9902B, #6B4519); }
+.mm-head h2 { color: var(--accent-ink); }
+.mm-drop { border-color: #D9B877; background: linear-gradient(180deg, rgb(244 196 106 / 18%), rgb(236 225 201 / 40%)); }
+.mm-drop:hover { border-color: var(--accent); }
+.mm-presets button.is-active, .mm-ref button.is-active { border-color: var(--accent); box-shadow: 0 0 0 2px rgb(217 144 43 / 30%); background: var(--grad-side); }
+.mm-time input[type=range] { accent-color: var(--accent); }
+.mirror, .report-form { background: var(--glass-solid); }
+.rf-note:focus { border-color: var(--accent); }
+.eta-bubble { background: #16A34A; }
