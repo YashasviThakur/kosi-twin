@@ -40,7 +40,8 @@ export const N: Record<Lang, More> = {
       next: 'Next', back: 'Back', done: 'Start exploring', skip: 'Skip',
       steps: [
         { title: 'Set the river level', text: 'Drag the water up or down. This is the flow released at the Birpur barrage, in lakh cusecs.' },
-        { title: 'Replay September 2024', text: 'Watch the 2024 flood unfold: the water, the villages it reached, and when.' },
+        { title: 'The live Kosi', text: 'The newest official reading at the Birpur barrage, from the Bihar Water Resources Department, with how old it is and whether the river is rising or falling.' },
+        { title: 'Every flood since 2018', text: 'Each time the barrage released 2 lakh cusecs or more. Show a flood’s peak on the map, or replay it village by village.' },
         { title: 'Who the water reaches', text: 'Villages in the water’s path, soonest first. The number is the hours until the water arrives.' },
         { title: 'When to leave', text: 'Pick a village to see when to leave, when the water arrives, how deep it gets, and where to go.' },
         { title: 'See it on your street', text: 'Add a photo of a street and see the forecast flood on it, at the depth forecast for that village.' },
@@ -78,7 +79,8 @@ export const N: Record<Lang, More> = {
       next: 'आगे', back: 'पीछे', done: 'शुरू करें', skip: 'छोड़ें',
       steps: [
         { title: 'नदी का स्तर तय करें', text: 'पानी को ऊपर-नीचे खींचें। यह बीरपुर बराज से छोड़ा गया बहाव है, लाख क्यूसेक में।' },
-        { title: 'सितंबर 2024 दोबारा देखें', text: '2024 की बाढ़ को चलते देखें: पानी, कौन-से गाँव डूबे और कब।' },
+        { title: 'अभी की कोसी', text: 'बीरपुर बराज पर बिहार जल संसाधन विभाग की ताज़ा सरकारी रीडिंग, कितनी पुरानी है और नदी बढ़ रही है या घट रही है।' },
+        { title: '2018 से अब तक की हर बाढ़', text: 'जब-जब बराज से 2 लाख क्यूसेक या ज़्यादा छोड़ा गया। किसी बाढ़ का चरम स्तर नक्शे पर देखें, या उसे गाँव-गाँव दोबारा चलाएँ।' },
         { title: 'पानी किन तक पहुँचता है', text: 'पानी की राह में आने वाले गाँव, जिन तक पहले पहुँचेगा वे ऊपर। संख्या बताती है कितने घंटे में पानी पहुँचेगा।' },
         { title: 'कब निकलना है', text: 'गाँव चुनें और देखें कब निकलना है, पानी कब पहुँचेगा, कितना गहरा होगा और कहाँ जाना है।' },
         { title: 'अपनी गली में देखें', text: 'गली की फ़ोटो जोड़ें और उस गाँव के अनुमानित पानी की गहराई के साथ बाढ़ देखें।' },
@@ -116,7 +118,8 @@ export const N: Record<Lang, More> = {
       next: 'आगे', back: 'पीछे', done: 'शुरू करीं', skip: 'छोड़ीं',
       steps: [
         { title: 'नदी के स्तर तय करीं', text: 'पानी के ऊपर-नीचे खींचीं। ई बीरपुर बराज से छोड़ल बहाव बा, लाख क्यूसेक में।' },
-        { title: 'सितंबर 2024 फेर देखीं', text: '2024 के बाढ़ के चलत देखीं: पानी, कवन गाँव डूबल आ कब।' },
+        { title: 'अब के कोसी', text: 'बीरपुर बराज पर बिहार जल संसाधन विभाग के ताजा सरकारी रीडिंग, केतना पुरान बा आ नदी बढ़त बा कि घटत बा।' },
+        { title: '2018 से अब ले के हर बाढ़', text: 'जब-जब बराज से 2 लाख क्यूसेक भा बेसी छोड़ल गइल। कवनो बाढ़ के चरम स्तर नक्सा पर देखीं, भा ओकरा के गाँव-गाँव फेर चलाईं।' },
         { title: 'पानी केकरा तक पहुँचेला', text: 'पानी के राह में पड़े वाला गाँव, जहाँ पहिले पहुँची उ ऊपर। संख्या बतावेला कतना घंटा में पानी पहुँची।' },
         { title: 'कब निकले के बा', text: 'गाँव चुनीं आ देखीं कब निकले के बा, पानी कब पहुँची, केतना गहिर होई आ कहाँ जाए के बा।' },
         { title: 'आपन गली में देखीं', text: 'गली के फोटो जोड़ीं आ ओह गाँव के अंदाजा वाला पानी के गहिराई संगे बाढ़ देखीं।' },
@@ -154,7 +157,8 @@ export const N: Record<Lang, More> = {
       next: 'आगू', back: 'पाछू', done: 'शुरू करू', skip: 'छोड़ू',
       steps: [
         { title: 'नदीक स्तर तय करू', text: 'पानिकेँ ऊपर-नीचाँ घिसियाउ। ई बीरपुर बराजसँ छोड़ल बहाव अछि, लाख क्यूसेक मे।' },
-        { title: 'सितम्बर 2024 फेर देखू', text: '2024 क बाढ़िकेँ चलैत देखू: पानि, कोन गाम डूबल आ कखन।' },
+        { title: 'एखनुक कोसी', text: 'बीरपुर बराज पर बिहार जल संसाधन विभागक ताजा सरकारी रीडिंग, कतेक पुरान अछि आ नदी बढ़ि रहल अछि कि घटि रहल।' },
+        { title: '2018 सँ आब धरिक हर बाढ़ि', text: 'जखन-जखन बराज सँ 2 लाख क्यूसेक वा बेसी छोड़ल गेल। कोनो बाढ़िक चरम स्तर नक्शा पर देखू, वा ओकरा गाम-गाम फेर चलाउ।' },
         { title: 'पानि ककरा धरि पहुँचैत अछि', text: 'पानिक बाटक गाम, जत्त पहिने पहुँचत से ऊपर। संख्या बतबैत अछि कतेक घंटा मे पानि पहुँचत।' },
         { title: 'कखन निकलबाक अछि', text: 'गाम चुनू आ देखू कखन निकलबाक अछि, पानि कखन पहुँचत, कतेक गहींर होयत आ कतय जयबाक अछि।' },
         { title: 'अपन गली मे देखू', text: 'गलीक फोटो जोड़ू आ ओहि गामक अनुमानित पानिक गहराइक संग बाढ़ि देखू।' },

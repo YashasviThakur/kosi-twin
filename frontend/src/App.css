@@ -1756,3 +1756,32 @@
 .fl-actions button[aria-pressed="true"] { background: var(--acc); color: var(--on-acc); }
 
 .floods-list { max-height: 460px; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 28%) transparent; }
+
+/* Contrast pass: small text on the dark panels reaches at least 4.5:1 in every theme. */
+.sidebar { --muted: rgb(var(--txt-rgb) / 80%); }
+.live-card .eyebrow, .floods-card .eyebrow { color: rgb(var(--txt-rgb) / 80%); }
+.live-sub, .live-levels, .hist-pick { color: rgb(var(--txt-rgb) / 82%); }
+.live-axis { color: rgb(var(--txt-rgb) / 76%); }
+.live-chip { color: #A6E8BA; }
+.live-chip.is-stale { color: #FFD59A; }
+.hist-chip { color: rgb(var(--txt-rgb) / 88%); background: rgb(255 255 255 / 12%); }
+.fl-head span, .fl-peak small { color: rgb(var(--txt-rgb) / 82%); }
+.fl-peak span { color: rgb(var(--txt-rgb) / 78%); }
+.fl-actions button { color: var(--accl); background: rgb(var(--acc-rgb) / 10%); }
+.fl-actions button[aria-pressed="true"] { color: var(--on-acc); }
+.live-apply { color: var(--accl); }
+.live-apply.is-on { color: var(--on-acc); }
+.live-note a { display: inline-block; padding: 6px 0; }
+.rp-clock .eyebrow, .rp-stats dd, .rp-note { color: rgb(var(--txt-rgb) / 80%); }
+.stat-label, .path-meta, .vr-main > small { color: rgb(var(--txt-rgb) / 82%); }
+
+/* Phones: comfortable thumb targets on the new cards. */
+@media (max-width: 860px) {
+  .chip, .fl-actions button, .live-apply { min-height: 40px; }
+  .chip { padding-left: 16px; padding-right: 16px; }
+}
+
+/* Phones: with the sheet pulled fully open the round buttons would sit on top of it, so they step aside. */
+@media (max-width: 860px) {
+  .app[data-sheet="full"] .map-controls { opacity: 0; pointer-events: none; }
+}

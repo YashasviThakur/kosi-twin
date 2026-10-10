@@ -55,7 +55,7 @@ function loadTheme(): ThemeId {
 document.documentElement.dataset.theme = loadTheme()      // before the first paint, so the loading screen is themed too
 const SHEETS = ['peek', 'half', 'full'] as const
 // First-visit tour: what each step points at, in order.
-const TOUR_TARGETS = ['.gauge-panel .gauge', '.gauge-panel .btn-primary', '.vlist', '.tl-card', '.round-accent']
+const TOUR_TARGETS = ['.gauge-panel .gauge', '.live-card', '.floods-card', '.vlist', '.tl-card', '.round-accent']
 function tourSeen() {
   try { return localStorage.getItem('kosi.tour.done') === '1' } catch { return true }
 }
@@ -213,7 +213,7 @@ export default function App() {
   }, [meta])
   const tourVillage = scenario?.top_villages?.[0]?.id ?? scenario?.affected?.[0]?.id ?? null
   const onTourStep = useCallback((i: number) => {
-    if (i <= 2) setSelectedId(null)
+    if (i <= 3) setSelectedId(null)
     else if (tourVillage != null) setSelectedId(tourVillage)
   }, [tourVillage])
   const closeTour = useCallback(() => { markTourSeen(); setTour(false); setSelectedId(null) }, [])
@@ -272,7 +272,7 @@ export default function App() {
   if (!meta || live === null) return <Splash lang={lang} />
 
   return (
-    <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang}>
+    <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang} data-sheet={sheet}>
       <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} eta={eta} layer={layerPrefix(extentRise)}
         basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId}
         accent={THEMES.find((t) => t.id === theme)!.accent}
