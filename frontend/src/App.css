@@ -1227,3 +1227,66 @@
 .sb-scroll::-webkit-scrollbar { width: 8px; }
 .sb-scroll::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 28%); border-radius: 4px; }
 .sb-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* =====================================================================================
+   v11 — search and village list: suggestions on focus, rich result rows with an arrival chip, a clear button;
+   the list is grouped by filter chips with a countdown block and an urgency bar on every row.
+   ===================================================================================== */
+.search-clear {
+  position: absolute; right: 8px; top: 50%; width: 28px; height: 28px; margin-top: -14px; display: grid; place-items: center;
+  border: 0; border-radius: 50%; background: rgb(255 255 255 / 16%); color: var(--ink); cursor: pointer;
+}
+.search-clear svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.search input { padding-right: 44px; }
+.search-list { padding: 8px; max-height: min(60dvh, 420px); overflow-y: auto; }
+.search-head { padding: 6px 10px 8px; font-size: calc(11px * var(--fs)); font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.search-list li.sr-row { flex-direction: row; align-items: center; gap: 12px; padding: 10px 10px; }
+.sr-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.sr-main strong { font-size: calc(15px * var(--fs)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-main span { font-size: calc(12px * var(--fs)); color: var(--muted); text-transform: capitalize; }
+.sr-eta { padding: 3px 10px; border-radius: 999px; font: 700 12px/1.4 var(--font-ui); color: #fff; }
+.sr-eta.risk-evacuate { background: #D64533; }
+.sr-eta.risk-watch { background: #F4C46A; color: #2B1D07; }
+.risk-dot.risk-safe { background: rgb(160 170 175 / 60%); }
+.sr-row .risk-dot { grid-row: auto; flex: none; }
+
+.vlist { display: flex; flex-direction: column; gap: 10px; }
+.vlist-head { display: flex; flex-direction: column; gap: 10px; }
+.vlist-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgb(255 255 255 / 10%); color: var(--ink); font-weight: 700; font-size: calc(13px * var(--fs));
+}
+.chip .num { opacity: .7; font-weight: 600; }
+.chip:hover { background: rgb(255 255 255 / 17%); }
+.chip.is-active { background: #F4C46A; color: #2B1D07; }
+.chip.is-active.chip-evacuate { background: #D64533; color: #fff; }
+.vlist .hint { margin: 0; }
+
+.vrows { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.vrow {
+  width: 100%; display: grid; grid-template-columns: 54px 1fr auto 14px; column-gap: 12px; align-items: center; text-align: left;
+  padding: 10px 12px 10px 10px; border: 1px solid rgb(255 255 255 / 9%); border-radius: 18px; cursor: pointer;
+  background: rgb(255 255 255 / 5%); color: var(--ink); transition: background .15s, transform .15s;
+}
+.vrow:hover { background: rgb(255 255 255 / 10%); }
+.vrow:active { transform: scale(.985); }
+.vrow.is-selected { background: rgb(244 196 106 / 16%); border-color: rgb(244 196 106 / 55%); }
+.vr-eta {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; height: 54px; border-radius: 15px;
+  color: #fff; line-height: 1;
+}
+.vr-eta strong { font-size: calc(22px * var(--fs)); font-weight: 700; }
+.vr-eta small { margin-top: 3px; font-size: calc(11px * var(--fs)); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .9; }
+.vrow.risk-evacuate .vr-eta { background: linear-gradient(135deg, #B23A26, #E4553F); }
+.vrow.risk-watch .vr-eta { background: linear-gradient(135deg, #D9902B, #F4C46A); color: #2B1D07; }
+.vr-main { display: flex; flex-direction: column; min-width: 0; }
+.vr-main > strong { font-size: calc(16px * var(--fs)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vr-main > small { font-size: calc(13px * var(--fs)); color: var(--muted); }
+.vr-bar { display: block; height: 4px; margin-top: 7px; border-radius: 2px; background: rgb(255 255 255 / 12%); overflow: hidden; }
+.vr-bar i { display: block; height: 100%; border-radius: 2px; }
+.vrow.risk-evacuate .vr-bar i { background: #E4553F; }
+.vrow.risk-watch .vr-bar i { background: #F4C46A; }
+.vrow .risk-tag { grid-row: auto; grid-column: auto; }
+.vrow .path-open { grid-row: auto; grid-column: auto; stroke: rgb(245 239 227 / 55%); }
+.vrow:hover .path-open { stroke: #F4C46A; }

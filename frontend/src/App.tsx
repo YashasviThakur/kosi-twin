@@ -229,7 +229,7 @@ export default function App() {
             <span className="badge">{t.estimate}</span>
           </span>
         </div>
-          <SearchBox villages={villages} lang={lang} onPick={setSelectedId} />
+          <SearchBox villages={villages} lang={lang} risk={risk} eta={eta} onPick={setSelectedId} />
         </div>
         <div className="sb-scroll" ref={sbScroll}>
           {selectedId == null ? (
@@ -258,7 +258,7 @@ export default function App() {
         />
         {!replay && <button className="btn btn-primary" onClick={startReplay}>{t.replay}</button>}
       </Panel>
-              <SummaryPanel lang={lang} discharge={qExtent} stats={stats} top={scenario?.top_villages ?? []}
+              <SummaryPanel lang={lang} discharge={qExtent} stats={stats} affected={scenario?.affected ?? []} villages={villages}
                 selectedId={selectedId} onSelect={setSelectedId} />
             </>
           ) : (

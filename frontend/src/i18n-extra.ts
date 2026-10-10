@@ -40,6 +40,7 @@ type Strings = {
   embankNote: string
   reportLeak: string
   layers: string
+  all: string
   reportPick: string
   reportKinds: Record<'seepage' | 'crack' | 'breach', string>
   reportNote: string
@@ -87,6 +88,7 @@ export const X: Record<Lang, Strings> = {
     embankNote: 'Only part of the embankments is mapped. This ranks who is at stake, not where a breach will happen.',
     reportLeak: 'Report a leak',
     layers: 'Map & text',
+    all: 'All',
     reportPick: 'Tap the map where the embankment is leaking',
     reportKinds: { seepage: 'Seepage', crack: 'Crack', breach: 'Breach' },
     reportNote: 'What do you see? (optional)',
@@ -132,6 +134,7 @@ export const X: Record<Lang, Strings> = {
     embankNote: 'केवल कुछ तटबंध नक्शे में दर्ज हैं। यह बताता है कि किसका ख़तरा ज़्यादा है, टूटन कहाँ होगी यह नहीं।',
     reportLeak: 'रिसाव की सूचना दें',
     layers: 'नक्शा और अक्षर',
+    all: 'सभी',
     reportPick: 'नक्शे पर वह जगह छुएँ जहाँ तटबंध रिस रहा है',
     reportKinds: { seepage: 'रिसाव', crack: 'दरार', breach: 'टूटन' },
     reportNote: 'आप क्या देख रहे हैं? (वैकल्पिक)',
@@ -177,6 +180,7 @@ export const X: Record<Lang, Strings> = {
     embankNote: 'खाली कुछ तटबंध नक्शा में दर्ज बा। ई बतावेला कि केकर खतरा ज्यादा बा, टूटन कहाँ होई ई ना।',
     reportLeak: 'रिसाव के सूचना दीं',
     layers: 'नक्सा आ अक्षर',
+    all: 'सब',
     reportPick: 'नक्शा पर ऊ जगह छूईं जहाँ तटबंध रिस रहल बा',
     reportKinds: { seepage: 'रिसाव', crack: 'दरार', breach: 'टूटन' },
     reportNote: 'रउआ का देख रहल बानी? (मन होखे त)',
@@ -222,6 +226,7 @@ export const X: Record<Lang, Strings> = {
     embankNote: 'मात्र किछु तटबंध नक्शा मे दर्ज अछि। ई बतबैत अछि जे केकर खतरा बेसी अछि, टूटन कतय होयत से नहि।',
     reportLeak: 'रिसावक सूचना दिअ',
     layers: 'नक्शा आ अक्षर',
+    all: 'सभ',
     reportPick: 'नक्शा पर ओ ठाम छुबू जतय तटबंध रिस रहल अछि',
     reportKinds: { seepage: 'रिसाव', crack: 'दरार', breach: 'टूटन' },
     reportNote: 'अहाँ की देखि रहल छी? (इच्छा हो त)',
