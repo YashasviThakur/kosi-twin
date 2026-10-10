@@ -151,10 +151,10 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
       // Plain map in the app's blue-white palette: pale silt land, soft blue water, quiet greens.
       for (const l of layers) {
         const sl = (l as { 'source-layer'?: string })['source-layer']
-        if (l.type === 'background') map.setPaintProperty(l.id, 'background-color', '#F4F1EA')
+        if (l.type === 'background') map.setPaintProperty(l.id, 'background-color', '#EDF0F7')
         else if (l.type === 'fill' && sl === 'water') map.setPaintProperty(l.id, 'fill-color', '#BBD8E4')
         else if (l.type === 'fill' && (sl === 'landcover' || sl === 'landuse' || sl === 'park')) {
-          map.setPaintProperty(l.id, 'fill-color', '#E8EEE4')
+          map.setPaintProperty(l.id, 'fill-color', '#E6EBF3')
           map.setPaintProperty(l.id, 'fill-opacity', 0.75)
         }
       }
@@ -171,7 +171,7 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
       map.addSource('shade', dem)
       map.setTerrain({ source: 'terrain', exaggeration: 2 })
       map.addLayer({ id: 'hillshade', type: 'hillshade', source: 'shade',
-        paint: { 'hillshade-exaggeration': 0.3, 'hillshade-shadow-color': '#5A6B71', 'hillshade-highlight-color': '#F8F6F1' } }, firstSymbol)
+        paint: { 'hillshade-exaggeration': 0.3, 'hillshade-shadow-color': '#5A6B71', 'hillshade-highlight-color': '#F1F4FA' } }, firstSymbol)
 
       tiles.forEach(([w, s, e, n], i) => {
         map.addSource(`flood-${i}`, { type: 'image', url: BLANK, coordinates: [[w, n], [e, n], [e, s], [w, s]] })
@@ -217,7 +217,7 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
       // Dim everything outside Bihar (above the basemap and its labels) and outline the state.
       map.addSource('outside-bihar', { type: 'geojson', data: '/bihar-mask.geojson' })
       map.addLayer({ id: 'outside-bihar', type: 'fill', source: 'outside-bihar',
-        paint: { 'fill-color': '#F8F6F1', 'fill-opacity': 0.86 } })
+        paint: { 'fill-color': '#EEF1F8', 'fill-opacity': 0.86 } })
       map.addLayer({ id: 'bihar-outline', type: 'line', source: 'outside-bihar',
         paint: { 'line-color': '#1B4352', 'line-width': 1.6, 'line-opacity': 0.7 } })
 
@@ -247,7 +247,7 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
       map.addLayer({ id: 'village-dot', type: 'circle', source: 'villages',
         paint: {
           'circle-radius': radius(0.62),
-          'circle-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#12357A',
+          'circle-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#2DD4BF',
             riskColor('#D64533', '#E8A317', '#FFFFFF')],
           'circle-stroke-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#FFFFFF',
             riskColor('#FFFFFF', '#FFFFFF', '#2F6B80')],
@@ -346,9 +346,9 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
     // blue flood ramp over a navy channel. Outside Bihar is only lightly dimmed so the Himalayan relief shows.
     const paint: [string, string, unknown, unknown][] = [
       ['hillshade', 'hillshade-exaggeration', 0.55, 0.3],
-      ['hillshade', 'hillshade-shadow-color', '#0B1A20', '#5A6B71'],
-      ['hillshade', 'hillshade-highlight-color', 'rgba(255,255,255,0.18)', '#F8F6F1'],
-      ['outside-bihar', 'fill-color', '#0B1A20', '#F8F6F1'],
+      ['hillshade', 'hillshade-shadow-color', '#080B1A', '#5A6384'],
+      ['hillshade', 'hillshade-highlight-color', 'rgba(255,255,255,0.18)', '#F1F4FA'],
+      ['outside-bihar', 'fill-color', '#080B1A', '#EEF1F8'],
       ['outside-bihar', 'fill-opacity', 0.38, 0.86],
       ['bihar-outline', 'line-color', '#FFFFFF', '#1B4352'],
       ['bihar-outline', 'line-width', 2.2, 1.6],

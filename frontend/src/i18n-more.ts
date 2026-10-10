@@ -12,6 +12,7 @@ interface More {
   takeItems: string[]
   tour: { next: string; back: string; done: string; skip: string; steps: { title: string; text: string }[] }
   info: string
+  retry: string
 }
 
 export const N: Record<Lang, More> = {
@@ -33,6 +34,7 @@ export const N: Record<Lang, More> = {
       ],
     },
     info: 'How this works',
+    retry: 'Try again',
   },
   hi: {
     share: 'साझा करें', print: 'छापें', sheetTitle: 'निकासी कार्ड',
@@ -52,6 +54,7 @@ export const N: Record<Lang, More> = {
       ],
     },
     info: 'यह कैसे काम करता है',
+    retry: 'फिर कोशिश करें',
   },
   bho: {
     share: 'साझा करीं', print: 'छापीं', sheetTitle: 'निकासी कार्ड',
@@ -71,6 +74,7 @@ export const N: Record<Lang, More> = {
       ],
     },
     info: 'ई कइसे काम करेला',
+    retry: 'फेर कोशिश करीं',
   },
   mai: {
     share: 'साझा करू', print: 'छापू', sheetTitle: 'निकासी कार्ड',
@@ -90,5 +94,6 @@ export const N: Record<Lang, More> = {
       ],
     },
     info: 'ई कोना काज करैत अछि',
+    retry: 'फेर प्रयास करू',
   },
 }

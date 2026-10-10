@@ -17,6 +17,7 @@ import { CATEGORY_ICON, X } from './i18n-extra'
 import { Icon } from './icons'
 import { InfoModal } from './components/InfoModal'
 import { Tour } from './components/Tour'
+import { Splash } from './components/Splash'
 import { N } from './i18n-more'
 import { Logo } from './components/Logo'
 import { M } from './i18n-mirror'
@@ -217,8 +218,8 @@ export default function App() {
   }
   const exitReplay = () => { setReplay(null); setPlaying(false) }
 
-  if (failed) return <div className="state-screen" role="alert">{t.error}</div>
-  if (!meta) return <div className="state-screen">{t.loading}</div>
+  if (failed) return <Splash lang={lang} error />
+  if (!meta) return <Splash lang={lang} />
 
   return (
     <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang}>
