@@ -1059,3 +1059,48 @@
   .mm-big { font-size: 40px; }
   .mm-side .mm-actions { flex-direction: row; flex-wrap: wrap; align-items: center; }
 }
+
+/* =====================================================================================
+   v9 — liquid-glass finish on the controls (top bar pieces, gauge, legends, menus): more see-through, a bright
+   specular rim and top sheen, a soft lift on hover and a squash on press. The data panels (summary, village
+   card, Flood Mirror) stay near-opaque dark so evacuation numbers stay readable over a busy map.
+   ===================================================================================== */
+.brand, .pill, .round-btn, .legend, .gauge-panel, .pop-menu {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 58%) 0%, rgb(255 255 255 / 12%) 42%, rgb(255 255 255 / 0%) 58%),
+    linear-gradient(135deg, rgb(255 255 255 / 20%), rgb(255 255 255 / 0%) 60%),
+    rgb(251 248 241 / 66%);
+  border: 1px solid rgb(255 255 255 / 70%);
+  box-shadow:
+    inset 0 1.5px 0 rgb(255 255 255 / 95%),            /* specular rim along the top */
+    inset 0 -1px 0 rgb(255 255 255 / 30%),
+    inset 0 0 18px rgb(255 255 255 / 28%),             /* glow just inside the edge */
+    0 2px 6px rgb(30 25 10 / 10%), 0 16px 40px rgb(30 25 10 / 24%);
+  -webkit-backdrop-filter: blur(18px) saturate(1.8) brightness(1.05); backdrop-filter: blur(18px) saturate(1.8) brightness(1.05);
+}
+.search input {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 60%), rgb(255 255 255 / 0%) 55%), rgb(255 255 255 / 70%);
+  box-shadow: inset 0 1.5px 0 rgb(255 255 255 / 95%), inset 0 0 14px rgb(255 255 255 / 30%), 0 2px 6px rgb(30 25 10 / 10%), 0 16px 40px rgb(30 25 10 / 22%);
+  -webkit-backdrop-filter: blur(18px) saturate(1.8); backdrop-filter: blur(18px) saturate(1.8);
+}
+.pill-accent {
+  background: linear-gradient(180deg, #FADB9B 0%, #F4C46A 45%, #EDB34C 100%); border-color: rgb(255 255 255 / 60%);
+  box-shadow: inset 0 1.5px 0 rgb(255 255 255 / 85%), inset 0 -1px 0 rgb(160 100 20 / 25%), 0 10px 24px rgb(217 144 43 / 38%);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.pill, .round-btn { transition: transform .18s cubic-bezier(.3, 1.4, .5, 1), box-shadow .18s, background-color .18s; }
+.pill:hover, .round-btn:hover { transform: translateY(-1.5px); }
+.pill:active, .round-btn:active { transform: scale(.96); }
+.pill:hover, .round-btn:hover, .round-btn.is-open, .pill.is-open { background-color: rgb(255 255 255 / 82%); }
+.pill-accent:hover { background: linear-gradient(180deg, #FDE4AF 0%, #F8CF7C 45%, #F0BA55 100%); }
+.gauge-panel .panel-toggle, .layers-menu .tool-btn, .layers-menu .basemap, .layers-menu .text-size { box-shadow: inset 0 1px 0 rgb(255 255 255 / 70%); }
+.lang-menu button.is-active, .btn-primary { box-shadow: inset 0 1px 0 rgb(255 255 255 / 25%), 0 8px 20px rgb(31 43 48 / 30%); }
+
+/* No blur support, or the person asked for less transparency: solid cream instead. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .brand, .pill, .round-btn, .legend, .gauge-panel, .pop-menu, .search input { background: #FBF8F1; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .brand, .pill, .round-btn, .legend, .gauge-panel, .pop-menu, .search input { background: #FBF8F1; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
