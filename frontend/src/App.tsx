@@ -6,6 +6,8 @@ import { MapView } from './components/MapView'
 import { Panel } from './components/Panel'
 import type { Basemap } from './components/MapView'
 import { ReplayBar } from './components/ReplayBar'
+import { MirrorModal } from './components/MirrorModal'
+import type { MirrorTarget } from './components/MirrorModal'
 import { ReportForm } from './components/ReportForm'
 import { SearchBox } from './components/SearchBox'
 import { SummaryPanel } from './components/SummaryPanel'
@@ -43,6 +45,7 @@ export default function App() {
   const [reports, setReports] = useState<Report[]>([])
   const [reportMode, setReportMode] = useState(false)
   const [draft, setDraft] = useState<{ lon: number; lat: number } | null>(null)
+  const [mirror, setMirror] = useState<MirrorTarget | null>(null)
   const [meta, setMeta] = useState<Meta | null>(null)
   const [villages, setVillages] = useState<Village[]>([])
   const [failed, setFailed] = useState(false)
@@ -213,7 +216,11 @@ export default function App() {
           selectedId={selectedId} onSelect={setSelectedId} />
       ) : (
         <VillageCard card={shownCard} loading={cardLoading} failed={cardFailed} lang={lang} scenario={scenarioRef}
-          routeCategory={routeCategory} onRouteCategory={setRouteCategory} onClose={() => setSelectedId(null)} />
+          routeCategory={routeCategory} onRouteCategory={setRouteCategory} onClose={() => setSelectedId(null)}
+          onMirror={() => shownCard && setMirror({
+            village: shownCard.name, displayName: lang === 'en' ? shownCard.name : (shownCard.name_hi ?? shownCard.name),
+            depth: shownCard.edge_only ? 0 : (shownCard.max_depth_m ?? 0), when: shownCard.eta_time ?? null,
+          })} />
       )}
 
       {replay && (
@@ -248,6 +255,7 @@ export default function App() {
           </p>
         )}
       </div>
+      {mirror && <MirrorModal lang={lang} target={mirror} onClose={() => setMirror(null)} />}
       {reportMode && (
         <ReportForm lang={lang} draft={draft}
           onClose={() => { setReportMode(false); setDraft(null) }}

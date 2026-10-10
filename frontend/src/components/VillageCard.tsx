@@ -10,6 +10,7 @@ import type { Category } from '../i18n-extra'
 import { Destinations, SosBlock, WeatherBlock } from './CardSections'
 import { DepthChart } from './DepthChart'
 import { depthSentence } from '../depth'
+import { M } from '../i18n-mirror'
 import { DepthScale } from './DepthScale'
 
 interface Props {
@@ -20,10 +21,11 @@ interface Props {
   scenario: ScenarioRef
   routeCategory: Category | null
   onRouteCategory: (c: Category) => void
+  onMirror: () => void
   onClose: () => void
 }
 
-export function VillageCard({ card, loading, failed, lang, scenario, routeCategory, onRouteCategory, onClose }: Props) {
+export function VillageCard({ card, loading, failed, lang, scenario, routeCategory, onRouteCategory, onMirror, onClose }: Props) {
   const c = C[lang]
   const risk = card?.risk ?? 'WATCH'
   const name = card ? (lang === 'en' ? card.name : (card.name_hi ?? card.name)) : ''
@@ -53,7 +55,8 @@ export function VillageCard({ card, loading, failed, lang, scenario, routeCatego
           </div>
         )}
         {card && card.risk !== 'SAFE' && (
-          <FloodDetails card={card} lang={lang} scenario={scenario} routeCategory={routeCategory} onRouteCategory={onRouteCategory} />
+          <FloodDetails card={card} lang={lang} scenario={scenario} routeCategory={routeCategory}
+            onRouteCategory={onRouteCategory} onMirror={onMirror} />
         )}
         {card && <SosBlock lang={lang} />}
         {card && <WeatherBlock card={card} lang={lang} />}
@@ -62,8 +65,9 @@ export function VillageCard({ card, loading, failed, lang, scenario, routeCatego
   )
 }
 
-function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory }: {
-  card: Card; lang: Lang; scenario: ScenarioRef; routeCategory: Category | null; onRouteCategory: (c: Category) => void
+function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory, onMirror }: {
+  card: Card; lang: Lang; scenario: ScenarioRef; routeCategory: Category | null
+  onRouteCategory: (c: Category) => void; onMirror: () => void
 }) {
   const c = C[lang]
   const depth = card.max_depth_m ?? 0
@@ -114,6 +118,8 @@ function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory }: 
           <DepthScale depth={depth} lang={lang} />
         </section>
       )}
+
+      <button className="btn mirror-open" onClick={onMirror}><span aria-hidden>🖼️</span> {M[lang].open}</button>
 
       <Destinations card={card} lang={lang} active={routeCategory} onPick={onRouteCategory} />
 

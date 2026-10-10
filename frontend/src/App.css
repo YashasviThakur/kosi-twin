@@ -478,3 +478,85 @@
 @media (max-width: 860px) {
   .report-form { top: 120px; }
 }
+
+/* ---------- Screen 3: Flood Mirror ---------- */
+.mirror-open {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px 14px;
+  background: var(--grad-deep); color: #fff; box-shadow: 0 6px 16px rgb(18 53 122 / 25%);
+}
+.mirror-open:hover { filter: brightness(1.08); }
+
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px;
+  background: rgb(11 26 32 / 55%); backdrop-filter: blur(3px);
+}
+.mirror { width: min(760px, 100%); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; background: rgb(247 249 248 / 98%); }
+.mm-head { display: flex; justify-content: space-between; gap: 12px; padding: 16px 16px 12px 20px; background: var(--grad-deep); color: #fff; }
+.mm-head h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: calc(26px * var(--fs)); }
+.mm-head p { margin: 4px 0 0; font-size: calc(14px * var(--fs)); opacity: .92; }
+.mm-close { position: static; flex: none; }
+.mm-body { overflow: auto; padding: 16px 20px 20px; display: grid; gap: 12px; }
+
+.mm-drop {
+  display: grid; justify-items: center; gap: 6px; padding: 34px 20px; text-align: center; cursor: pointer;
+  border: 2px dashed var(--flood-2); border-radius: 16px; background: linear-gradient(180deg, rgb(168 220 247 / 25%), rgb(201 225 232 / 35%));
+}
+.mm-drop:hover { border-color: var(--flood-4); }
+.mm-drop-icon { font-size: 40px; }
+.mm-drop strong { font-size: calc(19px * var(--fs)); }
+.mm-drop span:last-child { max-width: 420px; color: var(--muted); font-size: calc(14px * var(--fs)); }
+.mm-samples { display: flex; gap: 10px; flex-wrap: wrap; }
+.mm-samples button { padding: 0; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; cursor: pointer; background: none; }
+.mm-samples img { display: block; width: 120px; height: 80px; object-fit: cover; }
+
+.mm-photo { position: relative; margin: 0 auto; overflow: hidden; border-radius: 14px; background: #000; touch-action: none; }
+.mm-photo img { display: block; width: 100%; height: 100%; object-fit: fill; }
+.mm-tap { position: absolute; inset: 0; cursor: crosshair; }
+.mm-box { position: absolute; border: 3px solid #4ADE80; border-radius: 6px; box-shadow: 0 0 0 2px rgb(0 0 0 / 35%); pointer-events: none; }
+.mm-mark { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.mm-mark line { stroke: #4ADE80; stroke-width: 3; vector-effect: non-scaling-stroke; }
+.mm-dot { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: #4ADE80; border: 3px solid #fff; box-shadow: 0 2px 6px rgb(0 0 0 / 40%); pointer-events: none; }
+.mm-status { margin: 0; font-weight: 600; font-size: calc(15px * var(--fs)); }
+.mm-status.is-good { color: var(--safe); }
+.mm-sub { font-weight: 400; color: var(--muted); }
+.mm-ref { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: calc(14px * var(--fs)); color: var(--muted); }
+.mm-presets button, .mm-ref button {
+  border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; padding: 8px 12px; font-size: calc(14px * var(--fs)); font-weight: 600;
+}
+.mm-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+.mm-presets button { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.mm-presets small { font-weight: 400; color: var(--muted); }
+.mm-presets button.is-active, .mm-ref button.is-active { border-color: var(--flood-4); box-shadow: 0 0 0 2px rgb(53 134 214 / 30%); background: var(--grad-side); }
+.mm-depth .vc-note { margin-top: 8px; }
+.vc-note.is-error { color: var(--evacuate); font-weight: 600; }
+.mm-actions {
+  position: sticky; bottom: -20px; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+  margin: 0 -20px -20px; padding: 12px 20px; background: rgb(247 249 248 / 98%); border-top: 1px solid var(--line);
+}
+.mm-actions .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+
+.mm-working {
+  position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 8px; color: #fff; text-align: center;
+  background: rgb(11 26 32 / 45%); font-size: calc(20px * var(--fs)); overflow: hidden;
+}
+.mm-rise { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: linear-gradient(180deg, rgb(108 184 236 / 70%), rgb(18 53 122 / 80%)); animation: mm-rise 2.4s ease-in-out infinite alternate; }
+@keyframes mm-rise { to { height: 70%; } }
+.mm-working strong { position: relative; }
+
+.ba { position: relative; margin: 0 auto; overflow: hidden; border-radius: 14px; background: #000; }
+.ba img { display: block; width: 100%; height: 100%; object-fit: fill; }
+.ba-before { position: absolute; inset: 0; }
+.ba-handle { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; background: #fff; box-shadow: 0 0 6px rgb(0 0 0 / 50%); pointer-events: none; }
+.ba-handle i { position: absolute; top: 50%; left: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgb(0 0 0 / 40%); }
+.ba-handle i::before { content: "↔"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 18px; color: var(--ink); }
+.ba-tag { position: absolute; top: 10px; padding: 3px 10px; border-radius: 999px; background: rgb(11 26 32 / 70%); color: #fff; font-size: 12px; font-weight: 700; pointer-events: none; }
+.ba-left { left: 10px; }
+.ba-right { right: 10px; }
+.ba-range { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.ba-range:focus-visible + * { outline: none; }
+.mm-caption { margin: 0; font-size: calc(16px * var(--fs)); }
+
+@media (max-width: 860px) {
+  .modal-backdrop { padding: 0; }
+  .mirror { width: 100%; max-height: 100dvh; border-radius: 0; }
+}

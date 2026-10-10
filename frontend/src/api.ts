@@ -89,6 +89,12 @@ export interface VillageCard {
   timeline?: { hours: number; time: string; depth_m: number; wet: boolean }[]
 }
 
+export interface MirrorDetect {
+  size: [number, number]                        // pixels of the photo Rekognition analysed
+  reference: { kind: string; ground_y: number; top_y: number; ref_height_m: number; box: [number, number, number, number] }
+  reference_frac: { ground: number; top: number }   // 0–1 of the photo height
+}
+
 export type ReportKind = 'seepage' | 'crack' | 'breach'
 
 export interface Report {
@@ -145,6 +151,28 @@ export const api = {
     const res = await fetch('/api/reports', { method: 'POST', body })
     if (!res.ok) throw new Error(`report → ${res.status}`)
     return res.json() as Promise<Report>
+  },
+  // Flood Mirror: where a door / person / motorbike for scale was found (null if none).
+  mirrorDetect: async (photo: Blob): Promise<MirrorDetect | null> => {
+    const body = new FormData()
+    body.set('photo', photo, 'photo.jpg')
+    const res = await fetch('/api/mirror/detect', { method: 'POST', body })
+    if (!res.ok) throw new Error(`mirror/detect → ${res.status}`)
+    const j = await res.json()
+    return j.reference ? { size: j.size, reference: j.reference, reference_frac: j.reference_frac } : null
+  },
+  // Water painted onto the photo at a given depth; marks are fractions of the photo height.
+  mirror: async (photo: Blob, o: { depth: number; label: string; ground: number; top: number; refHeight: number }) => {
+    const body = new FormData()
+    body.set('photo', photo, 'photo.jpg')
+    body.set('depth_m', String(o.depth))
+    body.set('label', o.label.slice(0, 60))
+    body.set('ground_frac', String(o.ground))
+    body.set('top_frac', String(o.top))
+    body.set('ref_height_m', String(o.refHeight))
+    const res = await fetch('/api/mirror', { method: 'POST', body })
+    if (!res.ok) throw new Error(`mirror → ${res.status}`)
+    return { blob: await res.blob(), engine: res.headers.get('X-Render') ?? '' }
   },
   audioUrl: (id: number, lang: Lang, scenario: ScenarioRef) =>
     `/api/villages/${id}/audio?lang=${lang}&${scenarioQuery(scenario)}`,

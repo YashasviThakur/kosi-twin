@@ -21,6 +21,9 @@ python fetch_rasters.py   # Copernicus DEM + Meta HRSL population (AWS Open Data
 python fetch_osm.py       # villages, roads, Kosi channel, shelters (OpenStreetMap)
 python build_model.py     # HAND flood model -> backend/data/out
 python preview.py out.png 1 2.5 5
+python bihar.py           # Bihar outline, districts, Kosi channel for the map (needs data/raw/osm_bihar.json, osm_districts.json)
+python translate_names.py # Hindi village and shelter names (Amazon Translate)
+python embankments.py     # ranks mapped dykes by people on low ground nearby
 ```
 
 ### 2. Run the API
@@ -36,7 +39,9 @@ python -m pytest tests
 | `GET /api/villages/{id}?discharge=4` (or `?replay=2024`) | village card: ETA, depth, leave-by, route, facilities at risk, 72 h timeline |
 | `GET /api/villages/{id}/advisory` | plain-language advisory, Hindi + English |
 | `GET /api/replay/2024` | hour-by-hour frames for the Sept 2024 replay |
+| `POST /api/mirror/detect` | finds a door / person / motorbike for scale (Rekognition) |
 | `POST /api/mirror` | street photo with predicted floodwater + watermark |
+| `GET/POST /api/reports` | crowd reports of embankment seepage, cracks and breaches (shown as unverified) |
 
 ### Method and limits
 - **Flood extent:** HAND (Height Above Nearest Drainage) along D8 flow paths to the Kosi on 90 m
@@ -46,3 +51,15 @@ python -m pytest tests
 - **Embankments:** not in OSM. Trace them to `backend/data/raw/embankments.geojson` and rebuild.
 - **2024 replay:** only the ~6.61 lakh cusec peak is from reports; the rest of the curve is interpolated.
 - This is a planning estimate, not an engineering-grade hydraulic model.
+
+### Flood Mirror sample photos
+To offer one-tap sample photos, put street photos with a visible door in `frontend/public/samples/` and list them in
+`frontend/public/samples/samples.json`, e.g. `[{"file": "supaul-lane.jpg", "label": "Supaul lane"}]`. Use photos you
+own or that are licensed for reuse. Without that file the sample row is simply not shown.
+
+### Embankments and leak reports
+- The embankment layer ranks **mapped** dyke stretches (OpenStreetMap, ~87 km in Bihar; railway embankments excluded) by
+  the number of people on low ground within 3 km. It shows who is at stake, not where a breach will happen, and it
+  covers only part of the real embankment system.
+- Leak reports are public and unverified. They are stored in DynamoDB (`kosi-twin-reports`) when deployed, otherwise in
+  `backend/data/reports.jsonl`.
