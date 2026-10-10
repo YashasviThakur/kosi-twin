@@ -938,3 +938,37 @@
   .peak-share { display: none; }
   .gauge-panel { height: 44dvh; }
 }
+
+/* =====================================================================================
+   v6 — village card layout: a timeline (now, leave by, water arrives), the expected depth, then three tabs
+   (Go / Water / Help) instead of one long scroll.
+   ===================================================================================== */
+.tl-card { padding: 18px 18px 14px; border-radius: 20px; background: rgb(255 255 255 / 7%); border: 1px solid rgb(255 255 255 / 10%); }
+.tl-track { position: relative; height: 6px; margin: 8px 10px 16px; border-radius: 3px; background: rgb(255 255 255 / 14%); }
+.tl-fill { position: absolute; inset: 0; border-radius: 3px; background: linear-gradient(90deg, #F4C46A, #D9902B 55%, #D64533); }
+.tl-dot { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 3px solid #1B2529; }
+.tl-dot.is-now { background: #F5EFE3; }
+.tl-dot.is-leave { background: #F4C46A; box-shadow: 0 0 0 4px rgb(244 196 106 / 30%); }
+.tl-dot.is-arrive { background: #D64533; }
+.tl-labels { display: grid; grid-template-columns: .5fr 1.1fr 1.1fr; gap: 8px; }
+.tl-labels > div { display: flex; flex-direction: column; min-width: 0; }
+.tl-leave { align-items: center; text-align: center; }
+.tl-arrive { align-items: flex-end; text-align: right; }
+.tl-k { font-size: calc(11px * var(--fs)); font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.tl-labels strong { font-size: calc(17px * var(--fs)); line-height: 1.25; margin-top: 2px; }
+.tl-leave strong { color: #F4C46A; font-size: calc(19px * var(--fs)); }
+.tl-labels small { font-size: calc(13px * var(--fs)); color: var(--muted); }
+
+.vc-depthline { display: flex; align-items: center; gap: 14px; padding: 4px 6px; }
+.vc-depthline .fact-icon { margin: 0; font-size: calc(30px * var(--fs)); }
+.vc-depthline-text { display: flex; flex-direction: column; }
+.vc-depthline-text small { font-size: calc(13px * var(--fs)); color: var(--muted); }
+.vc-depthline-text strong { font-size: calc(20px * var(--fs)); line-height: 1.25; }
+
+.vc-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgb(255 255 255 / 8%); position: sticky; top: -14px; z-index: 2; backdrop-filter: blur(10px); }
+.vc-tabs button {
+  flex: 1; padding: 10px 6px; border: 0; border-radius: 999px; background: none; cursor: pointer;
+  color: var(--muted); font-weight: 700; font-size: calc(15px * var(--fs));
+}
+.vc-tabs button.is-active { background: #F4C46A; color: #2B1D07; }
+.vc-pane { display: flex; flex-direction: column; gap: 14px; }

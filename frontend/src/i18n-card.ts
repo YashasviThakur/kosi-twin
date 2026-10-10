@@ -21,6 +21,7 @@ type CardStrings = {
   audioError: string
   chart: string
   now: string
+  tabs: { go: string; water: string; help: string }
   facilities: (n: number) => string
   safeTitle: string
   safeOutside: string
@@ -51,6 +52,7 @@ export const C: Record<Lang, CardStrings> = {
     audioError: 'Voice is unavailable right now. Read the advisory aloud instead.',
     chart: 'Water depth, next 72 hours',
     now: 'now',
+    tabs: { go: 'Go', water: 'Water', help: 'Help' },
     facilities: (n) => `${n} schools and hospitals nearby will flood`,
     safeTitle: 'Not in the water’s path',
     safeOutside: 'This village drains to another river, outside the Kosi floodplain this model covers.',
@@ -79,6 +81,7 @@ export const C: Record<Lang, CardStrings> = {
     audioError: 'आवाज़ अभी उपलब्ध नहीं है। सूचना पढ़कर सुनाएँ।',
     chart: 'पानी की गहराई, अगले 72 घंटे',
     now: 'अभी',
+    tabs: { go: 'जाएँ', water: 'पानी', help: 'मदद' },
     facilities: (n) => `पास के ${n} स्कूल और अस्पताल डूबेंगे`,
     safeTitle: 'पानी की राह में नहीं',
     safeOutside: 'यह गाँव दूसरी नदी की ओर ढलान पर है, इस मॉडल के कोसी बाढ़ क्षेत्र से बाहर।',
@@ -107,6 +110,7 @@ export const C: Record<Lang, CardStrings> = {
     audioError: 'आवाज अबहीं ना मिलल। सूचना पढ़ के सुनाईं।',
     chart: 'पानी के गहराई, अगिला 72 घंटा',
     now: 'अबहीं',
+    tabs: { go: 'जाईं', water: 'पानी', help: 'मदद' },
     facilities: (n) => `लगे के ${n} स्कूल आ अस्पताल डूबी`,
     safeTitle: 'पानी के राह में नइखे',
     safeOutside: 'ई गाँव दोसर नदी ओर ढलान पर बा, एह मॉडल के कोसी बाढ़ इलाका से बाहर।',
@@ -135,6 +139,7 @@ export const C: Record<Lang, CardStrings> = {
     audioError: 'आवाज एखन उपलब्ध नहि अछि। सूचना पढ़ि क सुनाउ।',
     chart: 'पानिक गहराइ, अगिला 72 घंटा',
     now: 'एखन',
+    tabs: { go: 'जाउ', water: 'पानि', help: 'मदति' },
     facilities: (n) => `लगक ${n} स्कूल आ अस्पताल डूबत`,
     safeTitle: 'पानिक बाट मे नहि',
     safeOutside: 'ई गाम दोसर नदी दिस ढलान पर अछि, एहि मॉडलक कोसी बाढ़ि क्षेत्र सँ बाहर।',

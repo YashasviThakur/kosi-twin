@@ -55,95 +55,122 @@ export function VillageCard({ card, loading, failed, lang, scenario, routeCatego
           </div>
         )}
         {card && card.risk !== 'SAFE' && (
-          <FloodDetails card={card} lang={lang} scenario={scenario} routeCategory={routeCategory}
+          <FloodDetails key={card.id} card={card} lang={lang} scenario={scenario} routeCategory={routeCategory}
             onRouteCategory={onRouteCategory} onMirror={onMirror} />
         )}
-        {card && <SosBlock lang={lang} />}
-        {card && <WeatherBlock card={card} lang={lang} />}
+        {card && card.risk === 'SAFE' && <SosBlock lang={lang} />}
+        {card && card.risk === 'SAFE' && <WeatherBlock card={card} lang={lang} />}
       </div>
     </section>
   )
 }
+
+type Tab = 'go' | 'water' | 'help'
 
 function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory, onMirror }: {
   card: Card; lang: Lang; scenario: ScenarioRef; routeCategory: Category | null
   onRouteCategory: (c: Category) => void; onMirror: () => void
 }) {
   const c = C[lang]
+  const [tab, setTab] = useState<Tab>('go')
   const depth = card.max_depth_m ?? 0
   // "Leave by" follows the destination shown on the map: each route has its own safe departure time.
   const option = routeCategory ? card.options?.[routeCategory] : undefined
   const leaveH = option ? option.leave_by_h : card.leave_by_h ?? 0
   const leaveTime = option && card.eta_time ? shiftIso(card.eta_time, leaveH - (card.eta_h ?? 0)) : card.leave_by_time
   const leaveNow = option ? leaveH <= 0 : card.leave_now
+  const etaH = Math.max(card.eta_h ?? 0, 0.1)
+  const leavePct = leaveNow ? 0 : Math.min(100, Math.max(0, (leaveH / etaH) * 100))
 
   return (
     <>
-      {/* The one number that matters most */}
       {card.needs_boat ? (
         <div className="vc-leave is-boat">
           <span className="vc-leave-label">{c.boat}</span>
           <p className="vc-leave-help">{c.boatHelp}</p>
         </div>
       ) : (
-        <div className="vc-leave">
-          <span className="vc-leave-label">{leaveNow ? c.leaveNow : c.leaveBy}</span>
-          {!leaveNow && leaveTime && (
-            <>
-              <strong className="num">{dayTime(leaveTime, lang)}</strong>
-              <span className="vc-leave-in num">{c.leaveIn(duration(leaveH, lang))}</span>
-            </>
+        <section className="tl-card" aria-label={`${c.leaveBy} / ${c.arrives}`}>
+          <div className="tl-track" aria-hidden>
+            <i className="tl-fill" />
+            <span className="tl-dot is-now" style={{ left: '0%' }} />
+            <span className="tl-dot is-leave" style={{ left: `${leavePct}%` }} />
+            <span className="tl-dot is-arrive" style={{ left: '100%' }} />
+          </div>
+          <div className="tl-labels num">
+            <div>
+              <span className="tl-k">{c.now}</span>
+            </div>
+            <div className="tl-leave">
+              <span className="tl-k">{leaveNow ? c.leaveNow : c.leaveBy}</span>
+              {!leaveNow && leaveTime && <><strong>{dayTime(leaveTime, lang)}</strong><small>{c.leaveIn(duration(leaveH, lang))}</small></>}
+            </div>
+            <div className="tl-arrive">
+              <span className="tl-k">{c.arrives}</span>
+              <strong>{card.eta_time ? dayTime(card.eta_time, lang) : '—'}</strong>
+              <small>{c.arrivesIn(duration(card.eta_h ?? 0, lang))}</small>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <div className="vc-depthline num">
+        <span className="fact-icon" aria-hidden>🌊</span>
+        <span className="vc-depthline-text">
+          <small>{c.depth}</small>
+          <strong>{card.edge_only ? c.outskirts : `${depth.toFixed(1)} m · ${card.max_depth_band?.[lang] ?? ''}`}</strong>
+          {!card.edge_only && <small>{depthSentence(depth, lang)}</small>}
+        </span>
+      </div>
+
+      <div className="vc-tabs" role="tablist">
+        {(['go', 'water', 'help'] as Tab[]).map((k) => (
+          <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'is-active' : ''} onClick={() => setTab(k)}>
+            {c.tabs[k]}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'go' && (
+        <div className="vc-pane" role="tabpanel">
+          <Destinations card={card} lang={lang} active={routeCategory} onPick={onRouteCategory} />
+        </div>
+      )}
+
+      {tab === 'water' && (
+        <div className="vc-pane" role="tabpanel">
+          {!card.edge_only && depth > 0 && (
+            <section>
+              <h3 className="eyebrow">{X[lang].depthCompare}</h3>
+              <DepthScale depth={depth} lang={lang} />
+            </section>
+          )}
+          {card.timeline && (
+            <figure className="vc-chart">
+              <figcaption className="eyebrow">{c.chart}</figcaption>
+              <DepthChart timeline={card.timeline} leaveByH={card.leave_by_h ?? null} etaH={card.eta_h ?? null} nowLabel={c.now} />
+            </figure>
+          )}
+          <button className="btn mirror-open" onClick={onMirror}><span aria-hidden>🖼️</span> {M[lang].open}</button>
+          {!!card.facilities_at_risk?.length && (
+            <details className="vc-facilities">
+              <summary>{c.facilities(card.facilities_at_risk.length)}</summary>
+              <ul>
+                {card.facilities_at_risk.map((f) => (
+                  <li key={`${f.name}-${f.km}`}><span>{f.name}</span><span className="num">{f.km.toFixed(1)} km</span></li>
+                ))}
+              </ul>
+            </details>
           )}
         </div>
       )}
 
-      <dl className="vc-facts">
-        <div>
-          <span className="fact-icon" aria-hidden>⏱️</span>
-          <dt>{c.arrives}</dt>
-          <dd className="num"><strong>{card.eta_time ? dayTime(card.eta_time, lang) : '—'}</strong>
-            <span>{c.arrivesIn(duration(card.eta_h ?? 0, lang))}</span></dd>
+      {tab === 'help' && (
+        <div className="vc-pane" role="tabpanel">
+          <AdvisoryBlock card={card} lang={lang} scenario={scenario} />
+          <SosBlock lang={lang} />
+          <WeatherBlock card={card} lang={lang} />
         </div>
-        <div>
-          <span className="fact-icon" aria-hidden>🌊</span>
-          <dt>{c.depth}</dt>
-          <dd className="num">
-            <strong>{card.edge_only ? c.outskirts : `${depth.toFixed(1)} m · ${card.max_depth_band?.[lang] ?? ''}`}</strong>
-            {!card.edge_only && <span>{depthSentence(depth, lang)}</span>}
-            {!card.edge_only && <span className="fact-bar is-water"><i style={{ width: `${Math.max(6, Math.min(100, (depth / 3) * 100))}%` }} /></span>}
-          </dd>
-        </div>
-      </dl>
-
-      {!card.edge_only && depth > 0 && (
-        <section>
-          <h3 className="eyebrow">{X[lang].depthCompare}</h3>
-          <DepthScale depth={depth} lang={lang} />
-        </section>
-      )}
-
-      <button className="btn mirror-open" onClick={onMirror}><span aria-hidden>🖼️</span> {M[lang].open}</button>
-
-      <Destinations card={card} lang={lang} active={routeCategory} onPick={onRouteCategory} />
-
-      <AdvisoryBlock card={card} lang={lang} scenario={scenario} />
-
-      {card.timeline && (
-        <figure className="vc-chart">
-          <figcaption className="eyebrow">{c.chart}</figcaption>
-          <DepthChart timeline={card.timeline} leaveByH={card.leave_by_h ?? null} etaH={card.eta_h ?? null} nowLabel={c.now} />
-        </figure>
-      )}
-
-      {!!card.facilities_at_risk?.length && (
-        <details className="vc-facilities">
-          <summary>{c.facilities(card.facilities_at_risk.length)}</summary>
-          <ul>
-            {card.facilities_at_risk.map((f) => (
-              <li key={`${f.name}-${f.km}`}><span>{f.name}</span><span className="num">{f.km.toFixed(1)} km</span></li>
-            ))}
-          </ul>
-        </details>
       )}
     </>
   )
