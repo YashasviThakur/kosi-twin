@@ -1,5 +1,5 @@
 // The 3D map: a light map or Sentinel-2 satellite base, AWS Terrain Tiles relief, the flood layer,
-// one column per village (height = people, colour = risk) and village name labels.
+// one glowing dot per village (size = people, colour = risk, pulsing ring when evacuation is needed) and name labels.
 import * as maplibregl from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -27,7 +27,14 @@ const PLACE_LABELS = ['label_village', 'label_other', 'label_town', 'label_city'
 const ROAD_LABELS = ['highway-name-path', 'highway-name-minor', 'highway-name-major',
   'highway-shield-non-us', 'highway-shield-us-interstate', 'road_shield_us', 'poi_r20', 'poi_r7', 'poi_r1', 'poi_transit']
 
-const RISK_COLOR: Record<Risk, string> = { EVACUATE: '#B23A26', WATCH: '#9A6512', SAFE: '#CFCAC0' }
+// Village dots: size grows with people (capped), calm villages are drawn smaller and paler.
+const SIZE = ['min', 16, ['+', 3, ['*', ['sqrt', ['get', 'pop']], 0.08]]]
+const CALM = ['match', ['feature-state', 'risk'], 'EVACUATE', 1, 'WATCH', 1, 0.42]
+const PICKED = ['case', ['boolean', ['feature-state', 'selected'], false], 1.4, 1]
+const radius = (k: number, extra: unknown = 0) => ['interpolate', ['linear'], ['zoom'],
+  8, ['+', ['*', k * 0.7, SIZE, CALM, PICKED], extra], 12, ['+', ['*', k * 1.5, SIZE, CALM, PICKED], extra]] as unknown as maplibregl.ExpressionSpecification
+const riskColor = (evac: string, watch: string, safe: string) =>
+  ['match', ['feature-state', 'risk'], 'EVACUATE', evac, 'WATCH', watch, safe] as unknown as maplibregl.ExpressionSpecification
 
 interface Props {
   tiles: [number, number, number, number][]   // flood overlay tiles: west, south, east, north
@@ -55,19 +62,14 @@ interface Props {
 
 const REPORT_ICON = { seepage: '💧', crack: '⚠️', breach: '🚨' } as const
 
-function columns(villages: Village[]): FeatureCollection {
-  const half = 0.0035 // ~400 m
+function villagePoints(villages: Village[]): FeatureCollection {
   return {
     type: 'FeatureCollection',
     features: villages.map((v) => ({
       type: 'Feature',
       id: v.id,
-      properties: { id: v.id, h: 300 + Math.sqrt(v.pop) * 28 },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[[v.lon - half, v.lat - half], [v.lon + half, v.lat - half], [v.lon + half, v.lat + half],
-          [v.lon - half, v.lat + half], [v.lon - half, v.lat - half]]],
-      },
+      properties: { id: v.id, pop: v.pop },
+      geometry: { type: 'Point', coordinates: [v.lon, v.lat] },
     })),
   }
 }
@@ -83,6 +85,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
   const districtLabels = useRef<HTMLDivElement[]>([])
   const pins = useRef<maplibregl.Marker[]>([])
   const fittedFor = useRef<string | null>(null)
+  const pulseTimer = useRef<number | undefined>(undefined)
   const reportMarkers = useRef<maplibregl.Marker[]>([])
   const draftMarker = useRef<maplibregl.Marker | null>(null)
   const reportModeRef = useRef(reportMode)
@@ -142,11 +145,22 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
       const firstLine = layers.find((l) => l.type === 'line')?.id
       const firstSymbol = layers.find((l) => l.type === 'symbol')?.id
 
+      // Plain map in the app's blue-white palette: pale silt land, soft blue water, quiet greens.
+      for (const l of layers) {
+        const sl = (l as { 'source-layer'?: string })['source-layer']
+        if (l.type === 'background') map.setPaintProperty(l.id, 'background-color', '#F4F1EA')
+        else if (l.type === 'fill' && sl === 'water') map.setPaintProperty(l.id, 'fill-color', '#BBD8E4')
+        else if (l.type === 'fill' && (sl === 'landcover' || sl === 'landuse' || sl === 'park')) {
+          map.setPaintProperty(l.id, 'fill-color', '#E8EEE4')
+          map.setPaintProperty(l.id, 'fill-opacity', 0.75)
+        }
+      }
+
       // Satellite sits above the light map's land/water fills but below its roads and labels.
       map.addSource('satellite', { type: 'raster', tiles: [SATELLITE], tileSize: 256, maxzoom: 15,
         attribution: '<a href="https://s2maps.eu">Sentinel-2 cloudless 2023</a> by EOX (Copernicus Sentinel data)' })
       map.addLayer({ id: 'satellite', type: 'raster', source: 'satellite', layout: { visibility: 'none' },
-        paint: { 'raster-saturation': 0.12, 'raster-contrast': 0.08 } }, firstLine)
+        paint: { 'raster-saturation': -0.2, 'raster-contrast': 0.06, 'raster-brightness-max': 0.93 } }, firstLine)
 
       const dem = { type: 'raster-dem' as const, tiles: [TERRARIUM], encoding: 'terrarium' as const, tileSize: 256, maxzoom: 12,
         attribution: 'Terrain: <a href="https://registry.opendata.aws/terrain-tiles/">AWS Terrain Tiles</a>' }
@@ -214,24 +228,40 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
       map.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: { 'line-color': '#16A34A', 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 3.5, 15, 8] } })
 
-      map.addSource('villages', { type: 'geojson', data: columns(villages), promoteId: 'id' })
-      map.addLayer({
-        id: 'village-cols', type: 'fill-extrusion', source: 'villages',
+      // Villages: a soft halo sized by people, an expanding ring for villages to evacuate, and a white-rimmed dot.
+      map.addSource('villages', { type: 'geojson', data: villagePoints(villages), promoteId: 'id' })
+      map.addLayer({ id: 'village-halo', type: 'circle', source: 'villages',
         paint: {
-          'fill-extrusion-color': ['case',
-            ['boolean', ['feature-state', 'selected'], false], '#1E2F36',
-            ['match', ['feature-state', 'risk'], 'EVACUATE', RISK_COLOR.EVACUATE, 'WATCH', RISK_COLOR.WATCH, RISK_COLOR.SAFE]],
-          // Unaffected villages stay as short stubs; columns rise to full height when water reaches them.
-          // Zoomed in close (village card), columns shrink so they don't hide the flood around the village.
-          'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'],
-            9, ['*', ['get', 'h'], ['match', ['feature-state', 'risk'], 'EVACUATE', 1, 'WATCH', 1, 0.18]],
-            12.5, ['*', ['get', 'h'], ['match', ['feature-state', 'risk'], 'EVACUATE', 0.12, 'WATCH', 0.12, 0.03]]],
-          'fill-extrusion-height-transition': { duration: 500, delay: 0 },
-          'fill-extrusion-color-transition': { duration: 300, delay: 0 },
-          'fill-extrusion-opacity': 0.94,
-          'fill-extrusion-vertical-gradient': true,
-        },
-      })
+          'circle-radius': radius(1.9), 'circle-blur': 0.6,
+          'circle-color': riskColor('#D64533', '#E8A317', '#7FAFC2'),
+          'circle-opacity': ['match', ['feature-state', 'risk'], 'EVACUATE', 0.34, 'WATCH', 0.3, 0.1],
+        } })
+      map.addLayer({ id: 'village-pulse', type: 'circle', source: 'villages',
+        paint: {
+          'circle-radius': 0, 'circle-color': '#D64533', 'circle-opacity': 0,
+          'circle-stroke-color': '#D64533', 'circle-stroke-width': 2, 'circle-stroke-opacity': 0,
+        } })
+      map.addLayer({ id: 'village-dot', type: 'circle', source: 'villages',
+        paint: {
+          'circle-radius': radius(0.62),
+          'circle-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#12357A',
+            riskColor('#D64533', '#E8A317', '#FFFFFF')],
+          'circle-stroke-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#FFFFFF',
+            riskColor('#FFFFFF', '#FFFFFF', '#2F6B80')],
+          'circle-stroke-width': ['case', ['boolean', ['feature-state', 'selected'], false], 3, ['match', ['feature-state', 'risk'], 'EVACUATE', 2, 'WATCH', 2, 1.2]],
+          'circle-opacity': ['match', ['feature-state', 'risk'], 'EVACUATE', 1, 'WATCH', 1, 0.7],
+          'circle-stroke-opacity': ['match', ['feature-state', 'risk'], 'EVACUATE', 1, 'WATCH', 1, 0.7],
+        } })
+      // Expanding ring: one slow loop, only on villages to evacuate (skipped for reduced-motion).
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const start = performance.now()
+        pulseTimer.current = window.setInterval(() => {
+          const t = ((performance.now() - start) % 2000) / 2000
+          const grow = ['match', ['feature-state', 'risk'], 'EVACUATE', 1, 0]
+          map.setPaintProperty('village-pulse', 'circle-radius', radius(0.62, ['*', t * 22, grow]))
+          map.setPaintProperty('village-pulse', 'circle-stroke-opacity', ['*', 0.85 * (1 - t), grow] as unknown as maplibregl.ExpressionSpecification)
+        }, 70)
+      }
 
       // Village names as HTML labels: the browser shapes Devanagari correctly, map text rendering does not.
       for (const v of villages) {
@@ -267,17 +297,17 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
       })
 
       const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'village-pop', offset: 8 })
-      map.on('mousemove', 'village-cols', (ev) => {
+      map.on('mousemove', 'village-halo', (ev) => {
         const v = byId.current.get(Number(ev.features?.[0]?.id))
         if (!v) return
         map.getCanvas().style.cursor = 'pointer'
         popup.setLngLat([v.lon, v.lat]).setHTML(`<strong>${escapeHtml(villageName(v, langRef.current))}</strong><span>${int(v.pop)} 👤</span>`).addTo(map)
       })
-      map.on('mouseleave', 'village-cols', () => {
+      map.on('mouseleave', 'village-halo', () => {
         map.getCanvas().style.cursor = ''
         popup.remove()
       })
-      map.on('click', 'village-cols', (ev) => {
+      map.on('click', 'village-halo', (ev) => {
         const id = Number(ev.features?.[0]?.id)
         if (id && !reportModeRef.current) onSelectRef.current(id)
       })
@@ -290,7 +320,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
     map.once('idle', () => {
       for (let r = 0.5; r <= 10; r += 0.5) tiles.forEach((_, i) => { new Image().src = `/layers/flood_${r.toFixed(1)}_${i}.png` })
     })
-    return () => map.remove()
+    return () => { window.clearInterval(pulseTimer.current); map.remove() }
     // The map is created once; data changes flow through the effects below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

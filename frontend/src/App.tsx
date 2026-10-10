@@ -47,6 +47,8 @@ export default function App() {
   const [reportMode, setReportMode] = useState(false)
   const [draft, setDraft] = useState<{ lon: number; lat: number } | null>(null)
   const [mirror, setMirror] = useState<MirrorTarget | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
   const [meta, setMeta] = useState<Meta | null>(null)
   const [villages, setVillages] = useState<Village[]>([])
   const [failed, setFailed] = useState(false)
@@ -59,6 +61,14 @@ export default function App() {
   const t = T[lang]
 
   useEffect(() => { api.reports().then(setReports).catch(() => {}) }, [])
+  useEffect(() => {                                   // the layers menu closes on an outside tap or Escape
+    if (!menuOpen) return
+    const away = (e: PointerEvent) => { if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false) }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
+    document.addEventListener('pointerdown', away)
+    document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', esc) }
+  }, [menuOpen])
 
   useEffect(() => {
     Promise.all([api.meta(), api.villages()])
@@ -180,26 +190,58 @@ export default function App() {
         } : null} />
 
       <header className="topbar">
-        <div className="brand">
+        <div className="brand" title={t.replayNote}>
           <span className="brand-mark" aria-hidden>कोसी</span>
-          <span className="brand-name">{t.title}</span>
+          <span className="brand-text">
+            <span className="brand-name">{t.title}</span>
+            <span className="badge">{t.estimate}</span>
+          </span>
         </div>
-        <span className="badge" title={t.replayNote}>{t.estimate}</span>
         <SearchBox villages={villages} lang={lang} onPick={setSelectedId} />
-        <button className="topbar-mirror" onClick={openMirror}><span aria-hidden>🖼️</span> {M[lang].title}</button>
-        <nav className="text-size" aria-label={t.textSize}>
-          {TEXT_SIZES.map((s) => (
-            <button key={s} className={`ts-${s}${s === textSize ? ' is-active' : ''}`} aria-pressed={s === textSize}
-              onClick={() => { setTextSize(s); saveTextSize(s) }} title={`${t.textSize}: ${s.toUpperCase()}`}>A</button>
-          ))}
-        </nav>
-        <nav className="langs" aria-label="Language">
-          {(Object.keys(meta.languages) as Lang[]).map((l) => (
-            <button key={l} className={l === lang ? 'is-active' : ''} aria-pressed={l === lang} onClick={() => setLang(l)}>
-              {meta.languages[l]}
+        <div className="topbar-right">
+          <button className="topbar-mirror" onClick={openMirror}><span aria-hidden>🖼️</span><span className="mm-label">{M[lang].title}</span></button>
+          <div className="layers" ref={menuRef}>
+            <button className={`layers-btn${menuOpen ? ' is-open' : ''}`} aria-expanded={menuOpen} aria-haspopup="true"
+              onClick={() => setMenuOpen(!menuOpen)}>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3l7 3.5-7 3.5-7-3.5L10 3zM3 10l7 3.5 7-3.5M3 13.5L10 17l7-3.5" /></svg>
+              <span>{X[lang].layers}</span>
             </button>
-          ))}
-        </nav>
+            {menuOpen && (
+              <div className="layers-menu" role="menu">
+                <p className="eyebrow">{t.mapStyle}</p>
+                <nav className="basemap" aria-label={t.mapStyle}>
+                  {(['satellite', 'map'] as Basemap[]).map((b) => (
+                    <button key={b} className={b === basemap ? 'is-active' : ''} aria-pressed={b === basemap} onClick={() => setBasemap(b)}>
+                      {b === 'satellite' ? t.satellite : t.plainMap}
+                    </button>
+                  ))}
+                </nav>
+                <button className={`tool-btn${showEmbankments ? ' is-active' : ''}`} aria-pressed={showEmbankments}
+                  onClick={() => setShowEmbankments(!showEmbankments)} title={X[lang].embankNote}>
+                  {X[lang].embankments}
+                </button>
+                <button className={`tool-btn tool-report${reportMode ? ' is-active' : ''}`} aria-pressed={reportMode}
+                  onClick={() => { setReportMode(!reportMode); setDraft(null); setMenuOpen(false) }}>
+                  {X[lang].reportLeak}
+                </button>
+                <p className="eyebrow">{t.textSize}</p>
+                <nav className="text-size" aria-label={t.textSize}>
+                  {TEXT_SIZES.map((s) => (
+                    <button key={s} className={`ts-${s}${s === textSize ? ' is-active' : ''}`} aria-pressed={s === textSize}
+                      onClick={() => { setTextSize(s); saveTextSize(s) }} title={`${t.textSize}: ${s.toUpperCase()}`}>A</button>
+                  ))}
+                </nav>
+              </div>
+            )}
+          </div>
+          <nav className="langs" aria-label="Language">
+            {(Object.keys(meta.languages) as Lang[]).map((l) => (
+              <button key={l} className={l === lang ? 'is-active' : ''} aria-pressed={l === lang} onClick={() => setLang(l)}>
+                {meta.languages[l]}
+              </button>
+            ))}
+          </nav>
+        </div>
       </header>
 
       <Panel id="gauge" className="gauge-panel" collapseLabel={t.collapse} expandLabel={t.expand}
@@ -241,21 +283,6 @@ export default function App() {
       )}
 
       <div className="map-tools">
-        <button className={`tool-btn${showEmbankments ? ' is-active' : ''}`} aria-pressed={showEmbankments}
-          onClick={() => setShowEmbankments(!showEmbankments)} title={X[lang].embankNote}>
-          {X[lang].embankments}
-        </button>
-        <button className={`tool-btn tool-report${reportMode ? ' is-active' : ''}`} aria-pressed={reportMode}
-          onClick={() => { setReportMode(!reportMode); setDraft(null) }}>
-          {X[lang].reportLeak}
-        </button>
-        <nav className="basemap" aria-label={t.mapStyle}>
-          {(['satellite', 'map'] as Basemap[]).map((b) => (
-            <button key={b} className={b === basemap ? 'is-active' : ''} aria-pressed={b === basemap} onClick={() => setBasemap(b)}>
-              {b === 'satellite' ? t.satellite : t.plainMap}
-            </button>
-          ))}
-        </nav>
         <p className="legend">{t.legend}</p>
         {showEmbankments && (
           <p className="legend emb-legend" title={X[lang].embankNote}>
