@@ -153,6 +153,7 @@ export interface Floods {
   last: string
   threshold_lakh: number
   events: FloodEvent[]
+  daily: { start: string; max: (number | null)[] }
   note: string
 }
 

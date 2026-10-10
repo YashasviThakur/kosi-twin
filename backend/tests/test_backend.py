@@ -219,3 +219,10 @@ def test_lambda_warmup_event_does_not_need_an_http_request(monkeypatch):
     monkeypatch.setattr(barrage, "live_counter", lambda: calls.append(1))
     assert api.handler({"source": "aws.events", "detail-type": "Scheduled Event"}, None) == {"warmed": True}
     assert calls == [1]
+
+
+def test_daily_series_has_one_entry_per_day_and_marks_gaps(monkeypatch):
+    barrage = _fake_record(monkeypatch)
+    d = barrage.floods_payload()["daily"]
+    assert d["start"] == "2024-07-01" and len(d["max"]) == (barrage._daily_max() and 101)       # 1 Jul to 9 Oct inclusive
+    assert d["max"][(__import__("datetime").date(2024, 9, 29) - __import__("datetime").date(2024, 7, 1)).days] == 661500

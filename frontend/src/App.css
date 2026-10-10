@@ -1785,3 +1785,32 @@
 @media (max-width: 860px) {
   .app[data-sheet="full"] .map-controls { opacity: 0; pointer-events: none; }
 }
+
+/* =====================================================================================
+   v19 — components adapted from componentry.dev: split-flap board (live counter), calendar heatmap, magnetic dock,
+   aurora background. See each component's header comment.
+   ===================================================================================== */
+.sf {
+  --w: 38px; --h: 54px; --f: 26px;
+  display: inline-flex; gap: 3px; padding: 12px; border-radius: 16px;
+  background: linear-gradient(145deg, #0c0c0c 0%, #080808 50%, #0a0a0a 100%);
+  border: 1px solid rgb(255 255 255 / 7%); box-shadow: 0 14px 34px rgb(0 0 0 / 55%), inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+.sf--sm { --w: 26px; --h: 38px; --f: 18px; padding: 9px; }
+.sf--lg { --w: 52px; --h: 72px; --f: 34px; gap: 4px; }
+.sf-cell { position: relative; width: var(--w); height: var(--h); perspective: 400px; user-select: none; font: 700 var(--f) ui-monospace, "SF Mono", "Fira Code", "Courier New", monospace; }
+.sf-half { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; }
+.sf-half span { position: absolute; left: 0; right: 0; text-align: center; line-height: var(--h); }
+.sf-top { top: 0; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #202020 0%, #181818 100%); }
+.sf-top span { top: 0; color: #f1efe9; text-shadow: 0 1px 1px rgb(0 0 0 / 60%); }
+.sf-bottom { bottom: 0; border-radius: 0 0 3px 3px; background: linear-gradient(180deg, #151515 0%, #101010 100%); }
+.sf-bottom span { bottom: 0; color: #d9d7d2; text-shadow: 0 -1px 1px rgb(0 0 0 / 60%); }
+.sf-flip-down { z-index: 2; transform-origin: bottom center; animation: sf-down ease-in forwards; }
+.sf-flip-up { z-index: 2; transform-origin: top center; animation: sf-up ease-out forwards; }
+@keyframes sf-down { from { transform: rotateX(0); } to { transform: rotateX(-90deg); } }
+@keyframes sf-up { from { transform: rotateX(90deg); } to { transform: rotateX(0); } }
+.sf-seam { position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; z-index: 3; pointer-events: none; background: #000; box-shadow: 0 1px 0 rgb(255 255 255 / 5%); }
+.live-card .sf { align-self: flex-start; max-width: 100%; }
+.live-card .sf--md { --w: 33px; --h: 50px; --f: 24px; }
+@media (max-width: 860px) { .live-card .sf--md { --w: 30px; --h: 46px; --f: 22px; padding: 10px; } }
+.live-unit { margin: 4px 0 0; font-size: calc(14px * var(--fs)); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--acc); }

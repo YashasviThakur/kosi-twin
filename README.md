@@ -74,3 +74,8 @@ own or that are licensed for reuse. Without `samples.json` the example row is si
   covers only part of the real embankment system.
 - Leak reports are public and unverified. They are stored in DynamoDB (`kosi-twin-reports`) when deployed, otherwise in
   `backend/data/reports.jsonl`.
+
+## Credits
+- The split-flap counter is adapted from [Componentry](https://componentry.dev) (no licence is stated on the site; verify before production use).
+- Landing page images: AI-generated illustrations (Gemini) and press photographs and maps whose credits are still to be confirmed. See `frontend/public/img/`.
+- Design guidance used for the landing page: Apple Human Interface Guidelines skills, Apple's DESIGN.md (VoltAgent/awesome-design-md), taste-skill, and Vercel's Web Interface Guidelines.

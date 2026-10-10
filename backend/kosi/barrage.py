@@ -113,11 +113,18 @@ def floods():
     return sorted(out, key=lambda e: e["start"], reverse=True)
 
 
+def daily():
+    """Every day from the first to the last reading: the day's highest discharge in cusecs, or None when no report could be read."""
+    days = _daily_max()
+    first, last = min(days), max(days)
+    return {"start": first.isoformat(), "max": [days.get(first + timedelta(days=i)) for i in range((last - first).days + 1)]}
+
+
 def floods_payload():
     rows = _readings()
     return {"source": "Bihar Water Resources Department, Koshi Barrage Gate Status Reports", "official": True,
             "first": rows[0][0].date().isoformat(), "last": _series()[-1][0].date().isoformat(), "threshold_lakh": FLOOD_LAKH,
-            "events": floods(),
+            "events": floods(), "daily": daily(),
             "note": "Official barrage discharge, read at 10 AM and 3 PM. The department's reports before 2018 show gate positions but no "
                     "discharge, so the record starts in 2018. A few reports could not be read and are skipped."}
 

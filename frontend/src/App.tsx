@@ -302,7 +302,7 @@ export default function App() {
               else setSheet(SHEETS[(i + 1) % 3])
             }}><i /></button>
         <div className="brand" title={t.replayNote}>
-          <Logo className="brand-badge" />
+          <a href="#/" aria-label="Kosi Twin home" style={{ display: 'flex' }}><Logo className="brand-badge" /></a>
           <span className="brand-text">
             <span className="brand-name">{t.title}</span>
             <span className="badge">{t.estimate}</span>

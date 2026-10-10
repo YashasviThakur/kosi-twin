@@ -1,32 +1,13 @@
-// The live counter: the Kosi's discharge at the Birpur barrage from the newest official Bihar WRD report (10 AM / 3 PM),
-// how old that reading is, the trend, the 60 days before it, and a modelled 14-day trend ahead (dashed).
-import { useEffect, useRef, useState } from 'react'
+// The live counter: the Kosi's discharge at the Birpur barrage from the newest official Bihar WRD report (10 AM / 3 PM) on a
+// split-flap board that ticks over to each new reading, how old that reading is, the trend, the 60 days before it, and a
+// modelled 14-day trend ahead (dashed).
+import { useEffect, useState } from 'react'
 import type { Lang, LiveCounter } from '../api'
 import { N } from '../i18n-more'
+import { SplitFlap } from './ui/SplitFlap'
 
 const W = 320
 const H = 84
-
-// Counts up to a new reading instead of jumping, so a refresh is visible.
-function useCount(target: number) {
-  const [value, setValue] = useState(target)
-  const from = useRef(target)
-  useEffect(() => {
-    const start = performance.now()
-    const begin = from.current
-    let raf = 0
-    const tick = (now: number) => {
-      const k = Math.min(1, (now - start) / 900)
-      const v = Math.round(begin + (target - begin) * (1 - Math.pow(1 - k, 3)))
-      from.current = v
-      setValue(v)
-      if (k < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [target])
-  return value
-}
 
 // Minutes since the report was issued (India time, written without a zone), refreshed every minute.
 function useAge(time: string) {
@@ -38,7 +19,6 @@ function useAge(time: string) {
 export function LiveCard({ lang, live, applied, onApply }: { lang: Lang; live: LiveCounter | 'error'; applied: boolean; onApply: (lakh: number) => void }) {
   const t = N[lang].live
   const ok = live !== 'error'
-  const shown = useCount(ok ? live.cusec : 0)
   const age = useAge(ok ? live.time : '2000-01-01T00:00')
   if (!ok) return <section className="live-card"><span className="eyebrow">{t.title}</span><p className="vc-note">{t.unavailable}</p></section>
 
@@ -62,10 +42,8 @@ export function LiveCard({ lang, live, applied, onApply }: { lang: Lang; live: L
         <span className={`live-chip${live.fresh ? '' : ' is-stale'}`}><i aria-hidden />{live.fresh ? t.live : t.last}</span>
       </header>
 
-      <div className="live-main num" aria-live="polite">
-        <strong>{shown.toLocaleString('en-IN')}</strong>
-        <span>{t.cusecs}</span>
-      </div>
+      <SplitFlap text={live.cusec.toLocaleString('en-US')} columns={7} size="md" label={`${live.cusec.toLocaleString('en-US')} ${t.cusecs}`} />
+      <p className="live-unit">{t.cusecs}</p>
       <p className="live-sub num">{t.lakh(live.lakh.toFixed(2))} · {t.updated(when, ago)}</p>
       <p className={`live-trend is-${live.trend}`}>
         <span aria-hidden>{live.trend === 'rising' ? '▲' : live.trend === 'falling' ? '▼' : '▬'}</span> {t[live.trend](Math.abs(live.change_pct))}
