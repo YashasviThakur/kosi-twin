@@ -89,6 +89,18 @@ export interface VillageCard {
   timeline?: { hours: number; time: string; depth_m: number; wet: boolean }[]
 }
 
+export type ReportKind = 'seepage' | 'crack' | 'breach'
+
+export interface Report {
+  id: string
+  kind: ReportKind
+  lon: number
+  lat: number
+  note: string
+  time: number          // unix seconds
+  status: 'unverified'
+}
+
 export type Advisory = Record<Lang, string> & { source: string }
 
 export interface ReplayFrame {
@@ -123,6 +135,17 @@ export const api = {
     get<VillageCard>(`/api/villages/${id}?${scenarioQuery(scenario)}`, signal),
   advisory: (id: number, scenario: ScenarioRef, signal?: AbortSignal) =>
     get<Advisory>(`/api/villages/${id}/advisory?${scenarioQuery(scenario)}`, signal),
+  reports: () => get<Report[]>('/api/reports'),
+  addReport: async (kind: ReportKind, lon: number, lat: number, note: string): Promise<Report> => {
+    const body = new FormData()
+    body.set('kind', kind)
+    body.set('lon', String(lon))
+    body.set('lat', String(lat))
+    body.set('note', note)
+    const res = await fetch('/api/reports', { method: 'POST', body })
+    if (!res.ok) throw new Error(`report → ${res.status}`)
+    return res.json() as Promise<Report>
+  },
   audioUrl: (id: number, lang: Lang, scenario: ScenarioRef) =>
     `/api/villages/${id}/audio?lang=${lang}&${scenarioQuery(scenario)}`,
 }

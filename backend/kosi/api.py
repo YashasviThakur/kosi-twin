@@ -5,7 +5,7 @@ from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
 
-from . import advisory, cloud, hydro, mirror, speech, store
+from . import advisory, cloud, hydro, mirror, reports, speech, store
 from .config import D0_M, DATA_DIR, EXPONENT, Q0_LAKH
 from .lang import LANGS
 from .village import affected, card
@@ -131,6 +131,19 @@ def status():
     """Which AWS features are live — lets the UI and the demo show what is real."""
     return {"aws": cloud.ENABLED, "region": cloud.REGION, "bucket": bool(cloud.BUCKET),
             "text_models": cloud.TEXT_MODELS, "image_model": cloud.IMAGE_MODEL}
+
+
+@app.get("/api/reports")
+def list_reports():
+    return reports.recent()
+
+
+@app.post("/api/reports")
+def add_report(kind: str = Form(...), lon: float = Form(...), lat: float = Form(...), note: str = Form("")):
+    error = reports.validate(kind, lon, lat, note)
+    if error:
+        raise HTTPException(400, error)
+    return reports.add(kind, lon, lat, note)
 
 
 if (DATA_DIR / "layers").exists():   # local dev only; production serves layers from S3/CloudFront

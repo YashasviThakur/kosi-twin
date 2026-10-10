@@ -61,3 +61,10 @@ export function duration(h: number, lang: Lang): string {
 export function km(d: number): string {
   return d < 0.1 ? '< 0.1 km' : `${d.toFixed(1)} km`
 }
+
+// "5 minutes ago" for a unix-seconds time.
+export function ago(unixSeconds: number, lang: Lang): string {
+  const rtf = new Intl.RelativeTimeFormat(lang === 'en' ? 'en' : 'hi', { numeric: 'auto' })
+  const mins = Math.round((unixSeconds - Date.now() / 1000) / 60)
+  return Math.abs(mins) < 60 ? rtf.format(mins, 'minute') : rtf.format(Math.round(mins / 60), 'hour')
+}

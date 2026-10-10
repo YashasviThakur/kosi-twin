@@ -6,3 +6,4 @@ backend/data/out/
 .env
 infra/.build/
 backend/data/*.log
+backend/data/reports.jsonl

@@ -4,8 +4,9 @@ import * as maplibregl from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef, useState } from 'react'
-import type { Lang, Risk, Village, VillageCard } from '../api'
-import { int } from '../format'
+import type { Lang, Report, Risk, Village, VillageCard } from '../api'
+import { ago, int } from '../format'
+import { X } from '../i18n-extra'
 
 export type Basemap = 'map' | 'satellite'
 
@@ -20,7 +21,7 @@ const LABELS_FROM_ZOOM = 8.5     // below this only towns and villages in the wa
 // Bihar plus a small margin: the map can't be panned away from the state.
 const BIHAR_LIMITS: [[number, number], [number, number]] = [[82.6, 23.8], [89.0, 28.0]]
 
-// Basemap (OpenFreeMap Positron) label layers. Its place names would duplicate our own village/town/district
+// Basemap (OpenFreeMap Liberty) label layers. Its place names would duplicate our own village/town/district
 // labels (which also follow the language switch), so they are always hidden; road names only on satellite.
 const PLACE_LABELS = ['label_village', 'label_other', 'label_town', 'label_city', 'label_city_capital']
 const ROAD_LABELS = ['highway-name-path', 'highway-name-minor', 'highway-name-major',
@@ -45,7 +46,14 @@ interface Props {
   } | null
   lang: Lang
   onSelect: (id: number) => void
+  showEmbankments: boolean
+  reports: Report[]
+  reportMode: boolean                       // next map click places a report
+  draft: { lon: number; lat: number } | null
+  onPick: (lon: number, lat: number) => void
 }
+
+const REPORT_ICON = { seepage: '💧', crack: '⚠️', breach: '🚨' } as const
 
 function columns(villages: Village[]): FeatureCollection {
   const half = 0.0035 // ~400 m
@@ -66,7 +74,8 @@ function columns(villages: Village[]): FeatureCollection {
 
 const villageName = (v: Village, lang: Lang) => (lang === 'en' ? v.name : (v.name_hi ?? v.name))
 
-export function MapView({ tiles, villages, risk, layer, basemap, selectedId, focus, lang, onSelect }: Props) {
+export function MapView({ tiles, villages, risk, layer, basemap, selectedId, focus, lang, onSelect,
+  showEmbankments, reports, reportMode, draft, onPick }: Props) {
   const el = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const labels = useRef(new Map<number, HTMLDivElement>())
@@ -74,6 +83,12 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
   const districtLabels = useRef<HTMLDivElement[]>([])
   const pins = useRef<maplibregl.Marker[]>([])
   const fittedFor = useRef<string | null>(null)
+  const reportMarkers = useRef<maplibregl.Marker[]>([])
+  const draftMarker = useRef<maplibregl.Marker | null>(null)
+  const reportModeRef = useRef(reportMode)
+  reportModeRef.current = reportMode
+  const onPickRef = useRef(onPick)
+  onPickRef.current = onPick
 
   // Hide labels that would overlap a more important one: evacuate > watch > selected > town > district >
   // larger villages. Hidden labels keep their size (visibility: hidden), so every label can be measured.
@@ -155,6 +170,28 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
       map.addLayer({ id: 'kosi', type: 'line', source: 'kosi', layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: { 'line-color': '#12357A', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1.5, 12, 4], 'line-opacity': 0.85 } }, firstSymbol)
 
+      // Mapped dykes (OSM), coloured by how many people live on low ground close behind each stretch.
+      map.addSource('embankments', { type: 'geojson', data: '/embankments.geojson' })
+      const line = { 'line-join': 'round', 'line-cap': 'round' } as const
+      map.addLayer({ id: 'embankments-casing', type: 'line', source: 'embankments', layout: line,
+        paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 5.5, 13, 12] } }, firstSymbol)
+      map.addLayer({ id: 'embankments', type: 'line', source: 'embankments', layout: line,
+        paint: {
+          'line-color': ['interpolate', ['linear'], ['get', 'people'], 0, '#3F7552', 1000, '#E0B93A', 2200, '#E0742A', 3400, '#B23A26'],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 8, 3.5, 13, 8],
+        } }, firstSymbol)
+      const embPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'village-pop', offset: 10, maxWidth: '260px' })
+      map.on('mousemove', 'embankments', (ev) => {
+        const p = ev.features?.[0]?.properties as { rank: number; people: number } | undefined
+        if (!p || reportModeRef.current) return
+        map.getCanvas().style.cursor = 'help'
+        embPopup.setLngLat(ev.lngLat).setHTML(`<span>${escapeHtml(X[langRef.current].embankPop(p.rank, int(p.people)))}</span>`).addTo(map)
+      })
+      map.on('mouseleave', 'embankments', () => {
+        map.getCanvas().style.cursor = ''
+        embPopup.remove()
+      })
+
       // Roads: remember the light map's colours so switching back from satellite restores them.
       roadLayers.current = layers
         .filter((l) => l.type === 'line' && (l as { 'source-layer'?: string })['source-layer'] === 'transportation')
@@ -202,7 +239,7 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
         label.className = v.type === 'town' || v.type === 'city' ? 'vlabel is-town' : 'vlabel'
         label.textContent = villageName(v, langRef.current)
         label.dataset.pop = String(v.pop)
-        label.addEventListener('click', () => onSelectRef.current(v.id))
+        label.addEventListener('click', () => { if (!reportModeRef.current) onSelectRef.current(v.id) })
         labels.current.set(v.id, label)
         new maplibregl.Marker({ element: label, anchor: 'left', offset: [10, 0] }).setLngLat([v.lon, v.lat]).addTo(map)
       }
@@ -242,7 +279,10 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
       })
       map.on('click', 'village-cols', (ev) => {
         const id = Number(ev.features?.[0]?.id)
-        if (id) onSelectRef.current(id)
+        if (id && !reportModeRef.current) onSelectRef.current(id)
+      })
+      map.on('click', (ev) => {
+        if (reportModeRef.current) onPickRef.current(ev.lngLat.lng, ev.lngLat.lat)
       })
       setReady(true)
     })
@@ -364,6 +404,44 @@ export function MapView({ tiles, villages, risk, layer, basemap, selectedId, foc
     for (const p of pts) b.extend(p)
     map.fitBounds(b, { padding: framePadding(), maxZoom: 13, duration: 900 })
   }, [ready, focus, selectedId, lang])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    for (const id of ['embankments', 'embankments-casing']) {
+      map.setLayoutProperty(id, 'visibility', showEmbankments ? 'visible' : 'none')
+    }
+  }, [ready, showEmbankments])
+
+  // Leak reports as emoji pins; hovering shows what, when and that it is unverified.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    for (const m of reportMarkers.current) m.remove()
+    const x = X[lang]
+    reportMarkers.current = reports.map((r) => {
+      const pin = document.createElement('div')
+      pin.className = `report-pin kind-${r.kind}`
+      pin.textContent = REPORT_ICON[r.kind]
+      pin.title = `${x.reportKinds[r.kind]} · ${ago(r.time, lang)} · ${x.reportUnverified}${r.note ? `\n${r.note}` : ''}`
+      return new maplibregl.Marker({ element: pin }).setLngLat([r.lon, r.lat]).addTo(map)
+    })
+  }, [ready, reports, lang])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    draftMarker.current?.remove()
+    draftMarker.current = null
+    if (reportMode && draft) {
+      const pin = document.createElement('div')
+      pin.className = 'report-pin is-draft'
+      pin.textContent = '📍'
+      draftMarker.current = new maplibregl.Marker({ element: pin, anchor: 'bottom' }).setLngLat([draft.lon, draft.lat]).addTo(map)
+    }
+  }, [ready, reportMode, draft])
+
+  useEffect(() => { el.current?.classList.toggle('is-reporting', reportMode) }, [reportMode])
 
   return <div ref={el} className="map" />
 }

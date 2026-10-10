@@ -141,3 +141,15 @@ def test_boat_rescue_is_rare_when_water_is_days_away():
     cards = [card(a["id"], hg) for a in client.get("/api/scenario?discharge=4").json()["affected"]]
     late = [c for c in cards if c["eta_h"] > 24]
     assert late and sum(c["needs_boat"] for c in late) <= len(late) // 10
+
+
+def test_leak_reports_are_validated_and_stored(tmp_path, monkeypatch):
+    from kosi import reports
+    monkeypatch.setattr(reports, "LOCAL", tmp_path / "reports.jsonl")
+    monkeypatch.setattr(reports, "TABLE", None)
+    ok = client.post("/api/reports", data={"kind": "seepage", "lon": 86.8, "lat": 26.0, "note": "water coming through"})
+    assert ok.status_code == 200 and ok.json()["status"] == "unverified"
+    assert client.get("/api/reports").json()[0]["id"] == ok.json()["id"]
+    for bad in ({"kind": "fire", "lon": 86.8, "lat": 26.0}, {"kind": "crack", "lon": 10, "lat": 26.0},
+                {"kind": "crack", "lon": 86.8, "lat": 26.0, "note": "x" * 201}):
+        assert client.post("/api/reports", data=bad).status_code == 400

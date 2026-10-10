@@ -19,6 +19,19 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
+  # ---------- crowd reports (embankment leaks, cracks, breaches) ----------
+  ReportsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: kosi-twin-reports
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: id, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: id, KeyType: RANGE }
+
   # ---------- API ----------
   ApiRole:
     Type: AWS::IAM::Role
@@ -45,6 +58,9 @@ Resources:
                   - arn:aws:bedrock:*::foundation-model/*
                   - !Sub arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*
               - Effect: Allow
+                Action: [dynamodb:PutItem, dynamodb:Query]
+                Resource: !GetAtt ReportsTable.Arn
+              - Effect: Allow
                 Action: [s3:GetObject, s3:PutObject]
                 Resource: !Sub ${SiteBucket.Arn}/audio/*
 
@@ -64,6 +80,7 @@ Resources:
           KOSI_DATA_DIR: /var/task/model
           KOSI_BUCKET: !Ref SiteBucket
           KOSI_LAYER_BASE_URL: /layers
+          KOSI_REPORTS_TABLE: !Ref ReportsTable
 
   HttpApi:
     Type: AWS::ApiGatewayV2::Api

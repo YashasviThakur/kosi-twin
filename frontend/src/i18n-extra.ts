@@ -32,6 +32,22 @@ type Strings = {
   female: string
   male: string
   maleMissing: string
+  embankments: string
+  embankLegend: string
+  embankFewer: string
+  embankMore: string
+  embankPop: (rank: number, people: string) => string
+  embankNote: string
+  reportLeak: string
+  reportPick: string
+  reportKinds: Record<'seepage' | 'crack' | 'breach', string>
+  reportNote: string
+  reportSend: string
+  reportCancel: string
+  reportThanks: string
+  reportError: string
+  reportEmergency: string
+  reportUnverified: string
 }
 
 export const X: Record<Lang, Strings> = {
@@ -62,6 +78,22 @@ export const X: Record<Lang, Strings> = {
     female: 'Female',
     male: 'Male',
     maleMissing: 'This device has no male Hindi voice. Playing the female voice.',
+    embankments: 'Embankments',
+    embankLegend: 'Mapped dykes: people on low ground nearby',
+    embankFewer: 'fewer',
+    embankMore: 'more',
+    embankPop: (rank, people) => `Stretch #${rank} of the mapped dykes · about ${people} people live on low ground within 3 km`,
+    embankNote: 'Only part of the embankments is mapped. This ranks who is at stake, not where a breach will happen.',
+    reportLeak: 'Report a leak',
+    reportPick: 'Tap the map where the embankment is leaking',
+    reportKinds: { seepage: 'Seepage', crack: 'Crack', breach: 'Breach' },
+    reportNote: 'What do you see? (optional)',
+    reportSend: 'Send report',
+    reportCancel: 'Cancel',
+    reportThanks: 'Report sent. Engineers will see it as unverified until it is checked.',
+    reportError: 'Couldn’t send the report. Try again.',
+    reportEmergency: 'If a breach is happening now, call 112 or 1070.',
+    reportUnverified: 'unverified',
   },
   hi: {
     destinations: 'कहाँ जाएँ',
@@ -90,6 +122,22 @@ export const X: Record<Lang, Strings> = {
     female: 'महिला',
     male: 'पुरुष',
     maleMissing: 'इस डिवाइस में हिंदी पुरुष आवाज़ नहीं है। महिला आवाज़ चल रही है।',
+    embankments: 'तटबंध',
+    embankLegend: 'नक्शे में दर्ज बाँध: आसपास नीची ज़मीन पर लोग',
+    embankFewer: 'कम',
+    embankMore: 'ज़्यादा',
+    embankPop: (rank, people) => `दर्ज बाँधों का हिस्सा #${rank} · 3 किमी में नीची ज़मीन पर लगभग ${people} लोग`,
+    embankNote: 'केवल कुछ तटबंध नक्शे में दर्ज हैं। यह बताता है कि किसका ख़तरा ज़्यादा है, टूटन कहाँ होगी यह नहीं।',
+    reportLeak: 'रिसाव की सूचना दें',
+    reportPick: 'नक्शे पर वह जगह छुएँ जहाँ तटबंध रिस रहा है',
+    reportKinds: { seepage: 'रिसाव', crack: 'दरार', breach: 'टूटन' },
+    reportNote: 'आप क्या देख रहे हैं? (वैकल्पिक)',
+    reportSend: 'सूचना भेजें',
+    reportCancel: 'रद्द करें',
+    reportThanks: 'सूचना भेज दी गई। जाँच होने तक इंजीनियर इसे असत्यापित के रूप में देखेंगे।',
+    reportError: 'सूचना नहीं भेजी जा सकी। दोबारा कोशिश करें।',
+    reportEmergency: 'अगर अभी तटबंध टूट रहा है तो 112 या 1070 पर कॉल करें।',
+    reportUnverified: 'असत्यापित',
   },
   bho: {
     destinations: 'कहाँ जाईं',
@@ -118,6 +166,22 @@ export const X: Record<Lang, Strings> = {
     female: 'मेहरारू',
     male: 'मरद',
     maleMissing: 'एह डिवाइस में हिंदी मरद आवाज नइखे। मेहरारू आवाज चल रहल बा।',
+    embankments: 'तटबंध',
+    embankLegend: 'नक्शा में दर्ज बान्ह: लगे नीचा जमीन पर लोग',
+    embankFewer: 'कम',
+    embankMore: 'ज्यादा',
+    embankPop: (rank, people) => `दर्ज बान्हन के हिस्सा #${rank} · 3 किमी में नीचा जमीन पर लगभग ${people} लोग`,
+    embankNote: 'खाली कुछ तटबंध नक्शा में दर्ज बा। ई बतावेला कि केकर खतरा ज्यादा बा, टूटन कहाँ होई ई ना।',
+    reportLeak: 'रिसाव के सूचना दीं',
+    reportPick: 'नक्शा पर ऊ जगह छूईं जहाँ तटबंध रिस रहल बा',
+    reportKinds: { seepage: 'रिसाव', crack: 'दरार', breach: 'टूटन' },
+    reportNote: 'रउआ का देख रहल बानी? (मन होखे त)',
+    reportSend: 'सूचना भेजीं',
+    reportCancel: 'रद्द करीं',
+    reportThanks: 'सूचना भेज दिहल गइल। जाँच होखे ले इंजीनियर एकरा के असत्यापित मानी।',
+    reportError: 'सूचना ना भेजा सकल। फेर कोसिस करीं।',
+    reportEmergency: 'अगर अबहीं तटबंध टूट रहल बा त 112 भा 1070 पर फोन करीं।',
+    reportUnverified: 'असत्यापित',
   },
   mai: {
     destinations: 'कतय जाउ',
@@ -146,5 +210,21 @@ export const X: Record<Lang, Strings> = {
     female: 'महिला',
     male: 'पुरुष',
     maleMissing: 'एहि डिवाइस मे हिंदी पुरुष आवाज नहि अछि। महिला आवाज चलि रहल अछि।',
+    embankments: 'तटबंध',
+    embankLegend: 'नक्शा मे दर्ज बान्ह: लगक निचला जमीन पर लोक',
+    embankFewer: 'कम',
+    embankMore: 'बेसी',
+    embankPop: (rank, people) => `दर्ज बान्हक हिस्सा #${rank} · 3 किमी मे निचला जमीन पर लगभग ${people} लोक`,
+    embankNote: 'मात्र किछु तटबंध नक्शा मे दर्ज अछि। ई बतबैत अछि जे केकर खतरा बेसी अछि, टूटन कतय होयत से नहि।',
+    reportLeak: 'रिसावक सूचना दिअ',
+    reportPick: 'नक्शा पर ओ ठाम छुबू जतय तटबंध रिस रहल अछि',
+    reportKinds: { seepage: 'रिसाव', crack: 'दरार', breach: 'टूटन' },
+    reportNote: 'अहाँ की देखि रहल छी? (इच्छा हो त)',
+    reportSend: 'सूचना पठाउ',
+    reportCancel: 'रद्द करू',
+    reportThanks: 'सूचना पठा देल गेल। जाँच होमय धरि इंजीनियर एकरा असत्यापित मानताह।',
+    reportError: 'सूचना नहि पठाओल जा सकल। फेर प्रयास करू।',
+    reportEmergency: 'जँ एखन तटबंध टूटि रहल अछि त 112 वा 1070 पर फोन करू।',
+    reportUnverified: 'असत्यापित',
   },
 }

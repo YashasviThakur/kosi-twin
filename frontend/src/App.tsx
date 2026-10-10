@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, layerPrefix, riseFor, statsAt } from './api'
-import type { Lang, Meta, Replay, Risk, Scenario, ScenarioRef, Village, VillageCard as Card } from './api'
+import type { Lang, Meta, Replay, Report, Risk, Scenario, ScenarioRef, Village, VillageCard as Card } from './api'
 import { Gauge } from './components/Gauge'
 import { MapView } from './components/MapView'
 import { Panel } from './components/Panel'
 import type { Basemap } from './components/MapView'
 import { ReplayBar } from './components/ReplayBar'
+import { ReportForm } from './components/ReportForm'
 import { SearchBox } from './components/SearchBox'
 import { SummaryPanel } from './components/SummaryPanel'
 import { VillageCard } from './components/VillageCard'
 import { duration } from './format'
-import { CATEGORY_ICON } from './i18n-extra'
+import { CATEGORY_ICON, X } from './i18n-extra'
 import type { Category } from './i18n-extra'
 import { T } from './i18n'
 import './App.css'
@@ -38,6 +39,10 @@ export default function App() {
   const [lang, setLang] = useState<Lang>('en')
   const [basemap, setBasemap] = useState<Basemap>('satellite')
   const [textSize, setTextSize] = useState<TextSize>(loadTextSize)
+  const [showEmbankments, setShowEmbankments] = useState(true)
+  const [reports, setReports] = useState<Report[]>([])
+  const [reportMode, setReportMode] = useState(false)
+  const [draft, setDraft] = useState<{ lon: number; lat: number } | null>(null)
   const [meta, setMeta] = useState<Meta | null>(null)
   const [villages, setVillages] = useState<Village[]>([])
   const [failed, setFailed] = useState(false)
@@ -48,6 +53,8 @@ export default function App() {
   const [frame, setFrame] = useState(0)
   const [playing, setPlaying] = useState(false)
   const t = T[lang]
+
+  useEffect(() => { api.reports().then(setReports).catch(() => {}) }, [])
 
   useEffect(() => {
     Promise.all([api.meta(), api.villages()])
@@ -146,6 +153,8 @@ export default function App() {
     <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang}>
       <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} layer={layerPrefix(extentRise)}
         basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId}
+        showEmbankments={showEmbankments} reports={reports} reportMode={reportMode} draft={draft}
+        onPick={(lon, lat) => setDraft({ lon, lat })}
         focus={shownCard ? {
           villageId: shownCard.id, key: routeCategory ?? 'best', route: shownRoute,
           eta: shownRoute ? `🚶 ${duration(shownRoute.distance_km / 4, lang)}` : '',
@@ -217,6 +226,14 @@ export default function App() {
       )}
 
       <div className="map-tools">
+        <button className={`tool-btn${showEmbankments ? ' is-active' : ''}`} aria-pressed={showEmbankments}
+          onClick={() => setShowEmbankments(!showEmbankments)} title={X[lang].embankNote}>
+          {X[lang].embankments}
+        </button>
+        <button className={`tool-btn tool-report${reportMode ? ' is-active' : ''}`} aria-pressed={reportMode}
+          onClick={() => { setReportMode(!reportMode); setDraft(null) }}>
+          {X[lang].reportLeak}
+        </button>
         <nav className="basemap" aria-label={t.mapStyle}>
           {(['satellite', 'map'] as Basemap[]).map((b) => (
             <button key={b} className={b === basemap ? 'is-active' : ''} aria-pressed={b === basemap} onClick={() => setBasemap(b)}>
@@ -225,7 +242,17 @@ export default function App() {
           ))}
         </nav>
         <p className="legend">{t.legend}</p>
+        {showEmbankments && (
+          <p className="legend emb-legend" title={X[lang].embankNote}>
+            {X[lang].embankLegend}: {X[lang].embankFewer} <i /> {X[lang].embankMore}
+          </p>
+        )}
       </div>
+      {reportMode && (
+        <ReportForm lang={lang} draft={draft}
+          onClose={() => { setReportMode(false); setDraft(null) }}
+          onSent={(r) => { setReports((rs) => [r, ...rs]); setDraft(null); setReportMode(false) }} />
+      )}
     </div>
   )
 }
