@@ -139,15 +139,17 @@ def flood_stage(hand, river):
     return stage
 
 
-# Flood depth ramp: light, see-through sky blue at the shallow edge -> deep royal blue -> navy.
-# (depth m, colour, opacity) — opacity rises with depth so shallow water still shows the fields below.
+# Flood depth ramp: glassy cyan at the shallow edge -> clear blue -> deep indigo (stands out against green fields
+# and the brown/orange of roads). (depth m, colour, opacity) — opacity rises with depth so shallow water still
+# shows the fields below.
 DEPTH_RAMP = [
-    (0.0, (0xA8, 0xDC, 0xF7), 120),
-    (0.5, (0x6C, 0xB8, 0xEC), 165),
-    (1.5, (0x35, 0x86, 0xD6), 200),
-    (3.0, (0x1D, 0x56, 0xB0), 222),
-    (5.0, (0x12, 0x35, 0x7A), 235),
+    (0.0, (0x9F, 0xEA, 0xF5), 115),
+    (0.5, (0x38, 0xC6, 0xE0), 160),
+    (1.5, (0x1C, 0x94, 0xD1), 198),
+    (3.0, (0x1B, 0x5F, 0xB8), 225),
+    (5.0, (0x2B, 0x2E, 0x8F), 240),
 ]
+EDGE_RGBA = (0xEA, 0xFB, 0xFF, 235)     # bright water's edge: where flooding stops
 
 
 TILES = 2   # each overlay is split TILES x TILES: many GPUs can't show one image wider than 4096 px
@@ -161,6 +163,14 @@ def overlay_tiles(stage, hand, h, folder):
     for ch in range(3):
         rgba[..., ch] = np.interp(depth, stops, [c[ch] for _, c, _ in DEPTH_RAMP]).astype(np.uint8)
     rgba[..., 3] = np.where(wet, np.interp(depth, stops, [a for _, _, a in DEPTH_RAMP]), 0).astype(np.uint8)
+    # Cartographic finish: a bright line along the water's edge and faint contours at every whole metre of depth.
+    solid = ndimage.median_filter(wet.astype(np.uint8), size=3).astype(bool)      # ignore single-pixel speckle
+    edge = solid & ~ndimage.binary_erosion(solid)
+    band = np.floor(depth).astype(np.int16)
+    contour = solid & (band >= 1) & ((band != np.roll(band, 1, 0)) | (band != np.roll(band, 1, 1))) & ~edge
+    rgba[contour, :3] = (rgba[contour, :3] * 0.55 + 255 * 0.45).astype(np.uint8)
+    rgba[contour, 3] = np.minimum(255, rgba[contour, 3].astype(np.int16) + 30).astype(np.uint8)
+    rgba[edge] = EDGE_RGBA
     for i, (rs, cs) in enumerate(tile_slices(stage.shape)):
         # 64-colour palette keeps the depth gradient and makes layers ~5x smaller for slow connections.
         Image.fromarray(rgba[rs, cs], "RGBA").quantize(colors=64, method=Image.Quantize.FASTOCTREE).save(
