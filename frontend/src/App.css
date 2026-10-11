@@ -1814,3 +1814,36 @@
 .live-card .sf--md { --w: 33px; --h: 50px; --f: 24px; }
 @media (max-width: 860px) { .live-card .sf--md { --w: 30px; --h: 46px; --f: 22px; padding: 10px; } }
 .live-unit { margin: 4px 0 0; font-size: calc(14px * var(--fs)); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--acc); }
+
+/* v20: Apple pass. From Apple's HIG skills and DESIGN.md (VoltAgent/awesome-design-md): system type with tight tracking, sentence-case
+   labels at 13px or more, a solid sidebar (larger surfaces are more opaque, liquid-glass.md), flat cards with no nested translucency,
+   44px-class tap targets (buttons.md). Colour, risk colours and layout are unchanged. */
+.app, .app button, .app input, .app select, .app textarea {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", "Hind", system-ui, sans-serif;
+}
+.app { letter-spacing: -.011em; }
+.sidebar {
+  background: rgb(var(--p0-rgb)); -webkit-backdrop-filter: none; backdrop-filter: none;
+  border: 1px solid rgb(var(--txt-rgb) / .1); box-shadow: 0 10px 40px rgb(0 0 0 / .28);
+}
+.sidebar .panel, .sidebar .live-card, .sidebar .floods-card {
+  background: rgb(var(--txt-rgb) / .055); border: 0; box-shadow: none; border-radius: 16px;
+}
+.sidebar .eyebrow, .eyebrow {
+  font-size: 13px; letter-spacing: -.005em; text-transform: none; font-weight: 600; color: rgb(var(--txt-rgb) / .8);
+}
+.sidebar .badge, .live-chip, .live-note, .vc-note, .live-axis span, .live-levels, .live-sub, .sidebar small, .level, .sidebar .live-note a {
+  font-size: 13px; letter-spacing: 0;
+}
+.live-chip, .badge, .level { text-transform: none; }
+.gauge text, .sidebar svg text { font-size: 12.5px; }
+.sidebar .panel-toggle { width: 40px; height: 40px; }
+.sidebar .vc-note a, .sidebar .live-note a { display: inline-block; padding: 8px 0; }
+.maplibregl-ctrl-group button { width: 40px; height: 40px; }
+.maplibregl-ctrl-attrib a { padding: 4px 2px; font-size: 12px; }
+@media (prefers-reduced-transparency: reduce) { .sidebar, .map-controls .round-btn { -webkit-backdrop-filter: none; backdrop-filter: none; } }
+.splash::before { content: ''; position: absolute; inset: 0; z-index: 0; background: linear-gradient(rgb(var(--pd-rgb) / .78), rgb(var(--pd-rgb) / .9)), url('/img/hero.webp') center / cover no-repeat; }
+.splash-credit { position: absolute; z-index: 2; right: 16px; bottom: 12px; margin: 0; font-size: 13px; color: rgb(var(--txt-rgb) / .75); }
+.live-unit { font-size: 14px; letter-spacing: 0; text-transform: none; font-weight: 600; }
+.sidebar .chip, .floods-card .chip, .hist-years button { min-height: 40px; }
+.hist-chip, .fl-peak, .fl-peak *, .floods-list .num, .floods-list small { font-size: 13px; letter-spacing: 0; text-transform: none; }

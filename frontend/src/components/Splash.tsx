@@ -21,6 +21,7 @@ export function Splash({ lang, error }: { lang: Lang; error?: boolean }) {
           ? <button className="btn btn-primary" onClick={() => window.location.reload()}>{N[lang].retry}</button>
           : <span className="splash-bar" aria-hidden><i /></span>}
       </div>
+      <p className="splash-credit">Illustrative image, AI-generated</p>
       <svg className="splash-waves" viewBox="0 0 1440 220" preserveAspectRatio="none" aria-hidden="true">
         <path className="w1" d="M0 120c120-40 240-40 360 0s240 40 360 0 240-40 360 0 240 40 360 0V220H0z" />
         <path className="w2" d="M0 150c120-36 240-36 360 0s240 36 360 0 240-36 360 0 240 36 360 0V220H0z" />
