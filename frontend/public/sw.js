@@ -10,7 +10,8 @@ const DATA = `${VERSION}-data`
 const LAYERS = `${VERSION}-layers`
 const TILES = `${VERSION}-tiles`
 const CAP = { [DATA]: 250, [LAYERS]: 40, [TILES]: 600 }
-const NETWORK_WAIT_MS = 6000
+// How long a slow network is waited for when a saved copy exists (a request with nothing saved always waits). The test hook lets tests shorten it.
+const NETWORK_WAIT_MS = self.KOSI_NETWORK_WAIT_MS ?? 4000
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -58,16 +59,13 @@ function withTimeout(promise, ms) {
 }
 
 async function networkFirst(req, name, fallbackKey) {
-  try {
-    const res = await withTimeout(fetch(req), NETWORK_WAIT_MS)
-    save(name, req, res.clone())
-    return res
-  } catch (err) {
-    const cache = await caches.open(name)
-    const hit = (await cache.match(req)) || (fallbackKey && (await cache.match(fallbackKey)))
-    if (hit) return hit
-    throw err
-  }
+  const cache = await caches.open(name)
+  const net = fetch(req).then((res) => { save(name, req, res.clone()); return res })
+  net.catch(() => {})                                           // if we answer from the saved copy, the late failure is not an error
+  const saved = async () => (await cache.match(req)) || (fallbackKey && (await cache.match(fallbackKey))) || undefined
+  const hit = await saved()
+  if (!hit) return net                                          // nothing saved: wait for the network however long it takes
+  try { return await withTimeout(net, NETWORK_WAIT_MS) } catch { return hit }   // saved copy when offline or slow; the fetch still refreshes it
 }
 
 async function cacheFirst(req, name) {

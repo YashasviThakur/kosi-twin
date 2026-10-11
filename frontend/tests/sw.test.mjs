@@ -18,18 +18,19 @@ class FakeCache {
   async delete(req) { return this.map.delete(typeof req === 'string' ? req : req.url) }
 }
 
-function load({ online }) {
+function load({ online, delay = 0, wait = 4000 }) {
   const store = new Map()
   const listeners = {}
   const origin = 'https://site.test'
   const net = { online }
   const fakeFetch = async (req) => {
+    if (delay) await new Promise((r) => setTimeout(r, delay))
     if (!net.online) throw new TypeError('offline')
     const url = typeof req === 'string' ? req : req.url
     return new Response(`net:${url}`, { status: 200 })
   }
   const sandbox = {
-    self: { location: { origin }, addEventListener: (type, fn) => { listeners[type] = fn }, skipWaiting: async () => {}, clients: { claim: async () => {} } },
+    self: { KOSI_NETWORK_WAIT_MS: wait, location: { origin }, addEventListener: (type, fn) => { listeners[type] = fn }, skipWaiting: async () => {}, clients: { claim: async () => {} } },
     caches: {
       open: async (n) => { await new Promise((r) => setTimeout(r, 3)); if (!store.has(n)) store.set(n, new FakeCache()); return store.get(n) },
       keys: async () => [...store.keys()], delete: async (n) => store.delete(n),
@@ -86,4 +87,17 @@ test('map tiles and flood layers are saved once and reused offline', async () =>
   assert.match(await (await sw.ask(tile, { host: 'https://tiles.openfreemap.org' })).text(), /^net:/)
   assert.match(await (await sw.ask('/layers/flood_3.0_0.png?v4')).text(), /^net:/)
   assert.equal(await sw.ask('/elsewhere/page', { host: 'https://other.example' }), undefined)   // unrelated sites are left alone
+})
+
+test('a slow network is waited for when nothing is saved, and skipped for a saved copy', async () => {
+  const slow = load({ online: true, delay: 120, wait: 30 })
+  const first = await slow.ask('/api/live')                               // nothing saved yet: waits past the 30 ms limit
+  assert.equal(await first.text(), 'net:https://site.test/api/live')
+  await new Promise((r) => setTimeout(r, 60))
+  const cache = slow.store.get('kosi-v1-data')
+  await cache.put('https://site.test/api/live', new Response('saved'))                       // pretend an older copy exists
+  const t0 = Date.now()
+  const second = await slow.ask('/api/live')
+  assert.equal(await second.text(), 'saved')                                // the network was too slow: the saved copy is served
+  assert.ok(Date.now() - t0 < 110)
 })
