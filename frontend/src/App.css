@@ -1847,3 +1847,31 @@
 .live-unit { font-size: 14px; letter-spacing: 0; text-transform: none; font-weight: 600; }
 .sidebar .chip, .floods-card .chip, .hist-years button { min-height: 40px; }
 .hist-chip, .fl-peak, .fl-peak *, .floods-list .num, .floods-list small { font-size: 13px; letter-spacing: 0; text-transform: none; }
+
+/* v21: one river panel. The split-flap board is the number; the gauge, level and the live details sit beneath it. */
+.gauge-panel { bottom: auto; max-height: calc(100dvh - var(--top) - 14px); }
+.gauge-panel .panel-body { flex: none; overflow-y: auto; gap: 12px; }
+.river-board { text-align: center; }
+.river-board .sf { margin: 0 auto; max-width: 100%; }
+.river-board .live-unit { margin: 8px 0 0; }
+.river-row { display: grid; grid-template-columns: 170px 1fr; gap: 16px; align-items: start; }
+.river-row .gauge { flex: none; width: 100%; height: auto; }
+.gauge-num, .gauge-mark text { font-size: 12.5px; }
+.river-facts { display: grid; gap: 8px; justify-items: start; padding-top: 6px; }
+.river-facts .rise { margin: 0; }
+.river-facts .btn { margin-top: 6px; }
+.live-strip { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid rgb(var(--txt-rgb) / .1); }
+.live-strip > p { margin: 0; }
+.live-chip.is-whatif { background: rgb(var(--acc-rgb) / .18); color: var(--accl); }
+.gauge-panel .live-chip { margin-left: auto; }
+.gauge-panel .panel-head > :first-child { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+@media (max-width: 760px) {
+  .gauge-panel { bottom: 8px; max-height: 52dvh; }
+  .river-row { grid-template-columns: 150px 1fr; gap: 8px; }
+}
+.river-board .sf--md { --w: 34px; --h: 50px; --f: 24px; }
+.gauge-panel .panel-body { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 760px) {
+  .river-board .sf--md { --w: 29px; --h: 44px; --f: 21px; padding: 8px; gap: 2px; }
+  .gauge-panel .panel-body { flex: 1 1 auto; }
+}

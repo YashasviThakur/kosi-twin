@@ -18,7 +18,7 @@ interface More {
     minAgo: (m: number) => string; hrAgo: (h: number) => string
     rising: (p: number) => string; falling: (p: number) => string; steady: (p: number) => string
     levels: (up: string, down: string) => string; history: string; outlook: string; apply: string; applied: string
-    note: string; report: string; unavailable: string
+    note: string; report: string; unavailable: string; whatIf: string; backToLive: string; whatIfNote: (live: string) => string
   }
   floods: {
     title: string; official: string; intro: (n: number, thr: number) => string; days: (d: number) => string; lakhCusecs: string
@@ -56,7 +56,7 @@ export const N: Record<Lang, More> = {
       levels: (u, d) => `Upstream ${u} ft · Downstream ${d} ft`, history: 'Last 60 days', outlook: '14-day trend (modelled)',
       apply: 'Show this level on the map', applied: 'Showing this level on the map',
       note: 'Official Bihar WRD readings, taken at 10 AM and 3 PM. The dashed trend ahead is modelled (GloFAS), not a forecast in cusecs.',
-      report: 'See the report', unavailable: 'The live barrage reading is unavailable right now.',
+      report: 'See the report', unavailable: 'The live barrage reading is unavailable right now.', whatIf: 'What if', backToLive: 'Back to the live reading', whatIfNote: (l) => `A what-if level you set. The live reading is ${l} cusecs.`,
     },
     floods: {
       title: 'Floods since {year}', official: 'Official', intro: (n, t) => `${n} floods when the barrage released ${t} lakh cusecs or more`,
@@ -95,7 +95,7 @@ export const N: Record<Lang, More> = {
       levels: (u, d) => `ऊपरी स्तर ${u} फ़ीट · निचला स्तर ${d} फ़ीट`, history: 'पिछले 60 दिन', outlook: '14 दिन का रुझान (मॉडल से)',
       apply: 'यह स्तर नक्शे पर दिखाएँ', applied: 'नक्शे पर यही स्तर दिख रहा है',
       note: 'बिहार जल संसाधन विभाग की सरकारी रीडिंग, सुबह 10 और दोपहर 3 बजे की। आगे का बिंदीदार रुझान मॉडल (GloFAS) से है, क्यूसेक का पूर्वानुमान नहीं।',
-      report: 'रिपोर्ट देखें', unavailable: 'बराज की लाइव रीडिंग अभी उपलब्ध नहीं है।',
+      report: 'रिपोर्ट देखें', unavailable: 'बराज की लाइव रीडिंग अभी उपलब्ध नहीं है।', whatIf: 'अगर ऐसा हो', backToLive: 'लाइव रीडिंग पर लौटें', whatIfNote: (l) => `यह आपका चुना हुआ अनुमानित स्तर है। लाइव रीडिंग ${l} क्यूसेक है।`,
     },
     floods: {
       title: '{year} से अब तक की बाढ़ें', official: 'सरकारी', intro: (n, t) => `${n} बाढ़ें, जब बराज से ${t} लाख क्यूसेक या ज़्यादा छोड़ा गया`,
@@ -134,7 +134,7 @@ export const N: Record<Lang, More> = {
       levels: (u, d) => `ऊपरी स्तर ${u} फीट · निचला स्तर ${d} फीट`, history: 'पिछला 60 दिन', outlook: '14 दिन के रुझान (मॉडल से)',
       apply: 'ई स्तर नक्सा पर देखाईं', applied: 'नक्सा पर इहे स्तर देखात बा',
       note: 'बिहार जल संसाधन विभाग के सरकारी रीडिंग, सबेरे 10 आ दुपहर 3 बजे के। आगे के बिंदी वाला रुझान मॉडल (GloFAS) से बा, क्यूसेक के पूर्वानुमान ना।',
-      report: 'रिपोर्ट देखीं', unavailable: 'बराज के लाइव रीडिंग अबहीं ना मिलल।',
+      report: 'रिपोर्ट देखीं', unavailable: 'बराज के लाइव रीडिंग अबहीं ना मिलल।', whatIf: 'अगर अइसन होखे', backToLive: 'लाइव रीडिंग पर लौटीं', whatIfNote: (l) => `ई रउरा चुनल अंदाज़ा के स्तर बा। लाइव रीडिंग ${l} क्यूसेक बा।`,
     },
     floods: {
       title: '{year} से अब ले के बाढ़', official: 'सरकारी', intro: (n, t) => `${n} बाढ़, जब बराज से ${t} लाख क्यूसेक भा बेसी छोड़ल गइल`,
@@ -173,7 +173,7 @@ export const N: Record<Lang, More> = {
       levels: (u, d) => `ऊपरी स्तर ${u} फीट · निचला स्तर ${d} फीट`, history: 'पछिला 60 दिन', outlook: '14 दिनक रुझान (मॉडल सँ)',
       apply: 'ई स्तर नक्शा पर देखाउ', applied: 'नक्शा पर यैह स्तर देखा रहल अछि',
       note: 'बिहार जल संसाधन विभागक सरकारी रीडिंग, भोर 10 आ दुपहर 3 बजेक। आगुक बिन्दीदार रुझान मॉडल (GloFAS) सँ अछि, क्यूसेकक पूर्वानुमान नहि।',
-      report: 'रिपोर्ट देखू', unavailable: 'बराजक लाइव रीडिंग एखन उपलब्ध नहि अछि।',
+      report: 'रिपोर्ट देखू', unavailable: 'बराजक लाइव रीडिंग एखन उपलब्ध नहि अछि।', whatIf: 'जँ एहन भेल', backToLive: 'लाइव रीडिंग पर घुरू', whatIfNote: (l) => `ई अहाँक चुनल अनुमानित स्तर अछि। लाइव रीडिंग ${l} क्यूसेक अछि।`,
     },
     floods: {
       title: '{year} सँ आब धरिक बाढ़ि', official: 'सरकारी', intro: (n, t) => `${n} बाढ़ि, जखन बराज सँ ${t} लाख क्यूसेक वा बेसी छोड़ल गेल`,

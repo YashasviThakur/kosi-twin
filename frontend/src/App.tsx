@@ -18,7 +18,7 @@ import { Icon } from './icons'
 import { InfoModal } from './components/InfoModal'
 import { Tour } from './components/Tour'
 import { Splash } from './components/Splash'
-import { LiveCard } from './components/LiveCard'
+import { LiveChip, LiveStrip, RiverBoard } from './components/LiveCard'
 import { FloodsCard } from './components/FloodsCard'
 import { N } from './i18n-more'
 import { Logo } from './components/Logo'
@@ -55,7 +55,7 @@ function loadTheme(): ThemeId {
 document.documentElement.dataset.theme = loadTheme()      // before the first paint, so the loading screen is themed too
 const SHEETS = ['peek', 'half', 'full'] as const
 // First-visit tour: what each step points at, in order.
-const TOUR_TARGETS = ['.gauge-panel .gauge', '.live-card', '.floods-card', '.vlist', '.tl-card', '.round-accent']
+const TOUR_TARGETS = ['.gauge-panel .gauge', '.live-strip', '.floods-card', '.vlist', '.tl-card', '.round-accent']
 function tourSeen() {
   try { return localStorage.getItem('kosi.tour.done') === '1' } catch { return true }
 }
@@ -314,31 +314,32 @@ export default function App() {
           {selectedId == null ? (
             <>
       <Panel id="gauge" className="gauge-panel" collapseLabel={t.collapse} expandLabel={t.expand}
-        title={<h1 className="eyebrow">{t.gaugeTitle}</h1>}
+        title={<><h1 className="eyebrow">{t.gaugeTitle}</h1><LiveChip lang={lang} live={live} applied={liveApplied} /></>}
         summary={<><strong>{q.toFixed(2)}</strong> {t.unit}</>}>
-        <div className="readout num">
-          <strong>{q.toFixed(2)}</strong>
-          <span>{t.unit}</span>
+        <RiverBoard lang={lang} live={live} applied={liveApplied} q={q} />
+        <div className="river-row">
+          <Gauge
+            value={q} min={GAUGE_MIN} max={GAUGE_MAX} disabled={!!replay}
+            label={t.gaugeTitle} valueText={`${q.toFixed(2)} ${t.unit}`}
+            marks={[
+              { value: 1, label: t.normal, tone: 'muted' },
+              { value: PEAK_2024, label: t.peak2024, tone: 'danger' },
+            ]}
+            onChange={(v) => { touched.current = true; setLiveApplied(false); setShownFlood(null); setDischarge(v) }}
+          />
+          <div className="river-facts">
+            <span className={`level level-${levelOf(q)}`}>{LEVELS[lang][levelOf(q)]}</span>
+            <p className="rise num">{t.rise(rise.toFixed(1))}</p>
+            <div className="peak-share num" title={t.peak2024}>
+              <span className="fact-bar"><i style={{ width: `${Math.min(100, (q / PEAK_2024) * 100)}%` }} /></span>
+              <small>{Math.round((q / PEAK_2024) * 100)}% · {t.peak2024}</small>
+            </div>
+            {!replay && <button className="btn btn-primary" onClick={() => void startReplay()}>{t.replay}</button>}
+          </div>
         </div>
-        <span className={`level level-${levelOf(q)}`}>{LEVELS[lang][levelOf(q)]}</span>
-        <p className="rise num">{t.rise(rise.toFixed(1))}</p>
-        <div className="peak-share num" title={t.peak2024}>
-          <span className="fact-bar"><i style={{ width: `${Math.min(100, (q / PEAK_2024) * 100)}%` }} /></span>
-          <small>{Math.round((q / PEAK_2024) * 100)}% · {t.peak2024}</small>
-        </div>
-        <Gauge
-          value={q} min={GAUGE_MIN} max={GAUGE_MAX} disabled={!!replay}
-          label={t.gaugeTitle} valueText={`${q.toFixed(2)} ${t.unit}`}
-          marks={[
-            { value: 1, label: t.normal, tone: 'muted' },
-            { value: PEAK_2024, label: t.peak2024, tone: 'danger' },
-          ]}
-          onChange={(v) => { touched.current = true; setLiveApplied(false); setShownFlood(null); setDischarge(v) }}
-        />
-        {!replay && <button className="btn btn-primary" onClick={() => void startReplay()}>{t.replay}</button>}
+        <LiveStrip lang={lang} live={live} applied={liveApplied}
+          onApply={(lakh) => { setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(true); setShownFlood(null) }} />
       </Panel>
-              <LiveCard lang={lang} live={live} applied={liveApplied}
-                onApply={(lakh) => { setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(true); setShownFlood(null) }} />
               <FloodsCard lang={lang} floods={floods} shownId={shownFlood}
                 onShow={(lakh, id) => { touched.current = true; setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(false); setShownFlood(id) }}
                 onReplay={(id) => void startReplay(`wrd:${id}`)} />

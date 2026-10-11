@@ -19,7 +19,7 @@ interface Props {
   onChange: (v: number) => void
 }
 
-const H = 320          // SVG units, drawn at 1 unit = 1 px so the scale text stays readable
+const H = 260          // SVG units, drawn at 1 unit = 1 px so the scale text stays readable
 const PAD = 22
 const CAP_X = 8
 const CAP_W = 64
