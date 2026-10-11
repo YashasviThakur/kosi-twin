@@ -3,6 +3,7 @@ import { api, layerPrefix, riseFor, statsAt } from './api'
 import type { Lang, LiveCounter, Floods, Meta, Replay, Report, Risk, Scenario, ScenarioRef, Village, VillageCard as Card } from './api'
 import { Gauge } from './components/Gauge'
 import { readLink, writeLink } from './deeplink'
+import { useOnline } from './online'
 import { MapView } from './components/MapView'
 import { Panel } from './components/Panel'
 import type { Basemap } from './components/MapView'
@@ -118,6 +119,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<number | null>(startLink.v ?? null)
   const [replay, setReplay] = useState<Replay | null>(null)
   const [frame, setFrame] = useState(0)
+  const online = useOnline()
   const [playing, setPlaying] = useState(false)
   const t = T[lang]
 
@@ -302,6 +304,8 @@ export default function App() {
               active: !!shownRoute && o!.shelter.lon === shownRoute.shelter.lon && o!.shelter.lat === shownRoute.shelter.lat,
             })),
         } : null} />
+
+      {!online && <div className="offline-pill" role="status">{N[lang].offline}</div>}
 
       <aside className="sidebar" data-sheet={sheet}>
         <div className="sb-top">

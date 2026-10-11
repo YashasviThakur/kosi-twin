@@ -1,81 +1,152 @@
 # Kosi Twin
 
-A flood model of Bihar's Kosi river. Pick a discharge at Birpur barrage and see which villages
-flood, when, and how deep. Each village gets a time-aware evacuation route and a Hindi/English
-advisory, and Flood Mirror paints the predicted water onto a street photo.
+**See the flood before it arrives.** Kosi Twin turns the Kosi river's official barrage reading into a village-by-village plan for
+Bihar: which villages flood, when the water arrives, how deep it gets, when to leave and where to go. In English, Hindi, Bhojpuri and
+Maithili, with voice, printable evacuation cards and email alerts.
 
-## Backend
+**Live:** https://d34uuvdd8ofh55.cloudfront.net
+
+> A planning aid built on a flood model, **not an official warning**. Follow the district administration's orders.
+
+## What it does
+
+| | |
+|---|---|
+| **Live river** | The newest official Bihar WRD *Koshi Barrage Gate Status Report* (discharge at Birpur, issued 10 AM and 3 PM), on a split-flap board that ticks to each new reading. If the department's server is unreachable the last stored reading is shown, marked as old. |
+| **What if** | Drag the water gauge to ask "what if the river rose to...": the flood spreads across a 3D map and every village's risk and arrival time update. |
+| **Every flood since 2018** | 31 floods (the barrage at 2 lakh cusecs or more) from the department's own readings, each replayable hour by hour. |
+| **Village card** | Water arrives at..., deepest..., leave by..., the safest route to a dry school, hospital or raised road, a 72 h depth chart and a spoken advisory (Amazon Polly). |
+| **Where people would go** | For the level on screen, how many people the plan sends to each destination (demand only; capacities are not in the data). |
+| **Email alerts** | Follow a village; when the live reading climbs through a band that would flood it you get an email (AWS SNS, confirmed by link, unsubscribe in every message). |
+| **Shareable links** | `#v=<village>&q=<lakh cusecs>&lang=hi` opens the same card at the same level, so a WhatsApp message lands on the exact plan. |
+| **Works offline** | A service worker saves the app, the data last loaded, the flood layers and the map tiles you viewed. |
+| **Flood Mirror** | Paints the predicted water onto a street photo, scaled from a door, a person or one tap on the ground. |
+| **Honest check** | The info panel plots the model's river-height rule against the department's own downstream level readings and says what it shows. |
+| **Printable card** | A one-page evacuation card per village for people with no signal or no phone. |
+
+## How it fits together
+
+```mermaid
+flowchart LR
+  U[Phone or laptop<br/>React + MapLibre<br/>service worker] -->|HTTPS| CF[CloudFront]
+  CF -->|app, flood layers| S3[(S3)]
+  CF -->|/api/*| APIGW[API Gateway<br/>HTTP API, throttled]
+  APIGW --> L[Lambda<br/>FastAPI flood model]
+  EB[EventBridge<br/>every 5 min] --> L
+  L -->|reads| WRD[(Bihar WRD<br/>barrage reports)]
+  L --> DDB[(DynamoDB<br/>reports, alert follows)]
+  L --> SNS[SNS<br/>alert emails]
+  L --> AI[Translate · Polly<br/>Rekognition · Bedrock*]
+  L -.->|audio cache| S3
+  SNS --> M[(subscriber inboxes)]
+```
+\*Bedrock is wired in with automatic fallbacks; the account used for this build has no model access, so the features that would use it
+(AI-written advisories, AI-painted water) use the built-in template and app-drawn water instead.
+
+The flood model itself is precomputed on a laptop (AWS Open Data + OpenStreetMap, see below) and shipped inside the Lambda package, so
+requests are fast and cheap. The five-minute schedule keeps the function warm, refreshes the live reading and sends alerts.
+
+## Run it locally
 
 ```
-backend/
-  prep/      offline data pipeline (laptop): AWS Open Data + OSM -> flood model artifacts
-  kosi/      runtime API (FastAPI; runs on Lambda via Mangum)
-  tests/
+# backend (needs the model artifacts in backend/data/out, see "Build the model")
+cd backend
+pip install -r requirements.txt
+uvicorn kosi.api:app --reload            # http://127.0.0.1:8000
+python -m pytest                          # 28 tests
+
+# frontend
+cd frontend
+npm ci
+npm run dev                               # http://127.0.0.1:5173 (proxies /api and /layers to :8000)
+npx tsc -b && npx oxlint src              # type-check and lint
 ```
 
-### 1. Build the model (~3 min)
+Without AWS credentials everything still runs: Translate, Polly, Rekognition and Bedrock fall back to built-in behaviour, and alerts are
+written to a local file instead of being emailed ("demo mode" in the UI).
+
+### Build the model (about 3 minutes)
 ```
 pip install -r backend/requirements-prep.txt
 cd backend/prep
-python fetch_rasters.py   # Copernicus DEM + Meta HRSL population (AWS Open Data)
-python fetch_osm.py       # villages, roads, Kosi channel, shelters (OpenStreetMap)
-python build_model.py     # HAND flood model -> backend/data/out
+python fetch_rasters.py    # Copernicus DEM + Meta HRSL population (AWS Open Data)
+python fetch_osm.py        # villages, roads, Kosi channel, shelters (OpenStreetMap)
+python build_model.py      # HAND flood model -> backend/data/out
+python shrink_layers.py    # flood overlay tiles to 1560 px for the web (full-size originals are kept in data/out/layers_full)
 python preview.py out.png 1 2.5 5
-python bihar.py           # Bihar outline, districts, Kosi channel for the map (needs data/raw/osm_bihar.json, osm_districts.json)
-python translate_names.py # Hindi village and shelter names (Amazon Translate)
-python embankments.py     # ranks mapped dykes by people on low ground nearby
+python bihar.py            # Bihar outline, districts, Kosi channel for the map
+python translate_names.py  # Hindi village and shelter names (Amazon Translate)
+python embankments.py      # ranks mapped dykes by people on low ground nearby
+python fetch_barrage.py    # official barrage readings since 2018 (re-run to pick up new reports)
 ```
 
-### 2. Run the API
-```
-cd backend
-uvicorn kosi.api:app --reload
-python -m pytest tests
-```
+## API
 
 | Endpoint | What it returns |
 |---|---|
-| `GET /api/scenario?discharge=4` | rise, flood overlay URL, people/villages/roads affected, worst-hit villages |
-| `GET /api/villages/{id}?discharge=4` (or `?replay=2024`) | village card: ETA, depth, leave-by, route, facilities at risk, 72 h timeline |
-| `GET /api/villages/{id}/advisory` | plain-language advisory, Hindi + English |
-| `GET /api/replay/2024` | hour-by-hour frames for the Sept 2024 replay |
-| `POST /api/mirror/detect` | finds a door / person / motorbike for scale (Rekognition) |
-| `POST /api/mirror` | street photo with predicted floodwater + watermark |
+| `GET /api/live` | the newest official barrage reading, trend, last 60 days and a modelled 14-day trend |
+| `GET /api/floods` | every flood since 2018 and the daily maximum series |
+| `GET /api/scenario?discharge=4` | rise, flood overlay URL, people and villages affected, worst-hit villages |
+| `GET /api/villages/{id}?discharge=4` (or `?replay=wrd:2024-09-29`) | village card: ETA, depth, leave-by, routes, facilities at risk, 72 h timeline |
+| `GET /api/villages/{id}/advisory` and `/audio` | plain-language advisory and its spoken version |
+| `GET /api/shelter-load?discharge=4` | where the plan sends people, by destination (demand only) |
+| `GET /api/model-check` | the model's rise against the recorded downstream level, by discharge |
+| `GET /api/replay/{name}` | frames for a recorded flood (`wrd:YYYY-MM-DD`) |
+| `POST /api/alerts/subscribe`, `/api/alerts/test` | follow a village by email; send a test alert |
+| `POST /api/mirror/detect`, `/api/mirror` | Flood Mirror: find a scale object; paint the water |
 | `GET/POST /api/reports` | crowd reports of embankment seepage, cracks and breaches (shown as unverified) |
 
-### Method and limits
-- **Flood extent:** HAND (Height Above Nearest Drainage) along D8 flow paths to the Kosi on 90 m
-  Copernicus DEM. A cell floods when the river rise exceeds its HAND and it connects to the channel.
-- **Discharge -> rise:** `rise = 2.4 * ((Q/1 lakh)^0.6 - 1)`. A first-pass estimate, not yet calibrated to CWC gauges.
-- **Timing:** flood wave 5 km/h down the river, then 1 km/h across the fields.
-- **Embankments:** not in OSM. Trace them to `backend/data/raw/embankments.geojson` and rebuild.
-- **Replays:** the big replay button plays the biggest flood in the official 10 AM / 3 PM readings (6.13 lakh cusecs, Sept 2024). `GET /api/replay/2024` is the older curated curve: only its ~6.6 lakh cusec peak is from news reports and the rest is interpolated.
-- This is a planning estimate, not an engineering-grade hydraulic model.
+## Method and limits (read this)
 
-## Live deployment (AWS, us-east-1)
-- Site: https://d34uuvdd8ofh55.cloudfront.net (CloudFront in front of S3 for the web app and flood layers, and API Gateway to Lambda for `/api/*`)
-- Stack: `kosi-twin` (CloudFormation, `infra/template.yaml`). Redeploy with `bash infra/deploy.sh` (needs AWS CLI credentials and `backend/data/out`).
-- Live river data: the Kosi counter and the flood list use the **official Bihar WRD Koshi Barrage Gate Status Reports** (discharge at Birpur, issued 10 AM and 3 PM). `GET /api/live` fetches the newest report (cached 10 minutes; if the department's server cannot be reached it shows the last stored reading, marked stale). `GET /api/floods` lists every flood since 2018 (barrage at 2 lakh cusecs or more) from `backend/kosi/barrage_history.json`, built by `backend/prep/fetch_barrage.py` (re-run it to pick up new reports). The department's reports before 2018 show gate positions but no discharge. The 14-day trend ahead is the GloFAS model applied to today's real reading (`backend/kosi/live.py`): a trend, not a forecast in cusecs.
-- Live AWS services: Lambda, API Gateway, S3, CloudFront, DynamoDB (leak reports), Polly (voice), Translate, Rekognition.
-- Bedrock (AI-written advisories, AI-painted water) is wired in but the account has no model access or quota yet, so those two features
-  use the built-in template and app-drawn water. Nothing else changes when access is granted.
+- **Flood extent:** HAND (Height Above Nearest Drainage) along D8 flow paths to the Kosi on 90 m Copernicus DEM. A cell floods when the
+  river rise exceeds its HAND and it connects to the channel.
+- **Discharge to rise:** `rise = 2.4 * ((Q / 1 lakh)^0.6 - 1)`. It is set so the 2024 flood gives about a 5 m rise and is **not calibrated**.
+  The honest check in the app compares it with the department's downstream level readings: below the barrage the recorded river rose
+  about 0.55 m at 1.9 to 2.4 lakh cusecs, against 1.43 m from this rule. They are not the same measurement (a gauge just below the barrage
+  against the river's height further down the plain), so it is a sanity check, not proof either way, but it suggests the flood depths
+  here may run high. Treat them as cautious planning estimates until the rule is calibrated against gauges downstream.
+- **Timing:** flood wave 5 km/h down the river, then 1 km/h across the fields. A rule of thumb, not measured travel times.
+- **Official data:** the department's reports before 2018 show gate positions but no discharge, so the record starts in 2018. A few
+  reports cannot be read and are skipped. The 14-day trend is the GloFAS model applied to today's real reading: a trend, not a forecast.
+- **2024 figures:** news reports put the Sept 2024 peak near 6.6 lakh cusecs; the department's 10 AM and 3 PM readings, which the app shows and
+  replays, top out at 6.13 lakh that week.
+- **Shelters:** OpenStreetMap places have no capacities, so "where people would go" shows demand only.
+- **Embankments:** only mapped stretches (OpenStreetMap, about 87 km); the colours show how many people live behind them, not where a break will happen.
+- **Languages:** Bhojpuri and Maithili text needs review by native speakers.
+- **Alerts:** a planning estimate from the model, not an official warning. Each address can follow 5 villages and the sign-up endpoint is
+  capped per day so it cannot be used to mass-mail strangers.
 
-### Flood Mirror example scenes
-The Flood Mirror window offers example cards from `frontend/public/samples/samples.json`. The three shipped examples are
-illustrations drawn by `backend/prep/make_samples.py` (run it to regenerate them), each with a door at a known place, so the
-demo works without a real photo or door detection. To add real photos, put them in the same folder and add
-`{"file": "lane.jpg", "label": "Supaul lane", "ground": 0.78, "top": 0.39}`: `ground` and `top` are the bottom and top of a
-2.1 m door as fractions of the picture height. Leave them out and the app looks for a door or person itself. Use photos you
-own or that are licensed for reuse. Without `samples.json` the example row is simply not shown.
+## Deploy to AWS (us-east-1)
 
-### Embankments and leak reports
-- The embankment layer ranks **mapped** dyke stretches (OpenStreetMap, ~87 km in Bihar; railway embankments excluded) by
-  the number of people on low ground within 3 km. It shows who is at stake, not where a breach will happen, and it
-  covers only part of the real embankment system.
-- Leak reports are public and unverified. They are stored in DynamoDB (`kosi-twin-reports`) when deployed, otherwise in
-  `backend/data/reports.jsonl`.
+```
+bash infra/deploy.sh      # builds the Lambda package, deploys the CloudFormation stack, uploads layers and the web app, invalidates CloudFront
+```
+Needs AWS CLI credentials and `backend/data/out`. Use an IAM user, not root credentials. Check `infra/.deploy.log` for the line
+`deploy exit: 0`. Do not run two deploys at once. The stack (`infra/template.yaml`): Lambda, HTTP API, S3, CloudFront, DynamoDB, an SNS
+topic for alerts, and a 5-minute EventBridge rule. The public API is throttled to 30 requests per second.
+
+### Rough monthly cost
+An estimate from AWS list prices for a demo-sized audience (about 1,000 visitors and 100,000 API calls a month); check current pricing and
+set a billing alert in AWS Budgets.
+
+| Service | Why it costs anything | About |
+|---|---|---|
+| Lambda (1.5 GB) and the 5-minute schedule | inside the always-free tier at this size | $0 |
+| API Gateway (HTTP API) | $1 per million calls | $0.10 |
+| CloudFront | first 1 TB out per month is free | $0 |
+| S3 | under 1 GB (layers, audio cache, site) | under $0.05 |
+| DynamoDB (on demand) | reports and alert follows | under $0.05 |
+| SNS email | first 1,000 emails free | $0 |
+| Polly, Translate, Rekognition | only when used (spoken advisories are cached in S3) | $0.50 to $3 |
+| **Total** | | **about $1 to $5** |
 
 ## Credits
+- Flood Mirror example scenes in `frontend/public/samples` are illustrations made by `backend/prep/make_samples.py`.
+- Images in the splash screen, village card headers and info panel are AI-generated illustrations (labelled as such in the app), plus three press
+  photographs and a basin map whose credits are still to be confirmed (see `frontend/public/img/`). Replace them with images you have the right to use.
 - The split-flap counter is adapted from [Componentry](https://componentry.dev) (no licence is stated on the site; verify before production use).
-- Landing page images: AI-generated illustrations (Gemini) and press photographs and maps whose credits are still to be confirmed. See `frontend/public/img/`.
-- Design guidance used for the landing page: Apple Human Interface Guidelines skills, Apple's DESIGN.md (VoltAgent/awesome-design-md), taste-skill, and Vercel's Web Interface Guidelines.
+- Data: Bihar Water Resources Department barrage reports, Copernicus DEM and Meta HRSL (AWS Open Data), OpenStreetMap, Open-Meteo / GloFAS, Sentinel-2 (EOX).
+- Design guidance used: Apple Human Interface Guidelines and DESIGN.md (VoltAgent/awesome-design-md), taste-skill, and Vercel's Web Interface Guidelines.
+
+## Licence
+MIT, see [LICENSE](LICENSE). Third-party data keep their own licences (see Credits).

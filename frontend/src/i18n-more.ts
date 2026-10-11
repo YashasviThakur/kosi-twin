@@ -5,6 +5,7 @@ import type { Lang } from './api'
 interface More {
   share: string
   copyLink: string
+  offline: string
   copied: string
   print: string
   sheetTitle: string
@@ -42,7 +43,7 @@ interface More {
 
 export const N: Record<Lang, More> = {
   en: {
-    share: 'Share', copyLink: 'Copy link', copied: 'Link copied', print: 'Print', sheetTitle: 'Evacuation card',
+    share: 'Share', copyLink: 'Copy link', offline: 'You are offline. Showing what was saved on this phone; the live reading may be old.', copied: 'Link copied', print: 'Print', sheetTitle: 'Evacuation card',
     sheetNote: 'A planning estimate from a flood model, not an official warning. Follow the district administration’s instructions.',
     generated: 'Made on',
     takeTitle: 'Take with you',
@@ -100,7 +101,7 @@ export const N: Record<Lang, More> = {
     },
   },
   hi: {
-    share: 'साझा करें', copyLink: 'लिंक कॉपी करें', copied: 'लिंक कॉपी हो गया', print: 'छापें', sheetTitle: 'निकासी कार्ड',
+    share: 'साझा करें', copyLink: 'लिंक कॉपी करें', offline: 'आप ऑफ़लाइन हैं। इस फ़ोन में सहेजा हुआ दिख रहा है; लाइव रीडिंग पुरानी हो सकती है।', copied: 'लिंक कॉपी हो गया', print: 'छापें', sheetTitle: 'निकासी कार्ड',
     sheetNote: 'यह बाढ़ मॉडल का योजना हेतु अनुमान है, आधिकारिक चेतावनी नहीं। ज़िला प्रशासन के निर्देश मानें।',
     generated: 'बनाया गया',
     takeTitle: 'साथ ले जाएँ',
@@ -158,7 +159,7 @@ export const N: Record<Lang, More> = {
     },
   },
   bho: {
-    share: 'साझा करीं', copyLink: 'लिंक कॉपी करीं', copied: 'लिंक कॉपी हो गइल', print: 'छापीं', sheetTitle: 'निकासी कार्ड',
+    share: 'साझा करीं', copyLink: 'लिंक कॉपी करीं', offline: 'रउआ ऑफ़लाइन बानी। एह फ़ोन में सहेजल देखात बा; लाइव रीडिंग पुरान हो सकेला।', copied: 'लिंक कॉपी हो गइल', print: 'छापीं', sheetTitle: 'निकासी कार्ड',
     sheetNote: 'ई बाढ़ मॉडल के योजना खातिर अंदाजा बा, सरकारी चेतावनी ना। जिला प्रशासन के निर्देश मानीं।',
     generated: 'बनल',
     takeTitle: 'साथे ले जाईं',
@@ -216,7 +217,7 @@ export const N: Record<Lang, More> = {
     },
   },
   mai: {
-    share: 'साझा करू', copyLink: 'लिंक कॉपी करू', copied: 'लिंक कॉपी भ गेल', print: 'छापू', sheetTitle: 'निकासी कार्ड',
+    share: 'साझा करू', copyLink: 'लिंक कॉपी करू', offline: 'अहाँ ऑफ़लाइन छी। एहि फ़ोन मे सहेजल देखा रहल अछि; लाइव रीडिंग पुरान भ सकैत अछि।', copied: 'लिंक कॉपी भ गेल', print: 'छापू', sheetTitle: 'निकासी कार्ड',
     sheetNote: 'ई बाढ़ि मॉडलक योजनाक लेल अनुमान अछि, सरकारी चेतावनी नहि। जिला प्रशासनक निर्देश मानू।',
     generated: 'बनाओल गेल',
     takeTitle: 'संगे लऽ जाउ',

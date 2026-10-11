@@ -1998,3 +1998,10 @@
 .vc-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .vc-actions button { flex-direction: column; gap: 4px; min-height: 60px; padding: 8px 4px; font-size: 14px; }
 .vc-actions button svg { width: 20px; height: 20px; }
+
+/* v29: offline notice (the service worker serves what was saved) */
+.offline-pill {
+  position: fixed; z-index: 30; top: 12px; left: 50%; transform: translateX(-50%); max-width: min(92vw, 560px);
+  padding: 10px 16px; border-radius: 999px; background: #3a2a0a; color: #ffe2a8; border: 1px solid #b9801f;
+  font-size: 14px; line-height: 1.3; text-align: center; box-shadow: 0 6px 24px rgb(0 0 0 / .35);
+}
