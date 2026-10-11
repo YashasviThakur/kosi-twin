@@ -49,7 +49,7 @@ python -m pytest tests
 - **Discharge -> rise:** `rise = 2.4 * ((Q/1 lakh)^0.6 - 1)`. A first-pass estimate, not yet calibrated to CWC gauges.
 - **Timing:** flood wave 5 km/h down the river, then 1 km/h across the fields.
 - **Embankments:** not in OSM. Trace them to `backend/data/raw/embankments.geojson` and rebuild.
-- **2024 replay:** only the ~6.61 lakh cusec peak is from reports; the rest of the curve is interpolated.
+- **Replays:** the big replay button plays the biggest flood in the official 10 AM / 3 PM readings (6.13 lakh cusecs, Sept 2024). `GET /api/replay/2024` is the older curated curve: only its ~6.6 lakh cusec peak is from news reports and the rest is interpolated.
 - This is a planning estimate, not an engineering-grade hydraulic model.
 
 ## Live deployment (AWS, us-east-1)

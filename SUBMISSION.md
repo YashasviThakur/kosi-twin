@@ -36,7 +36,7 @@ Open data on AWS: Copernicus DEM and Terrain Tiles (AWS Open Data Registry). Oth
 Discharge → river rise (a rating curve) → flooded land and depth (HAND model on a 30 m terrain model) → arrival time per village (flood wave ~5 km/h, overland ~1 km/h) → walking route on OpenStreetMap roads that avoids roads that flood.
 
 ## Honest limits (we say these in the app too)
-- The rating curve is an **uncalibrated estimate**. The only real figure is the 2024 peak (6.61 lakh cusecs, news reports).
+- The rating curve is an **uncalibrated estimate**. The model is anchored on the 2024 flood: news reports put its peak near 6.6 lakh cusecs and it is set to give about a 5 m rise. The department’s own 10 AM and 3 PM readings, which are what the app shows and replays, top out at 6.13 lakh that week.
 - The flood extent ignores embankment breaches, drains and local ponding. Arrival times are a rule of thumb.
 - The live counter is the department's **latest report** (two a day), not a continuous sensor stream, so it can be hours old, and it says how old. The 14-day trend ahead is a global model (GloFAS) applied to that reading: a trend, not a forecast in cusecs. (We tried using GloFAS for history too: it reads the 2024 flood at about half the reported size and mis-ranks other years, so we dropped it.)
 - Past floods are the department's own barrage readings from 2018. Its reports before 2018 show gate positions but not discharge, so earlier floods are not included. A few reports could not be read and are skipped. Readings are twice a day, so a short peak between them can be missed.
@@ -45,10 +45,10 @@ Discharge → river rise (a rating curve) → flooded land and depth (HAND model
 
 ## Three-minute demo script
 1. **0:00–0:20 · The problem.** Open the site. "The Kosi floods Bihar every year. Warnings are a discharge number. Kosi Twin turns that number into a time, a depth and a route." Point at the gauge.
-2. **0:20–0:55 · The map.** The app opens on the live Kosi counter (official barrage discharge). Drag the gauge up toward the 2024 peak: the flood spreads in violet, village chips turn red and amber and show hours until the water arrives. Click **Replay Sept 2024** and let it play for a few seconds.
+2. **0:20–0:55 · The map.** The app opens on the live Kosi counter (official barrage discharge). The counter is a split-flap board. Drag the gauge up toward the record peak: the chip switches to **What if**, the board follows, the flood spreads in violet, and village chips turn red and amber with hours until the water arrives. Click **Replay the biggest flood (Sept 2024)** and let it play for a few seconds, then **Back to the live reading**.
 3. **0:55–1:40 · One village.** Click Bhaptiyahi. Show the timeline (leave by / water arrives), "1.4 m, chest-deep", the **Go** tab (nearest dry road, school, hospital, route on the map), then **Help**: tap Play, switch the language to Hindi and play again. Mention Translate and Polly.
 4. **1:40–2:20 · Flood Mirror.** Water tab → **See it on your street** → pick the brick-house example → **Show the flood**. "Rekognition finds a door to measure the height; here the scale is already marked." Slide before/after.
 5. **2:20–2:45 · For the family.** Tap **Print** (or **Share**): the one-page evacuation card. "No signal? Stick it on the wall."
-6. **2:45–3:00 · Honesty and AWS.** Scroll to **Floods since 2018**, show the 2024 peak (6.61 lakh) and replay it. Open the **i** panel: the architecture diagram and the limits. "It is a planning aid. We say what is estimated and what is real."
+6. **2:45–3:00 · Honesty and AWS.** Scroll to **Floods since 2018**, show the biggest flood on record (6.13 lakh cusecs in the official readings, Sept 2024) and replay it. Open the **i** panel: the architecture diagram and the limits. "It is a planning aid. We say what is estimated and what is real."
 
 Tips: set the language back to English before recording; use the Ocean or Plum theme from the Map & text menu; do one run first so the Lambda is warm (the first request after a quiet period can take a few seconds).

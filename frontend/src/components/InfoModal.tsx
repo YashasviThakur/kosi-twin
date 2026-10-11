@@ -21,7 +21,7 @@ const STEPS = [
 ]
 
 const LIMITS = [
-  ['River height', 'We use a simple rule to turn flow into river height. It is our best estimate, not a calibrated one: it is set so the 2024 flood (6.61 lakh cusecs) gives about a 5 m rise.'],
+  ['River height', 'We use a simple rule to turn flow into river height. It is our best estimate, not a calibrated one: it is set so the 2024 flood gives about a 5 m rise. News reports put that flood’s peak near 6.6 lakh cusecs; the department’s own 10 AM and 3 PM readings, which are what this app shows, top out at 6.13 lakh that week.'],
   ['Flooded area', 'It shows where water can flow across the land. It cannot predict embankment breaks, blocked drains, or puddles that stay behind.'],
   ['Timing', 'Arrival times come from a rule of thumb for how fast a flood moves, not from measured travel times.'],
   ['The live counter', 'It shows the newest official reading from the Bihar Water Resources Department’s Koshi barrage report, issued at 10 AM and 3 PM, so it can be a few hours old. It is not a continuous sensor feed. The dashed 14-day trend ahead comes from a global model (GloFAS) applied to that reading: a trend, not a forecast in cusecs.'],

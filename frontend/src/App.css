@@ -1934,3 +1934,5 @@
 .im-credit { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
 @media (max-width: 760px) { .im-thumb { display: none; } .im-photos { grid-template-columns: 1fr; } }
 .splash::before { background: linear-gradient(rgb(var(--pd-rgb) / .55), rgb(var(--pd-rgb) / .86)), url('/img/hero.webp') center / cover no-repeat; }
+/* v24: the phone sheet's drag handle is a 44px tap area (the visible bar is unchanged). */
+@media (max-width: 760px) { .sb-top .sheet-handle { min-height: 44px; margin-bottom: -8px; } }

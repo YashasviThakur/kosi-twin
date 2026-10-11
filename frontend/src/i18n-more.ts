@@ -39,8 +39,8 @@ export const N: Record<Lang, More> = {
     tour: {
       next: 'Next', back: 'Back', done: 'Start exploring', skip: 'Skip',
       steps: [
-        { title: 'Set the river level', text: 'Drag the water up or down. This is the flow released at the Birpur barrage, in lakh cusecs.' },
-        { title: 'The live Kosi', text: 'The newest official reading at the Birpur barrage, from the Bihar Water Resources Department, with how old it is and whether the river is rising or falling.' },
+        { title: 'Set the river level', text: 'The board shows the flow released at the Birpur barrage, in cusecs. Drag the water up or down to ask “what if it rose to…”.' },
+        { title: 'The live Kosi', text: 'Below the gauge: the newest official reading from the Bihar Water Resources Department, how old it is, and the last 60 days. Moved the gauge? Tap “Back to the live reading”.' },
         { title: 'Every flood since 2018', text: 'Each time the barrage released 2 lakh cusecs or more. Show a flood’s peak on the map, or replay it village by village.' },
         { title: 'Who the water reaches', text: 'Villages in the water’s path, soonest first. The number is the hours until the water arrives.' },
         { title: 'When to leave', text: 'Pick a village to see when to leave, when the water arrives, how deep it gets, and where to go.' },
@@ -78,8 +78,8 @@ export const N: Record<Lang, More> = {
     tour: {
       next: 'आगे', back: 'पीछे', done: 'शुरू करें', skip: 'छोड़ें',
       steps: [
-        { title: 'नदी का स्तर तय करें', text: 'पानी को ऊपर-नीचे खींचें। यह बीरपुर बराज से छोड़ा गया बहाव है, लाख क्यूसेक में।' },
-        { title: 'अभी की कोसी', text: 'बीरपुर बराज पर बिहार जल संसाधन विभाग की ताज़ा सरकारी रीडिंग, कितनी पुरानी है और नदी बढ़ रही है या घट रही है।' },
+        { title: 'नदी का स्तर तय करें', text: 'बोर्ड बीरपुर बराज से छोड़ा गया बहाव क्यूसेक में दिखाता है। “अगर इतना बढ़ा तो?” देखने के लिए पानी को ऊपर-नीचे खींचें।' },
+        { title: 'अभी की कोसी', text: 'गेज के नीचे: बिहार जल संसाधन विभाग की ताज़ा सरकारी रीडिंग, वह कितनी पुरानी है, और पिछले 60 दिन। गेज हिलाया? “लाइव रीडिंग पर लौटें” दबाएँ।' },
         { title: '2018 से अब तक की हर बाढ़', text: 'जब-जब बराज से 2 लाख क्यूसेक या ज़्यादा छोड़ा गया। किसी बाढ़ का चरम स्तर नक्शे पर देखें, या उसे गाँव-गाँव दोबारा चलाएँ।' },
         { title: 'पानी किन तक पहुँचता है', text: 'पानी की राह में आने वाले गाँव, जिन तक पहले पहुँचेगा वे ऊपर। संख्या बताती है कितने घंटे में पानी पहुँचेगा।' },
         { title: 'कब निकलना है', text: 'गाँव चुनें और देखें कब निकलना है, पानी कब पहुँचेगा, कितना गहरा होगा और कहाँ जाना है।' },
@@ -117,8 +117,8 @@ export const N: Record<Lang, More> = {
     tour: {
       next: 'आगे', back: 'पीछे', done: 'शुरू करीं', skip: 'छोड़ीं',
       steps: [
-        { title: 'नदी के स्तर तय करीं', text: 'पानी के ऊपर-नीचे खींचीं। ई बीरपुर बराज से छोड़ल बहाव बा, लाख क्यूसेक में।' },
-        { title: 'अब के कोसी', text: 'बीरपुर बराज पर बिहार जल संसाधन विभाग के ताजा सरकारी रीडिंग, केतना पुरान बा आ नदी बढ़त बा कि घटत बा।' },
+        { title: 'नदी के स्तर तय करीं', text: 'बोर्ड बीरपुर बराज से छोड़ल बहाव क्यूसेक में देखावेला। “अगर अतना बढ़ल त?” देखे खातिर पानी के ऊपर-नीचे खींचीं।' },
+        { title: 'अब के कोसी', text: 'गेज के नीचे: बिहार जल संसाधन विभाग के ताज़ा सरकारी रीडिंग, ऊ केतना पुरान बा, आ पिछला 60 दिन। गेज हिलावल? “लाइव रीडिंग पर लौटीं” दबाईं।' },
         { title: '2018 से अब ले के हर बाढ़', text: 'जब-जब बराज से 2 लाख क्यूसेक भा बेसी छोड़ल गइल। कवनो बाढ़ के चरम स्तर नक्सा पर देखीं, भा ओकरा के गाँव-गाँव फेर चलाईं।' },
         { title: 'पानी केकरा तक पहुँचेला', text: 'पानी के राह में पड़े वाला गाँव, जहाँ पहिले पहुँची उ ऊपर। संख्या बतावेला कतना घंटा में पानी पहुँची।' },
         { title: 'कब निकले के बा', text: 'गाँव चुनीं आ देखीं कब निकले के बा, पानी कब पहुँची, केतना गहिर होई आ कहाँ जाए के बा।' },
@@ -156,8 +156,8 @@ export const N: Record<Lang, More> = {
     tour: {
       next: 'आगू', back: 'पाछू', done: 'शुरू करू', skip: 'छोड़ू',
       steps: [
-        { title: 'नदीक स्तर तय करू', text: 'पानिकेँ ऊपर-नीचाँ घिसियाउ। ई बीरपुर बराजसँ छोड़ल बहाव अछि, लाख क्यूसेक मे।' },
-        { title: 'एखनुक कोसी', text: 'बीरपुर बराज पर बिहार जल संसाधन विभागक ताजा सरकारी रीडिंग, कतेक पुरान अछि आ नदी बढ़ि रहल अछि कि घटि रहल।' },
+        { title: 'नदीक स्तर तय करू', text: 'बोर्ड बीरपुर बराजसँ छोड़ल बहाव क्यूसेक मे देखबैत अछि। “जँ एतेक बढ़ल तँ?” देखबाक लेल पानिकेँ ऊपर-नीचाँ घिसियाउ।' },
+        { title: 'एखनुक कोसी', text: 'गेजक नीचाँ: बिहार जल संसाधन विभागक ताज़ा सरकारी रीडिंग, ओ कतेक पुरान अछि, आ पछिला 60 दिन। गेज हिलेलहुँ? “लाइव रीडिंग पर घुरू” दबाउ।' },
         { title: '2018 सँ आब धरिक हर बाढ़ि', text: 'जखन-जखन बराज सँ 2 लाख क्यूसेक वा बेसी छोड़ल गेल। कोनो बाढ़िक चरम स्तर नक्शा पर देखू, वा ओकरा गाम-गाम फेर चलाउ।' },
         { title: 'पानि ककरा धरि पहुँचैत अछि', text: 'पानिक बाटक गाम, जत्त पहिने पहुँचत से ऊपर। संख्या बतबैत अछि कतेक घंटा मे पानि पहुँचत।' },
         { title: 'कखन निकलबाक अछि', text: 'गाम चुनू आ देखू कखन निकलबाक अछि, पानि कखन पहुँचत, कतेक गहींर होयत आ कतय जयबाक अछि।' },

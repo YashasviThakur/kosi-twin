@@ -64,7 +64,7 @@ function markTourSeen() {
 }
 const GAUGE_MIN = 0.5
 const GAUGE_MAX = 8
-const FALLBACK_PEAK = 6.61                                 // used only until the official record has loaded
+const FALLBACK_PEAK = 6.13                                 // used only until the official record has loaded
 const FRAME_MS = 220
 
 type TextSize = 'sm' | 'md' | 'lg'
