@@ -10,3 +10,7 @@ backend/data/reports.jsonl
 infra/.deploy.log
 frontend/dist/
 backend/data/barrage_cache.json
+
+# local development records for alerts (see backend/kosi/alerts.py)
+backend/data/alerts.json
+backend/data/alerts-outbox.jsonl

@@ -3,7 +3,7 @@
 export type IconName =
   | 'walk' | 'bike' | 'motorbike' | 'image' | 'camera' | 'ruler' | 'wave' | 'clock' | 'elder' | 'child' | 'road'
   | 'hospital' | 'school' | 'highground' | 'user' | 'pin' | 'drop' | 'alert' | 'siren' | 'bed' | 'goat' | 'cow'
-  | 'adult' | 'door' | 'house' | 'sun' | 'cloud' | 'rain' | 'storm' | 'mountain' | 'share' | 'print' | 'info'
+  | 'adult' | 'door' | 'house' | 'sun' | 'cloud' | 'rain' | 'storm' | 'mountain' | 'share' | 'print' | 'info' | 'link' | 'bell' | 'shield'
 
 const STICK = '<circle cx="12" cy="4.6" r="2"/><path d="M12 7.6v7M12 14.6l-3 6M12 14.6l3 6M8 11l4-2.2 4 2.2"/>'
 const ANIMAL = '<path d="M4.5 9.5h11l3-3 2.5 1-1.6 3.4V19M15.5 19v-5M7.5 19v-5M11 19v-5M4.5 9.5V14"/>'
@@ -40,6 +40,9 @@ const PATHS: Record<IconName, string> = {
   storm: '<path d="M6.5 14.5a4 4 0 01-.4-7.98 5.5 5.5 0 0110.6-1.2A4.1 4.1 0 0117 14.5z"/><path d="M12.8 14.5l-2.6 3.8h3.6l-2.2 3.7"/>',
   mountain: '<path d="M2.5 19.5l6.5-11 4 6.5 2.5-3.5 6 8z"/>',
   share: '<path d="M12 15V4M8 8l4-4 4 4M5 12.5V19h14v-6.5"/>',
+  link: '<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/>',
+  bell: '<path d="M6 17V11a6 6 0 0112 0v6l1.5 2h-15zM10 21h4"/>',
+  shield: '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/>',
   print: '<path d="M7 9V4h10v5M7 17H5a1 1 0 01-1-1v-5a2 2 0 012-2h12a2 2 0 012 2v5a1 1 0 01-1 1h-2"/><rect x="7" y="14" width="10" height="6" rx="1"/>',
   info: '<circle cx="12" cy="12" r="8.6"/><path d="M12 11v5.4M12 7.8v.1"/>',
 }

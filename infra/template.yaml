@@ -6,6 +6,10 @@ Parameters:
     Type: String
   CodeKey:
     Type: String
+  SiteUrl:
+    Type: String
+    Default: ""
+    Description: The site's own https URL, used for the links in alert emails. deploy.sh passes the stack's current CloudFront URL.
 
 Resources:
   # ---------- storage ----------
@@ -31,6 +35,15 @@ Resources:
       KeySchema:
         - { AttributeName: pk, KeyType: HASH }
         - { AttributeName: id, KeyType: RANGE }
+
+  # ---------- village flood alerts by email ----------
+  # One topic; each address is a subscription filtered to the villages it follows (see backend/kosi/alerts.py). SNS emails a
+  # confirmation link before anything else and adds an unsubscribe link to every message.
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: kosi-twin-alerts
+      DisplayName: Kosi Twin alerts
 
   # ---------- API ----------
   ApiRole:
@@ -58,8 +71,11 @@ Resources:
                   - arn:aws:bedrock:*::foundation-model/*
                   - !Sub arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*
               - Effect: Allow
-                Action: [dynamodb:PutItem, dynamodb:Query]
+                Action: [dynamodb:PutItem, dynamodb:GetItem, dynamodb:Query, dynamodb:UpdateItem]
                 Resource: !GetAtt ReportsTable.Arn
+              - Effect: Allow
+                Action: [sns:Subscribe, sns:Publish, sns:SetSubscriptionAttributes]
+                Resource: !Ref AlertTopic
               - Effect: Allow
                 Action: [s3:GetObject, s3:PutObject]
                 Resource: !Sub ${SiteBucket.Arn}/audio/*
@@ -81,6 +97,8 @@ Resources:
           KOSI_BUCKET: !Ref SiteBucket
           KOSI_LAYER_BASE_URL: /layers
           KOSI_REPORTS_TABLE: !Ref ReportsTable
+          KOSI_ALERT_TOPIC: !Ref AlertTopic
+          KOSI_SITE_URL: !Ref SiteUrl
 
   # Every 5 minutes: keeps the function warm and the live barrage reading fresh (see handler in kosi/api.py).
   WarmRule:

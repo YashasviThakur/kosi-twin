@@ -5,7 +5,7 @@ from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
 
-from . import advisory, barrage, cloud, hydro, mirror, reports, speech, store
+from . import advisory, alerts, barrage, cloud, hydro, mirror, modelcheck, reports, shelterload, speech, store
 from .config import D0_M, DATA_DIR, EXPONENT, Q0_LAKH
 from .lang import LANGS
 from .village import affected, card
@@ -44,6 +44,12 @@ def scenario(discharge: float = DISCHARGE):
     vs = store.villages()
     top = [{**r, **{k: vs[r["id"]][k] for k in ("name", "name_hi", "pop", "lon", "lat")}} for r in rows[:10]]
     return {**hydro.scenario(discharge), "affected": rows, "top_villages": top}
+
+
+@app.get("/api/shelter-load")
+def shelter_load(discharge: float = Query(DISCHARGE, ge=0.5, le=10)):
+    """Where the plan sends people at this river level, by destination (demand only; see shelterload.py)."""
+    return shelterload.shelter_load(discharge)
 
 
 @app.get("/api/villages")
@@ -96,6 +102,12 @@ def flood_list():
         return barrage.floods_payload()
     except Exception:
         raise HTTPException(503, "the flood record is unavailable right now")
+
+
+@app.get("/api/model-check")
+def model_check():
+    """The model's river-height rule against the department's own downstream level readings (see modelcheck.py)."""
+    return modelcheck.check()
 
 
 @app.get("/api/replays")
@@ -156,6 +168,34 @@ def status():
             "text_models": cloud.TEXT_MODELS, "image_model": cloud.IMAGE_MODEL}
 
 
+@app.post("/api/alerts/subscribe")
+def alerts_subscribe(email: str = Form(..., max_length=254), village_id: int = Form(...), lang: str = Form("en")):
+    """Follow a village by email (see alerts.py). SNS sends the person a confirmation link before anything else."""
+    try:
+        return alerts.subscribe(email, village_id, lang if lang in LANGS else "en")
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except LookupError as e:
+        raise HTTPException(404, str(e))
+    except RuntimeError as e:
+        raise HTTPException(429, str(e))
+    except Exception:
+        raise HTTPException(503, "alerts are unavailable right now")
+
+
+@app.post("/api/alerts/test")
+def alerts_test(email: str = Form(..., max_length=254), village_id: int = Form(...)):
+    """Sends one test alert to an address that already follows this village."""
+    try:
+        return alerts.send_test(email, village_id)
+    except LookupError as e:
+        raise HTTPException(404, str(e))
+    except RuntimeError as e:
+        raise HTTPException(429, str(e))
+    except Exception:
+        raise HTTPException(503, "alerts are unavailable right now")
+
+
 @app.get("/api/reports")
 def list_reports():
     return reports.recent()
@@ -186,7 +226,9 @@ def handler(event, context):
     barrage reading, so a visitor after a quiet spell does not wait for a cold start and a fetch from the department."""
     if isinstance(event, dict) and event.get("source") == "aws.events":
         try:
-            barrage.live_counter()
+            live = barrage.live_counter()
+            if live.get("fresh"):                   # alerts only follow a real, current reading, never the stored fallback
+                alerts.check_and_publish(live["lakh"], live["time"])
         except Exception:
             pass                                    # the next real request retries
         return {"warmed": True}

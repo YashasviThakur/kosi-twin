@@ -224,5 +224,139 @@ def test_lambda_warmup_event_does_not_need_an_http_request(monkeypatch):
 def test_daily_series_has_one_entry_per_day_and_marks_gaps(monkeypatch):
     barrage = _fake_record(monkeypatch)
     d = barrage.floods_payload()["daily"]
-    assert d["start"] == "2024-07-01" and len(d["max"]) == (barrage._daily_max() and 101)       # 1 Jul to 9 Oct inclusive
+    assert d["start"] == "2024-07-01" and len(d["max"]) == 101       # 1 Jul to 9 Oct inclusive
     assert d["max"][(__import__("datetime").date(2024, 9, 29) - __import__("datetime").date(2024, 7, 1)).days] == 661500
+
+
+def test_model_check_compares_the_rating_curve_with_the_recorded_downstream_level():
+    from kosi.hydro import rise_for
+    r = client.get("/api/model-check").json()
+    assert r["readings"] > 1000 and 240 < r["baseline_downstream_ft"] < 250
+    bins = r["bins"]
+    assert [b["lakh"] for b in bins] == sorted(b["lakh"] for b in bins) and all(b["n"] >= 3 for b in bins)
+    # the model column is the app's own rule, and the observed rise does not fall as the discharge climbs through the busy bins
+    assert all(b["model_rise_m"] == round(rise_for(b["lakh"]), 2) for b in bins)
+    busy = [b["observed_rise_m"] for b in bins if b["n"] >= 50]
+    assert busy == sorted(busy)
+    assert "not the same measurement" in r["note"]
+
+
+def test_shelter_load_counts_every_flooded_village_once():
+    from kosi import hydro, shelterload, store
+    from kosi.village import affected
+    r = client.get("/api/shelter-load?discharge=4.0").json()
+    rows = affected(hydro.Hydrograph.constant(4.0))
+    vs = store.villages()
+    assert r["people_to_move"] == sum(vs[x["id"]]["pop"] for x in rows)
+    assert r["people_to_move"] == r["people_by_road"] + r["boat"]["people"]
+    people = [d["people"] for d in r["destinations"]]
+    assert people == sorted(people, reverse=True) and r["destination_count"] >= len(r["destinations"])
+    assert "Demand only" in r["note"]
+    assert client.get("/api/shelter-load?discharge=0.1").status_code == 422          # below the model's range
+    assert shelterload.shelter_load(4.02) is shelterload.shelter_load(4.0)           # one cached result per gauge step
+
+
+# ---------- village alerts (kosi/alerts.py) ----------
+import pytest
+
+
+@pytest.fixture
+def alert_env(monkeypatch, tmp_path):
+    from kosi import alerts
+    monkeypatch.setattr(alerts, "LOCAL", tmp_path / "alerts.json")
+    monkeypatch.setattr(alerts, "OUTBOX", tmp_path / "outbox.jsonl")
+    monkeypatch.setattr(alerts, "TABLE", None)
+    monkeypatch.setattr(alerts, "TOPIC", None)
+    monkeypatch.setattr(alerts, "SITE_URL", "https://example.test")
+    return alerts
+
+
+def _villages_for_alerts():
+    from kosi import hydro, store
+    from kosi.village import affected
+    wet = affected(hydro.Hydrograph.constant(4.0))[0]["id"]
+    dry = next(v["id"] for v in store.villages().values() if v["chainage_km"] is None)
+    return wet, dry
+
+
+def _outbox(alerts):
+    import json
+    return [json.loads(x) for x in alerts.OUTBOX.read_text(encoding="utf-8").splitlines()] if alerts.OUTBOX.exists() else []
+
+
+def test_alert_signup_is_validated_and_capped(alert_env):
+    alerts = alert_env
+    wet, _ = _villages_for_alerts()
+    assert client.post("/api/alerts/subscribe", data={"email": "nope", "village_id": wet}).status_code == 400
+    assert client.post("/api/alerts/subscribe", data={"email": "a@b.co", "village_id": 1}).status_code == 404
+    ok = client.post("/api/alerts/subscribe", data={"email": "a@b.co", "village_id": wet, "lang": "hi"})
+    assert ok.status_code == 200 and ok.json()["dry_run"] is True and ok.json()["villages"] == 1
+    from kosi import store
+    others = [v for v in store.villages() if v != wet][: alerts.MAX_VILLAGES]
+    codes = [client.post("/api/alerts/subscribe", data={"email": "a@b.co", "village_id": v}).status_code for v in others]
+    assert codes == [200] * (alerts.MAX_VILLAGES - 1) + [400]                # the sixth village is refused
+    assert client.post("/api/alerts/subscribe", data={"email": "a@b.co", "village_id": wet}).status_code == 200   # re-following is fine
+
+
+def test_alert_daily_signup_cap_protects_strangers_inboxes(alert_env, monkeypatch):
+    alerts = alert_env
+    wet, _ = _villages_for_alerts()
+    monkeypatch.setattr(alerts, "DAILY_SIGNUPS", 2)
+    codes = [client.post("/api/alerts/subscribe", data={"email": f"p{i}@b.co", "village_id": wet}).status_code for i in range(3)]
+    assert codes == [200, 200, 429]
+
+
+def test_test_alert_needs_a_follow_and_is_limited(alert_env):
+    alerts = alert_env
+    wet, _ = _villages_for_alerts()
+    assert client.post("/api/alerts/test", data={"email": "t@b.co", "village_id": wet}).status_code == 404
+    client.post("/api/alerts/subscribe", data={"email": "t@b.co", "village_id": wet})
+    for _ in range(alerts.TESTS_PER_DAY):
+        assert client.post("/api/alerts/test", data={"email": "t@b.co", "village_id": wet}).status_code == 200
+    assert client.post("/api/alerts/test", data={"email": "t@b.co", "village_id": wet}).status_code == 429
+    sent = _outbox(alerts)
+    assert len(sent) == alerts.TESTS_PER_DAY and sent[0]["village"] == f"test-{alerts._h('t@b.co')}" and "TEST" in sent[0]["body"]
+
+
+def test_alerts_go_only_to_followers_of_flooded_villages_once_per_rise(alert_env):
+    alerts = alert_env
+    wet, dry = _villages_for_alerts()
+    client.post("/api/alerts/subscribe", data={"email": "w@b.co", "village_id": wet})
+    client.post("/api/alerts/subscribe", data={"email": "d@b.co", "village_id": dry})
+    assert alerts.check_and_publish(0.7)["sent"] == 0                         # band 0: nothing to say
+    r = alerts.check_and_publish(4.0)
+    assert r["band"] == 2 and r["sent"] == 1
+    sent = _outbox(alerts)
+    assert [m["village"] for m in sent] == [str(wet)] and "planning estimate" in sent[0]["body"] and "example.test/#v=" in sent[0]["body"]
+    assert alerts.check_and_publish(4.2)["sent"] == 0                         # same band: no repeat
+    alerts.check_and_publish(1.0)                                             # river falls: band remembered, nothing sent
+    assert alerts.check_and_publish(4.0)["sent"] == 0                         # rises again inside the resend window: still quiet
+    assert len(_outbox(alerts)) == 1
+
+
+def test_alert_signup_through_aws_filters_each_address_to_its_villages(alert_env, monkeypatch):
+    alerts = alert_env
+    from kosi import cloud
+
+    class FakeSns:
+        def __init__(self): self.calls = []
+        def subscribe(self, **kw):
+            self.calls.append(("subscribe", kw)); return {"SubscriptionArn": "pending confirmation"}
+        def set_subscription_attributes(self, **kw): self.calls.append(("set", kw))
+        def publish(self, **kw): self.calls.append(("publish", kw))
+
+    sns = FakeSns()
+    monkeypatch.setattr(alerts, "TOPIC", "arn:aws:sns:us-east-1:1:kosi-alerts")
+    monkeypatch.setattr(cloud, "ENABLED", True)
+    monkeypatch.setattr(cloud, "client", lambda name: sns)
+    wet, _ = _villages_for_alerts()
+    r = alerts.subscribe("x@b.co", wet, "en")
+    assert r["status"] == "confirm_email" and r["dry_run"] is False
+    kind, kw = sns.calls[0]
+    import json
+    policy = json.loads(kw["Attributes"]["FilterPolicy"])["village"]
+    assert kind == "subscribe" and str(wet) in policy and f"test-{alerts._h('x@b.co')}" in policy and kw["Protocol"] == "email"
+    sns.calls.clear()
+    monkeypatch.setattr(sns, "subscribe", lambda **kw: {"SubscriptionArn": "arn:aws:sns:us-east-1:1:kosi-alerts:abc"})
+    assert alerts.subscribe("x@b.co", wet, "en")["status"] == "updated"        # an already-confirmed address has its filter widened
+    assert sns.calls and sns.calls[0][0] == "set"

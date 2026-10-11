@@ -157,6 +157,26 @@ export interface Floods {
   note: string
 }
 
+export interface AlertResult { status: 'confirm_email' | 'updated' | 'dry_run'; villages: number; dry_run: boolean }
+
+export interface ShelterLoad {
+  discharge_lakh: number
+  people_to_move: number
+  people_by_road: number
+  boat: { people: number; villages: number }
+  destinations: { name: string; name_hi: string; kind: 'hospital' | 'school' | 'high_ground'; lon: number; lat: number; people: number; villages: number; from: string[] }[]
+  destination_count: number
+  note: string
+}
+
+export interface ModelCheck {
+  source: string
+  readings: number
+  baseline_downstream_ft: number
+  bins: { lakh: number; n: number; observed_rise_m: number; p25_m: number; p75_m: number; model_rise_m: number }[]
+  note: string
+}
+
 export interface Replay {
   name: string
   note: string
@@ -170,10 +190,27 @@ async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
   return res.json() as Promise<T>
 }
 
+async function postForm<T>(path: string, fields: Record<string, string>): Promise<T> {
+  const body = new FormData()
+  for (const [k, v] of Object.entries(fields)) body.set(k, v)
+  const res = await fetch(path, { method: 'POST', body })
+  if (!res.ok) {
+    const detail = await res.json().then((d: { detail?: unknown }) => String(d.detail ?? '')).catch(() => '')
+    throw Object.assign(new Error(`${path} → ${res.status}`), { status: res.status, detail })
+  }
+  return res.json() as Promise<T>
+}
+
 export const api = {
   meta: () => get<Meta>('/api/meta'),
   live: () => get<LiveCounter>('/api/live'),
   floods: () => get<Floods>('/api/floods'),
+  modelCheck: () => get<ModelCheck>('/api/model-check'),
+  subscribeAlert: (email: string, villageId: number, lang: Lang) =>
+    postForm<AlertResult>('/api/alerts/subscribe', { email, village_id: String(villageId), lang }),
+  testAlert: (email: string, villageId: number) =>
+    postForm<{ sent: boolean; dry_run: boolean }>('/api/alerts/test', { email, village_id: String(villageId) }),
+  shelterLoad: (discharge: number, signal?: AbortSignal) => get<ShelterLoad>(`/api/shelter-load?discharge=${discharge.toFixed(2)}`, signal),
   status: () => get<{ aws: boolean; region: string; bucket: boolean; text_models: string[]; image_model: string }>('/api/status'),
   villages: () => get<Village[]>('/api/villages'),
   scenario: (discharge: number, signal?: AbortSignal) =>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, layerPrefix, riseFor, statsAt } from './api'
 import type { Lang, LiveCounter, Floods, Meta, Replay, Report, Risk, Scenario, ScenarioRef, Village, VillageCard as Card } from './api'
 import { Gauge } from './components/Gauge'
+import { readLink, writeLink } from './deeplink'
 import { MapView } from './components/MapView'
 import { Panel } from './components/Panel'
 import type { Basemap } from './components/MapView'
@@ -20,6 +21,7 @@ import { Tour } from './components/Tour'
 import { Splash } from './components/Splash'
 import { LiveChip, LiveStrip, RiverBoard } from './components/LiveCard'
 import { FloodsCard } from './components/FloodsCard'
+import { ShelterLoad } from './components/ShelterLoad'
 import { N } from './i18n-more'
 import { Logo } from './components/Logo'
 import { M } from './i18n-mirror'
@@ -81,8 +83,11 @@ function saveTextSize(v: TextSize) {
   try { localStorage.setItem('kosi.textSize', v) } catch { /* not remembered, still applied */ }
 }
 
+// A link such as #v=245738523&q=4.2&lang=hi opens that village's card at that river level, in that language (see deeplink.ts).
+const startLink = readLink()
+
 export default function App() {
-  const [lang, setLang] = useState<Lang>('en')
+  const [lang, setLang] = useState<Lang>(startLink.lang ?? 'en')
   const [basemap, setBasemap] = useState<Basemap>('satellite')
   const [textSize, setTextSize] = useState<TextSize>(loadTextSize)
   const [showEmbankments, setShowEmbankments] = useState(true)
@@ -98,7 +103,7 @@ export default function App() {
   const [floods, setFloods] = useState<Floods | 'error' | null>(null)
   const [shownFlood, setShownFlood] = useState<string | null>(null)   // a past flood's peak is on the map
   const autoLive = useRef(false)                            // the app opens on the live level once
-  const touched = useRef(false)                             // ...unless the person has already moved the gauge
+  const touched = useRef(startLink.q !== undefined)                             // ...unless the person has already moved the gauge
   const [tour, setTour] = useState(false)
   const [sheet, setSheet] = useState<(typeof SHEETS)[number]>('half')   // phone bottom-sheet height
   const drag = useRef<number | null>(null)
@@ -108,9 +113,9 @@ export default function App() {
   const [meta, setMeta] = useState<Meta | null>(null)
   const [villages, setVillages] = useState<Village[]>([])
   const [failed, setFailed] = useState(false)
-  const [discharge, setDischarge] = useState(4)
+  const [discharge, setDischarge] = useState(startLink.q ?? 4)
   const [scenario, setScenario] = useState<Scenario | null>(null)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(startLink.v ?? null)
   const [replay, setReplay] = useState<Replay | null>(null)
   const [frame, setFrame] = useState(0)
   const [playing, setPlaying] = useState(false)
@@ -120,6 +125,11 @@ export default function App() {
     document.documentElement.dataset.theme = theme
     try { localStorage.setItem('kosi.theme', theme) } catch { /* the choice just isn't remembered */ }
   }, [theme])
+  // Keep the address bar in step with the village, language and what-if level on screen (not with a replay, which has no fixed level).
+  useEffect(() => {
+    if (live === null && startLink.q === undefined) return      // until the live reading has arrived the level is only a placeholder
+    writeLink({ v: selectedId ?? undefined, q: liveApplied || replay ? undefined : discharge, lang })
+  }, [selectedId, liveApplied, replay, discharge, lang, live])
   useEffect(() => { api.reports().then(setReports).catch(() => {}) }, [])
   // The river now: open on the live level, refresh every 5 minutes (the department issues two reports a day), and never hold the loading screen for more than 4 s.
   useEffect(() => {
@@ -349,6 +359,7 @@ export default function App() {
                 onReplay={(id) => void startReplay(`wrd:${id}`)} />
               <SummaryPanel lang={lang} discharge={qExtent} stats={stats} affected={scenario?.affected ?? []} villages={villages}
                 selectedId={selectedId} onSelect={setSelectedId} />
+              <ShelterLoad lang={lang} discharge={qExtent} active={!replay} />
             </>
           ) : (
             <>

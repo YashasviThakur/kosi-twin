@@ -1936,3 +1936,65 @@
 .splash::before { background: linear-gradient(rgb(var(--pd-rgb) / .55), rgb(var(--pd-rgb) / .86)), url('/img/hero.webp') center / cover no-repeat; }
 /* v24: the phone sheet's drag handle is a 44px tap area (the visible bar is unchanged). */
 @media (max-width: 760px) { .sb-top .sheet-handle { min-height: 44px; margin-bottom: -8px; } }
+
+/* v25: three actions on the village card (Share, Print, Copy link). */
+.vc-actions { grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); }
+.vc-actions button { padding: 0 8px; font-size: 15px; white-space: normal; text-align: center; line-height: 1.2; }
+
+/* v26: the model check chart in the info panel */
+.mc { margin: 0; display: grid; gap: 10px; }
+.mc svg { width: 100%; height: auto; display: block; border-radius: 14px; background: rgb(var(--txt-rgb) / .05); }
+.mc-grid { stroke: rgb(var(--txt-rgb) / .12); stroke-width: 1; }
+.mc-tick { font: 500 12.5px var(--font-ui); fill: rgb(var(--txt-rgb) / .8); }
+.mc-axis { font: 600 13px var(--font-ui); fill: rgb(var(--txt-rgb) / .9); }
+.mc-model { fill: none; stroke: #ff9a4d; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.mc-obs line { stroke: var(--acc); stroke-width: 3; stroke-linecap: round; opacity: .75; }
+.mc-obs circle { fill: var(--acc); stroke: rgb(var(--p0-rgb)); stroke-width: 2; }
+.mc-n { font: 500 11.5px var(--font-ui); fill: rgb(var(--txt-rgb) / .8); }
+.mc-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: rgb(var(--txt-rgb) / .9); }
+.mc-legend li { display: flex; align-items: center; gap: 8px; }
+.mc-key { display: inline-block; width: 22px; height: 4px; border-radius: 2px; }
+.mc-key.is-model { background: #ff9a4d; }
+.mc-key.is-obs { background: var(--acc); height: 10px; width: 10px; border-radius: 50%; }
+.mc figcaption { font-size: 15px; line-height: 1.5; color: rgb(var(--txt-rgb) / .92); }
+.mc figcaption strong { color: var(--txt); }
+.mc-note { display: block; margin-top: 8px; font-size: 14px; color: rgb(var(--txt-rgb) / .78); }
+
+/* v27: where people would go */
+.shelter-load { padding: 0; overflow: hidden; }
+.sl-head { width: 100%; min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border: 0; background: none; color: var(--txt); text-align: left; }
+.sl-head .eyebrow { flex: 1; font-size: 15px; color: var(--txt); }
+.sl-head > svg:last-child { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; transition: transform .15s; }
+.sl-head > svg.is-open { transform: rotate(180deg); }
+.sl-body { padding: 0 16px 16px; display: grid; gap: 12px; }
+.sl-intro { margin: 0; font-size: 15px; color: rgb(var(--txt-rgb) / .92); }
+.sl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.sl-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.sl-name { display: grid; min-width: 0; }
+.sl-name strong { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.sl-name small, .sl-from { font-size: 13px; color: rgb(var(--txt-rgb) / .78); }
+.sl-n { flex: none; font-size: 15px; font-weight: 600; }
+.sl-bar { display: block; height: 6px; margin: 6px 0 4px; border-radius: 3px; background: rgb(var(--txt-rgb) / .1); overflow: hidden; }
+.sl-bar i { display: block; height: 100%; border-radius: 3px; background: var(--acc); }
+.sl-boat { margin: 0; padding: 10px 12px; border-radius: 12px; background: rgb(214 69 51 / .18); font-size: 14px; color: var(--txt); }
+.sl-note { font-size: 13px; }
+
+/* v28: email alert signup at the foot of the village card */
+.alert-signup { display: grid; gap: 10px; padding: 16px; border-radius: 18px; background: rgb(var(--txt-rgb) / .06); }
+.alert-signup .eyebrow { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; color: var(--txt); }
+.alert-signup .eyebrow svg { width: 18px; height: 18px; fill: none; stroke: var(--acc); stroke-width: 2; }
+.as-intro { margin: 0; font-size: 15px; color: rgb(var(--txt-rgb) / .9); }
+.alert-signup form { display: grid; gap: 10px; }
+.as-label { display: grid; gap: 4px; font-size: 14px; color: rgb(var(--txt-rgb) / .85); }
+.as-label input { min-height: 48px; padding: 0 14px; border-radius: 12px; border: 1px solid rgb(var(--txt-rgb) / .22); background: rgb(var(--txt-rgb) / .08); color: var(--txt); font-size: 16px; }
+.as-label input::placeholder { color: rgb(var(--txt-rgb) / .5); }
+.as-label input:focus-visible { outline: 3px solid var(--acc); outline-offset: 2px; }
+.as-go, .as-test { min-height: 48px; border-radius: 14px; font-size: 16px; }
+.as-test { width: 100%; margin-top: 8px; }
+.as-ok { margin: 8px 0 0; font-size: 15px; color: #7ee2a8; }
+.as-err { margin: 8px 0 0; font-size: 15px; color: #ff8f7a; font-weight: 600; }
+.as-privacy { font-size: 13px; }
+/* v28b: Share / Print / Copy link as one even row, icon over label. */
+.vc-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.vc-actions button { flex-direction: column; gap: 4px; min-height: 60px; padding: 8px 4px; font-size: 14px; }
+.vc-actions button svg { width: 20px; height: 20px; }

@@ -26,10 +26,14 @@ echo "==> uploading code to s3://$CODE_BUCKET"
 aws s3api head-bucket --bucket "$CODE_BUCKET" >/dev/null 2>&1 || aws s3 mb "s3://$CODE_BUCKET" --region "$REGION"
 aws s3 cp "$BUILD/lambda.zip" "s3://$CODE_BUCKET/lambda-$HASH.zip" --region "$REGION" --only-show-errors
 
+# The site URL goes into alert emails; it is the existing stack's CloudFront URL (empty on the very first deploy: run it twice).
+SITE_URL="$(aws cloudformation describe-stacks --region "$REGION" --stack-name "$STACK" --query "Stacks[0].Outputs[?OutputKey=='Url'].OutputValue" --output text 2>/dev/null || true)"
+[ "$SITE_URL" = "None" ] && SITE_URL=""
+
 echo "==> deploying stack $STACK"
 aws cloudformation deploy --region "$REGION" --stack-name "$STACK" --template-file "$ROOT/infra/template.yaml" \
     --capabilities CAPABILITY_IAM --no-fail-on-empty-changeset \
-    --parameter-overrides CodeBucket="$CODE_BUCKET" CodeKey="lambda-$HASH.zip"
+    --parameter-overrides CodeBucket="$CODE_BUCKET" CodeKey="lambda-$HASH.zip" SiteUrl="$SITE_URL"
 
 output() { aws cloudformation describe-stacks --region "$REGION" --stack-name "$STACK" \
     --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" --output text; }

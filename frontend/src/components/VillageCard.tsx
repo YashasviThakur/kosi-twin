@@ -14,8 +14,10 @@ import { depthSentence } from '../depth'
 import { Icon } from '../icons'
 import { M } from '../i18n-mirror'
 import { DepthScale } from './DepthScale'
+import { AlertSignup } from './AlertSignup'
 import { PrintSheet } from './PrintSheet'
 import { shareText } from '../evac'
+import { villageLink } from '../deeplink'
 import { N } from '../i18n-more'
 import { T } from '../i18n'
 
@@ -69,6 +71,7 @@ export function VillageCard({ card, loading, failed, lang, scenario, routeCatego
         )}
         {card && card.risk === 'SAFE' && <SosBlock lang={lang} />}
         {card && card.risk === 'SAFE' && <WeatherBlock card={card} lang={lang} />}
+        {card && <AlertSignup key={`alert-${card.id}`} villageId={card.id} name={name} lang={lang} />}
         <p className="vc-credit">Header image: AI-generated illustration.</p>
       </div>
     </section>
@@ -84,16 +87,22 @@ function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory, on
   const c = C[lang]
   const [tab, setTab] = useState<Tab>('go')
   const [printing, setPrinting] = useState(false)
+  const [copied, setCopied] = useState(false)
   const n = N[lang]
   const donePrinting = useCallback(() => setPrinting(false), [])
   const dischargeText = 'discharge' in scenario ? `${scenario.discharge.toFixed(2)} ${T[lang].unit}` : scenario.replay
   const share = async () => {
-    const text = shareText(card, lang)
+    const text = shareText(card, lang, villageLink(card.id, scenario, lang))
     if (navigator.share) {
       try { await navigator.share({ text }) } catch { /* the person closed the share sheet */ }
       return
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')
+  }
+  const copyLink = async () => {
+    try { await navigator.clipboard.writeText(villageLink(card.id, scenario, lang)) } catch { window.prompt(n.copyLink, villageLink(card.id, scenario, lang)); return }
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 2000)
   }
   const depth = card.max_depth_m ?? 0
   // "Leave by" follows the destination shown on the map: each route has its own safe departure time.
@@ -148,6 +157,7 @@ function FloodDetails({ card, lang, scenario, routeCategory, onRouteCategory, on
       <div className="vc-actions">
         <button onClick={() => void share()}><Icon name="share" /> {n.share}</button>
         <button onClick={() => setPrinting(true)}><Icon name="print" /> {n.print}</button>
+        <button onClick={() => void copyLink()} aria-live="polite"><Icon name="link" /> {copied ? n.copied : n.copyLink}</button>
       </div>
       {printing && <PrintSheet card={card} lang={lang} scenario={scenario} discharge={dischargeText} onDone={donePrinting} />}
 

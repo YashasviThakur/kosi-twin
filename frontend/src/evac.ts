@@ -37,7 +37,7 @@ export function evacPlan(card: VillageCard, lang: Lang) {
   }
 }
 
-export function shareText(card: VillageCard, lang: Lang): string {
+export function shareText(card: VillageCard, lang: Lang, link?: string): string {
   const c = C[lang]
   const x = X[lang]
   const p = evacPlan(card, lang)
@@ -49,6 +49,7 @@ export function shareText(card: VillageCard, lang: Lang): string {
     `${c.depth}: ${p.depth}`,
     first ? `${x.destinations}: ${first.place} (${first.distance}, ${first.walk})` : '',
     `${x.sos}: ${x.sosItems.map((s) => s.number).join(' · ')}`,
+    link ?? '',
     `Kosi Twin · ${T[lang].estimate}`,
   ]
   return parts.filter(Boolean).join('\n')
