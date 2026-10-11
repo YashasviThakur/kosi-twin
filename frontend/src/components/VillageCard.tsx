@@ -1,6 +1,7 @@
 // Screen 2: one village's flood — when to leave, when water arrives, how deep, where to go, and a
 // plain-language advisory that can be read aloud.
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { api } from '../api'
 import type { Advisory, Lang, ScenarioRef, VillageCard as Card } from '../api'
 import { dayTime, duration, int, people, shiftIso } from '../format'
@@ -30,6 +31,9 @@ interface Props {
   onClose: () => void
 }
 
+// Header photo by risk (decorative, AI-generated illustrations; the card says so at the bottom).
+const PHOTO = { EVACUATE: 'hero', WATCH: 'village-man', SAFE: 'rail-bridge' } as const
+
 export function VillageCard({ card, loading, failed, lang, scenario, routeCategory, onRouteCategory, onMirror, onClose }: Props) {
   const c = C[lang]
   const risk = card?.risk ?? 'WATCH'
@@ -37,7 +41,7 @@ export function VillageCard({ card, loading, failed, lang, scenario, routeCatego
 
   return (
     <section className={`panel village-card risk-${risk.toLowerCase()}`} aria-busy={loading} aria-label={name}>
-      <header className="vc-head">
+      <header className="vc-head" style={{ '--vc-photo': `url(/img/${PHOTO[risk]}.webp)` } as CSSProperties}>
         {card && <p className="vc-risk">{c.headline[card.risk]}</p>}
         <h2 className="vc-name">{name || '…'}</h2>
         {card && (
@@ -65,6 +69,7 @@ export function VillageCard({ card, loading, failed, lang, scenario, routeCatego
         )}
         {card && card.risk === 'SAFE' && <SosBlock lang={lang} />}
         {card && card.risk === 'SAFE' && <WeatherBlock card={card} lang={lang} />}
+        <p className="vc-credit">Header image: AI-generated illustration.</p>
       </div>
     </section>
   )

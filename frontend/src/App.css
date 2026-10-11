@@ -1875,3 +1875,45 @@
   .river-board .sf--md { --w: 29px; --h: 44px; --f: 21px; padding: 8px; gap: 2px; }
   .gauge-panel .panel-body { flex: 1 1 auto; }
 }
+
+/* v22: village card. A photo header with the verdict on it, a clear leave-by timeline, a depth tile, a segmented control for the tabs.
+   Photos are decorative (alt-free, AI-generated); the risk is still stated in words and colour. */
+.village-card { overflow: hidden; border-radius: 22px; background: rgb(var(--p0-rgb)); }
+.vc-head, .risk-evacuate .vc-head, .risk-watch .vc-head, .risk-safe .vc-head {
+  padding: 0 64px 18px 18px; min-height: 168px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; color: #fff;
+  background: linear-gradient(180deg, rgb(8 10 14 / .25) 0%, rgb(8 10 14 / .88) 100%), var(--vc-photo) center / cover no-repeat, #1a2230;
+}
+.vc-risk { align-self: flex-start; margin: 0 0 6px; padding: 5px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; color: #fff; }
+.risk-evacuate .vc-risk { background: #B23A26; }
+.risk-watch .vc-risk { background: #8a5a0d; }
+.risk-safe .vc-risk { background: #2f6a48; }
+.vc-name { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "Hind", system-ui, sans-serif; font-weight: 650; font-size: calc(32px * var(--fs)); letter-spacing: -.025em; line-height: 1.08; text-shadow: 0 1px 12px rgb(0 0 0 / .5); }
+.vc-people { margin: 4px 0 0; font-size: 15px; opacity: 1; color: #f0f0f3; }
+.vc-close { top: 12px; right: 12px; width: 40px; height: 40px; background: rgb(0 0 0 / .45); }
+.vc-body { padding: 16px; gap: 16px; }
+
+/* the answer first: when to leave, when water arrives */
+.tl-card { background: rgb(var(--txt-rgb) / .06); border: 0; border-radius: 18px; padding: 16px 16px 14px; }
+.tl-labels .tl-k { font-size: 13px; letter-spacing: 0; text-transform: none; color: rgb(var(--txt-rgb) / .78); }
+.tl-leave strong, .tl-arrive strong { font-size: 19px; letter-spacing: -.015em; }
+.tl-labels small { font-size: 13px; }
+.vc-leave.is-boat { border-radius: 18px; }
+
+.vc-depthline { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 18px; background: rgb(var(--txt-rgb) / .06); }
+.vc-depthline-text { display: grid; gap: 2px; }
+.vc-depthline-text strong { font-size: 20px; letter-spacing: -.015em; }
+.vc-depthline-text small { font-size: 14px; color: rgb(var(--txt-rgb) / .78); }
+
+.vc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vc-actions button { min-height: 48px; border-radius: 14px; border: 0; background: rgb(var(--txt-rgb) / .09); color: var(--txt); font-size: 16px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.vc-actions button:hover { background: rgb(var(--txt-rgb) / .15); }
+
+/* tabs as an iOS-style segmented control */
+.vc-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 3px; border-radius: 12px; background: rgb(var(--txt-rgb) / .09); border: 0; }
+.vc-tabs button { min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: rgb(var(--txt-rgb) / .85); font-size: 15px; font-weight: 600; }
+.vc-tabs button.is-active { background: rgb(var(--txt-rgb) / .2); color: var(--txt); }
+.vc-pane { display: grid; gap: 16px; }
+.vc-credit { margin: 4px 0 0; font-size: 13px; color: rgb(var(--txt-rgb) / .65); }
+.sb-back { min-height: 44px; }
+.river-replay { width: 100%; min-height: 48px; border-radius: 14px; font-size: 16px; }
+.dest-cat, .village-card .eyebrow, .vc-facilities summary { font-size: 13px; letter-spacing: 0; text-transform: none; }

@@ -64,7 +64,7 @@ function markTourSeen() {
 }
 const GAUGE_MIN = 0.5
 const GAUGE_MAX = 8
-const PEAK_2024 = 6.61
+const FALLBACK_PEAK = 6.61                                 // used only until the official record has loaded
 const FRAME_MS = 220
 
 type TextSize = 'sm' | 'md' | 'lg'
@@ -257,10 +257,12 @@ export default function App() {
   }, [playing, replay])
 
   useEffect(() => { api.floods().then(setFloods).catch(() => setFloods('error')) }, [])
-  // "Replay Sept 2024" plays the recorded flood: the biggest 2024 stretch in the official readings (the curated file is the fallback).
-  const sept2024 = floods && floods !== 'error'
-    ? floods.events.filter((e) => e.start.startsWith('2024')).sort((a, b) => b.peak_lakh - a.peak_lakh)[0] : undefined
-  const startReplay = async (name = sept2024 ? `wrd:${sept2024.id}` : '2024') => {
+  // The big replay button plays the biggest flood in the official record; the gauge's reference line is that record's peak.
+  const biggest = floods && floods !== 'error' ? [...floods.events].sort((x, y) => y.peak_lakh - x.peak_lakh)[0] : undefined
+  const recordPeak = biggest?.peak_lakh ?? FALLBACK_PEAK
+  const biggestLabel = biggest
+    ? new Date(`${biggest.id}T00:00:00Z`).toLocaleDateString(lang === 'en' ? 'en-IN' : 'hi-IN', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : ''
+  const startReplay = async (name = biggest ? `wrd:${biggest.id}` : '2024') => {
     const r = replay?.name === name ? replay : await api.replay(name)
     setReplay(r)
     setFrame(0)
@@ -323,7 +325,7 @@ export default function App() {
             label={t.gaugeTitle} valueText={`${q.toFixed(2)} ${t.unit}`}
             marks={[
               { value: 1, label: t.normal, tone: 'muted' },
-              { value: PEAK_2024, label: t.peak2024, tone: 'danger' },
+              { value: recordPeak, label: t.peak2024, tone: 'danger' },
             ]}
             onChange={(v) => { touched.current = true; setLiveApplied(false); setShownFlood(null); setDischarge(v) }}
           />
@@ -331,12 +333,12 @@ export default function App() {
             <span className={`level level-${levelOf(q)}`}>{LEVELS[lang][levelOf(q)]}</span>
             <p className="rise num">{t.rise(rise.toFixed(1))}</p>
             <div className="peak-share num" title={t.peak2024}>
-              <span className="fact-bar"><i style={{ width: `${Math.min(100, (q / PEAK_2024) * 100)}%` }} /></span>
-              <small>{Math.round((q / PEAK_2024) * 100)}% · {t.peak2024}</small>
+              <span className="fact-bar"><i style={{ width: `${Math.min(100, (q / recordPeak) * 100)}%` }} /></span>
+              <small>{Math.round((q / recordPeak) * 100)}% · {t.peak2024}</small>
             </div>
-            {!replay && <button className="btn btn-primary" onClick={() => void startReplay()}>{t.replay}</button>}
           </div>
         </div>
+        {!replay && <button className="btn btn-primary river-replay" onClick={() => void startReplay()}>{biggest ? t.replayBiggest(biggestLabel) : t.replay}</button>}
         <LiveStrip lang={lang} live={live} applied={liveApplied}
           onApply={(lakh) => { setDischarge(Math.min(GAUGE_MAX, Math.max(GAUGE_MIN, lakh))); setLiveApplied(true); setShownFlood(null) }} />
       </Panel>

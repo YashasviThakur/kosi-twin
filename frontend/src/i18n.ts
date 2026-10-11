@@ -21,6 +21,7 @@ type Strings = {
   risk: Record<Risk, string>
   waterIn: (h: string) => string
   replay: string
+  replayBiggest: (d: string) => string
   pause: string
   resume: string
   exitReplay: string
@@ -45,7 +46,7 @@ export const T: Record<Lang, Strings> = {
     unit: 'lakh cusecs',
     rise: (m) => `+${m} m above normal`,
     normal: 'Normal monsoon',
-    peak2024: '2024 peak',
+    peak2024: 'Record peak',
     summary: (q, v, p) => `At ${q} lakh cusecs, water reaches ${v} villages and ${p} people.`,
     summaryDry: (q) => `At ${q} lakh cusecs, the Kosi stays in its channel.`,
     elderly: 'aged 60+',
@@ -57,7 +58,8 @@ export const T: Record<Lang, Strings> = {
     pathEmpty: 'No village is in the water’s path at this level.',
     risk: { EVACUATE: 'Evacuate', WATCH: 'Watch', SAFE: 'Safe' },
     waterIn: (h) => `water in ${h}`,
-    replay: 'Replay Sept 2024',
+    replay: 'Replay a flood',
+    replayBiggest: (d) => `Replay the biggest flood (${d})`,
     pause: 'Pause',
     resume: 'Play',
     exitReplay: 'Back to the gauge',
@@ -80,7 +82,7 @@ export const T: Record<Lang, Strings> = {
     unit: 'लाख क्यूसेक',
     rise: (m) => `सामान्य से ${m} मी ऊपर`,
     normal: 'सामान्य मानसून',
-    peak2024: '2024 का उच्चतम',
+    peak2024: 'अब तक का उच्चतम',
     summary: (q, v, p) => `${q} लाख क्यूसेक पर पानी ${v} गाँवों और ${p} लोगों तक पहुँचता है।`,
     summaryDry: (q) => `${q} लाख क्यूसेक पर कोसी अपनी धारा में रहती है।`,
     elderly: '60+ उम्र के',
@@ -92,7 +94,8 @@ export const T: Record<Lang, Strings> = {
     pathEmpty: 'इस स्तर पर कोई गाँव पानी की राह में नहीं है।',
     risk: { EVACUATE: 'खाली करें', WATCH: 'सतर्क रहें', SAFE: 'सुरक्षित' },
     waterIn: (h) => `${h} में पानी`,
-    replay: 'सितंबर 2024 दोबारा देखें',
+    replay: 'बाढ़ दोबारा देखें',
+    replayBiggest: (d) => `सबसे बड़ी बाढ़ दोबारा देखें (${d})`,
     pause: 'रोकें',
     resume: 'चलाएँ',
     exitReplay: 'गेज पर लौटें',
@@ -115,7 +118,7 @@ export const T: Record<Lang, Strings> = {
     unit: 'लाख क्यूसेक',
     rise: (m) => `सामान्य से ${m} मी ऊपर`,
     normal: 'सामान्य बरसात',
-    peak2024: '2024 के सबसे ऊँच',
+    peak2024: 'अब तक के सबसे ऊँच',
     summary: (q, v, p) => `${q} लाख क्यूसेक पर पानी ${v} गाँव आ ${p} लोग ले पहुँचेला।`,
     summaryDry: (q) => `${q} लाख क्यूसेक पर कोसी अपना धार में रहेले।`,
     elderly: '60+ उमिर के',
@@ -127,7 +130,8 @@ export const T: Record<Lang, Strings> = {
     pathEmpty: 'एह स्तर पर कवनो गाँव पानी के राह में नइखे।',
     risk: { EVACUATE: 'खाली करीं', WATCH: 'सचेत रहीं', SAFE: 'सुरक्षित' },
     waterIn: (h) => `${h} में पानी`,
-    replay: 'सितंबर 2024 फेर से देखीं',
+    replay: 'बाढ़ फेर से देखीं',
+    replayBiggest: (d) => `सबसे बड़ बाढ़ फेर से देखीं (${d})`,
     pause: 'रोकीं',
     resume: 'चलाईं',
     exitReplay: 'गेज पर लवटीं',
@@ -150,7 +154,7 @@ export const T: Record<Lang, Strings> = {
     unit: 'लाख क्यूसेक',
     rise: (m) => `सामान्य सँ ${m} मी ऊपर`,
     normal: 'सामान्य बरखा',
-    peak2024: '2024 क सभसँ ऊँच',
+    peak2024: 'आब धरिक सभसँ ऊँच',
     summary: (q, v, p) => `${q} लाख क्यूसेक पर पानि ${v} गाम आ ${p} लोक धरि पहुँचैत अछि।`,
     summaryDry: (q) => `${q} लाख क्यूसेक पर कोसी अपन धार मे रहैत अछि।`,
     elderly: '60+ उमेरक',
@@ -162,7 +166,8 @@ export const T: Record<Lang, Strings> = {
     pathEmpty: 'एहि स्तर पर कोनो गाम पानिक बाट मे नहि अछि।',
     risk: { EVACUATE: 'खाली करू', WATCH: 'सतर्क रहू', SAFE: 'सुरक्षित' },
     waterIn: (h) => `${h} मे पानि`,
-    replay: 'सितम्बर 2024 फेर देखू',
+    replay: 'बाढ़ फेर देखू',
+    replayBiggest: (d) => `सभसँ पैघ बाढ़ फेर देखू (${d})`,
     pause: 'रोकू',
     resume: 'चलाउ',
     exitReplay: 'गेज पर घुरू',
