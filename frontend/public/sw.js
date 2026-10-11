@@ -42,10 +42,11 @@ async function trim(name) {
   for (let i = 0; i < keys.length - cap; i++) await cache.delete(keys[i])      // oldest first
 }
 
-async function save(name, req, res) {
-  if (!res || !(res.ok || res.type === 'opaque')) return
+// Callers pass a clone made *before* the page starts reading the response: a body cannot be cloned once it is being read.
+async function save(name, req, copy) {
+  if (!copy || !(copy.ok || copy.type === 'opaque')) return
   const cache = await caches.open(name)
-  await cache.put(req, res.clone())
+  await cache.put(req, copy)
   trim(name)
 }
 
@@ -59,7 +60,7 @@ function withTimeout(promise, ms) {
 async function networkFirst(req, name, fallbackKey) {
   try {
     const res = await withTimeout(fetch(req), NETWORK_WAIT_MS)
-    save(name, req, res)
+    save(name, req, res.clone())
     return res
   } catch (err) {
     const cache = await caches.open(name)
@@ -74,14 +75,14 @@ async function cacheFirst(req, name) {
   const hit = await cache.match(req)
   if (hit) return hit
   const res = await fetch(req)
-  save(name, req, res)
+  save(name, req, res.clone())
   return res
 }
 
 async function staleWhileRevalidate(req, name) {
   const cache = await caches.open(name)
   const hit = await cache.match(req)
-  const refresh = fetch(req).then((res) => { save(name, req, res); return res }).catch(() => hit)
+  const refresh = fetch(req).then((res) => { save(name, req, res.clone()); return res }).catch(() => hit)
   return hit || refresh
 }
 
