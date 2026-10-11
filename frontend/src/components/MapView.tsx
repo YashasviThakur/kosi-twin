@@ -95,6 +95,7 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
   const districtLabels = useRef<HTMLDivElement[]>([])
   const pins = useRef<maplibregl.Marker[]>([])
   const fittedFor = useRef<string | null>(null)
+  const layerRef = useRef<string | null>(null)      // the current flood layer, read by the background prefetch
   const pulseTimer = useRef<number | undefined>(undefined)
   const reportMarkers = useRef<maplibregl.Marker[]>([])
   const draftMarker = useRef<maplibregl.Marker | null>(null)
@@ -326,11 +327,25 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
       })
       setReady(true)
     })
-    // Once the map has drawn, fetch every flood layer in the background so dragging the gauge never waits.
+    // Once the map has drawn, warm the cache with the flood layers, nearest the current level first, two at a time and at low
+    // priority. fetch() only downloads (an Image would also decode every 2340 px tile, about 22 MB each). Skipped on data saver and 2G:
+    // there the layers load when the gauge reaches them.
+    let stopPrefetch = false
     map.once('idle', () => {
-      for (let r = 0.5; r <= 10; r += 0.5) tiles.forEach((_, i) => { new Image().src = `/layers/flood_${r.toFixed(1)}_${i}.png?${FLOOD_V}` })
+      const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection
+      if (conn?.saveData || /(^|-)2g$/.test(conn?.effectiveType ?? '')) return
+      const cur = Number(/flood_([\d.]+)/.exec(layerRef.current ?? '')?.[1] ?? 3)
+      const levels = Array.from({ length: 20 }, (_, k) => (k + 1) * 0.5).sort((a, b) => Math.abs(a - cur) - Math.abs(b - cur)).slice(0, 10)   // the 10 levels nearest the current one
+      const urls = levels.flatMap((r) => tiles.map((_, i) => `/layers/flood_${r.toFixed(1)}_${i}.png?${FLOOD_V}`))
+      let n = 0
+      const pump = () => {
+        const u = urls[n++]
+        if (!u || stopPrefetch) return
+        fetch(u, { priority: 'low' } as RequestInit).then((r) => r.blob()).catch(() => {}).then(pump)
+      }
+      pump(); pump()
     })
-    return () => { window.clearInterval(pulseTimer.current); map.remove() }
+    return () => { stopPrefetch = true; window.clearInterval(pulseTimer.current); map.remove() }
     // The map is created once; data changes flow through the effects below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -342,6 +357,8 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
       (map.getSource(`flood-${i}`) as maplibregl.ImageSource).updateImage({ url: layer ? `${layer}_${i}.png?${FLOOD_V}` : BLANK })
     })
   }, [ready, layer, tiles])
+
+  useEffect(() => { layerRef.current = layer }, [layer])
 
   useEffect(() => {
     const map = mapRef.current

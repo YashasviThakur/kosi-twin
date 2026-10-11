@@ -161,17 +161,19 @@ export default function App() {
   const extentRise = meta ? riseFor(qExtent, meta.rating_curve) : 0
   const stats = meta ? statsAt(extentRise, meta.stage_stats) : null
 
-  // Village risks and the at-risk list come from the API (debounced), so map and village card agree.
+  // Village risks and the at-risk list come from the API (debounced), so map and village card agree. During a replay the level is
+  // rounded to the gauge's own 0.05 lakh step, so a replay frame that lands on the same step does not ask again.
+  const apiQ = replay ? Math.round(qExtent * 20) / 20 : qExtent
   const debounce = useRef<number>(undefined)
   useEffect(() => {
     if (!meta) return
     const ctrl = new AbortController()
     window.clearTimeout(debounce.current)
     debounce.current = window.setTimeout(() => {
-      api.scenario(qExtent, ctrl.signal).then(setScenario).catch(() => {})
+      api.scenario(apiQ, ctrl.signal).then(setScenario).catch(() => {})
     }, replay ? 0 : 120)
     return () => ctrl.abort()
-  }, [qExtent, meta, replay])
+  }, [apiQ, meta, replay])
 
   // Village card (Screen 2): refetch when the village or the flood scenario changes.
   const scenarioRef: ScenarioRef = useMemo(() => (replay ? { replay: replay.name } : { discharge }), [replay, discharge])

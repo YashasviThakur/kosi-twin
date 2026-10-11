@@ -11,6 +11,8 @@ interface Props {
 
 type Status = { aws: boolean; region: string; bucket: boolean; text_models: string[]; image_model: string } | null | 'error'
 
+const STEP_IMG = ['rail-bridge', 'hero', 'village-man', 'relief-camp']   // decorative, AI-generated illustrations
+
 const STEPS = [
   ['Start with the river', 'You set how much water the Birpur barrage lets through. We turn that flow into how high the river rises.'],
   ['See where the water goes', 'Using a 30 m map of how high the land is, we work out which ground sits low enough to flood, and how deep the water gets there.'],
@@ -61,7 +63,7 @@ export function InfoModal({ onClose, onTour }: Props) {
             <h3 className="eyebrow">From river to village, in four steps</h3>
             <ol className="im-steps">
               {STEPS.map(([t, d], i) => (
-                <li key={t}><span className="im-n num">{i + 1}</span><div><strong>{t}</strong><p>{d}</p></div></li>
+                <li key={t}><span className="im-n num">{i + 1}</span><div><strong>{t}</strong><p>{d}</p></div><img className="im-thumb" src={`/img/${STEP_IMG[i]}.webp`} alt="" width={96} height={72} loading="lazy" /></li>
               ))}
             </ol>
           </section>
@@ -72,6 +74,15 @@ export function InfoModal({ onClose, onTour }: Props) {
               {LIMITS.map(([t, d]) => <li key={t}><strong>{t}</strong><p>{d}</p></li>)}
             </ul>
             <p className="im-warn">Use Kosi Twin to plan, and to talk things through with your family and village. When an official warning or order comes, follow the district administration.</p>
+          </section>
+
+          <section>
+            <h3 className="eyebrow">Floods in the Kosi plain</h3>
+            <div className="im-photos">
+              <figure><img src="/img/press-child.webp" alt="A man carries a small child on his shoulder through floodwater, buffaloes swimming behind him." width={1000} height={562} loading="lazy" /></figure>
+              <figure><img src="/img/press-street.webp" alt="People wade down a flooded village lane between brick and thatched houses." width={650} height={400} loading="lazy" /></figure>
+            </div>
+            <p className="im-credit">Press photographs, credits to be confirmed. Other images in the app are AI-generated illustrations.</p>
           </section>
 
           <section>
