@@ -41,6 +41,7 @@ Open data on AWS: Copernicus DEM and Terrain Tiles (AWS Open Data Registry). Oth
 
 ## AI tools used
 - **Claude Code** (Anthropic's AI coding assistant) wrote most of the code, tests and documentation in this repository, working from our direction and review. Claude Code also used the design guidance listed in the README (Apple Human Interface Guidelines, DESIGN.md, taste-skill, Vercel's Web Interface Guidelines).
+- **The demo video** was assembled automatically from screenshots of the live site and a synthetic voice: the narration is **Amazon Polly** (voice Kajal, generative engine, Indian English), and the video was built with ffmpeg and Playwright scripts. The AWS segment shows real AWS CLI output from the deployed stack.
 - **AI image generation** made every illustration in the app (splash, village card headers, info panel). They are labelled "AI-generated" in the app and are not photographs of real events.
 - **In the product:** Amazon Translate, Polly and Rekognition are not generative models. Amazon Bedrock is wired in for AI-written advisories and AI-painted water, but this AWS account had no model access, so the app uses its built-in template and app-drawn water instead.
 - The flood model, the data pipeline and the numbers come from public data and standard methods (HAND on Copernicus DEM, official barrage readings), not from a language model.
