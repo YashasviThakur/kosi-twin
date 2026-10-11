@@ -98,7 +98,7 @@ export function InfoModal({ onClose, onTour }: Props) {
               <i aria-hidden />
               {status === null ? 'Checking the AWS services…'
                 : status === 'error' ? 'Could not reach the server just now.'
-                : status.aws ? `AWS is switched on (${status.region}): Translate for languages, Polly for voice, Rekognition for photos. Bedrock paints realistic water when the account allows it; otherwise the app draws the water itself.`
+                : status.aws ? `AWS is switched on (${status.region}): Translate for Hindi place names, Polly for voice, Rekognition for photos. Bedrock paints realistic water when the account allows it; otherwise the app draws the water itself.`
                 : 'Running without AWS keys, so languages, voice and photo detection use built-in backups.'}
             </p>
           </section>
@@ -131,7 +131,7 @@ function Architecture() {
       {box(168, 56, 130, 'CloudFront', '+ S3 web app, flood layers')}
       {box(168, 196, 130, 'API Gateway', 'HTTP API')}
       {box(340, 196, 130, 'Lambda', 'FastAPI flood model', 'is-core')}
-      {box(530, 12, 180, 'Amazon Translate', 'village names, advisories')}
+      {box(530, 12, 180, 'Amazon Translate', 'place names in Hindi')}
       {box(530, 66, 180, 'Amazon Polly', 'spoken advisory')}
       {box(530, 120, 180, 'Amazon Rekognition', 'door and person in photos')}
       {box(530, 174, 180, 'Amazon Bedrock', 'AI-painted water (optional)')}

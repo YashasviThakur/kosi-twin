@@ -14,3 +14,11 @@ backend/data/barrage_cache.json
 # local development records for alerts (see backend/kosi/alerts.py)
 backend/data/alerts.json
 backend/data/alerts-outbox.jsonl
+
+# demo video build: media, working files and the virtual environment (the scripts are tracked)
+demo-video/.venv/
+demo-video/shots/
+demo-video/audio/
+demo-video/clips/
+demo-video/*.mp4
+demo-video/*.wav

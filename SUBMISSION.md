@@ -31,7 +31,7 @@ The Kosi ("sorrow of Bihar") floods the same districts almost every monsoon. War
 | DynamoDB | Community leak reports; who follows which village; alert bands and daily caps |
 | Amazon SNS | Alert emails: one topic, each address filtered to its villages, confirmation and unsubscribe handled by SNS |
 | Amazon EventBridge | The 5-minute schedule that refreshes the live reading, keeps the function warm and triggers alerts |
-| Amazon Translate | Village names and advisories in Hindi, Bhojpuri, Maithili |
+| Amazon Translate | Village and shelter names in Devanagari. The advisory texts in Hindi, Bhojpuri and Maithili are written templates, not machine translation (no AWS service covers Bhojpuri or Maithili) |
 | Amazon Polly | Spoken advisories |
 | Amazon Rekognition | Finding a door or person in a street photo to measure water height |
 | Amazon Bedrock | AI-written advisories and AI-painted flood water (wired in, with automatic fallbacks; see below) |
@@ -64,7 +64,7 @@ The hackathon rules say the video must **show** AWS in use; naming it in the wri
 
 1. **0:00–0:15 · The problem.** Open the site. "On 29 September 2024 the Kosi reached 6.13 lakh cusecs at the Birpur barrage. That is a number nobody can act on. Kosi Twin turns it into a time, a depth and a route." Point at the live split-flap board.
 2. **0:15–0:45 · The map.** Drag the gauge up toward the record peak: the chip switches to **What if**, the board follows, the flood spreads in violet, and village chips turn red and amber with hours until the water arrives. Click **Replay the biggest flood** and let it play for a few seconds, then drag the gauge to about **4 lakh** and leave it there (at today's low live level most villages show only their edge, which makes a weak village card).
-3. **0:45–1:25 · One village.** Click Bhaptiyahi. Show the timeline (leave by / water arrives), the depth, the **Go** tab (nearest dry road, school, hospital, route on the map), then **Help**: Play, switch to Hindi and play again (Translate and Polly).
+3. **0:45–1:25 · One village.** Click Bhaptiyahi. Show the timeline (leave by / water arrives), the depth, the **Go** tab (nearest dry road, school, hospital, route on the map), then **Help**: Play, switch to Hindi and play again (Polly).
 4. **1:25–1:50 · It reaches people.** Scroll to **Get email alerts**: type an address, "AWS emails a confirmation link, and from then on the Lambda that reads the barrage every 5 minutes emails you when the river reaches a level that floods this village." Tap **Copy link**: "a link that opens this exact plan." (Do the confirm click before recording so the test alert arrives on camera.)
 5. **1:50–2:05 · Flood Mirror.** Water tab → **See it on your street** → pick the brick-house example → **Show the flood**. Slide before/after.
 6. **2:05–2:40 · This is AWS.** Switch to a console tab you opened beforehand (signed in, region **N. Virginia, us-east-1**). Three stops of about ten seconds. Say one sentence at each, do not explain:
