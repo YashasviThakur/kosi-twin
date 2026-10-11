@@ -53,7 +53,7 @@ MSYS_NO_PATHCONV=1 aws apigatewayv2 update-stage --region "$REGION" --api-id "$A
 
 echo "==> refreshing CloudFront"
 MSYS_NO_PATHCONV=1 aws cloudfront create-invalidation --distribution-id "$(output DistributionId)" \
-    --paths "/index.html" "/" "/assets/*" "/maplibre/*" --query "Invalidation.Id" --output text >/dev/null
+    --paths "/index.html" "/" "/assets/*" "/maplibre/*" "/layers/*" --query "Invalidation.Id" --output text >/dev/null
 
 echo
 echo "Site:   $(output Url)"
