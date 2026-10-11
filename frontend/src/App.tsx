@@ -4,6 +4,7 @@ import type { Lang, LiveCounter, Floods, Meta, Replay, Report, Risk, Scenario, S
 import { Gauge } from './components/Gauge'
 import { readLink, writeLink } from './deeplink'
 import { useOnline } from './online'
+import { useWide } from './viewport'
 import { MapView } from './components/MapView'
 import { Panel } from './components/Panel'
 import type { Basemap } from './components/MapView'
@@ -19,6 +20,7 @@ import { CATEGORY_ICON, X } from './i18n-extra'
 import { Icon } from './icons'
 import { InfoModal } from './components/InfoModal'
 import { Tour } from './components/Tour'
+import type { TourStep } from './tourSteps'
 import { Splash } from './components/Splash'
 import { LiveChip, LiveStrip, RiverBoard } from './components/LiveCard'
 import { FloodsCard } from './components/FloodsCard'
@@ -57,8 +59,8 @@ function loadTheme(): ThemeId {
 }
 document.documentElement.dataset.theme = loadTheme()      // before the first paint, so the loading screen is themed too
 const SHEETS = ['peek', 'half', 'full'] as const
-// First-visit tour: what each step points at, in order.
-const TOUR_TARGETS = ['.gauge-panel .gauge', '.live-strip', '.floods-card', '.vlist', '.tl-card', '.round-accent']
+// First-visit tour (steps in components/Tour.tsx). If the real river floods no village, the village steps use this what-if level instead.
+const TOUR_SAMPLE_Q = 4
 function tourSeen() {
   try { return localStorage.getItem('kosi.tour.done') === '1' } catch { return true }
 }
@@ -106,6 +108,11 @@ export default function App() {
   const autoLive = useRef(false)                            // the app opens on the live level once
   const touched = useRef(startLink.q !== undefined)                             // ...unless the person has already moved the gauge
   const [tour, setTour] = useState(false)
+  const [sampled, setSampled] = useState(false)             // the tour has put a what-if level on screen
+  const tourPrev = useRef<{ q: number; live: boolean; shown: string | null } | null>(null)
+  const wide = useWide()
+  const [sbHidden, setSbHidden] = useState(false)           // the side panel is tucked away (computers only; a phone's sheet has its own sizes)
+  const sbMin = sbHidden && wide
   const [sheet, setSheet] = useState<(typeof SHEETS)[number]>('half')   // phone bottom-sheet height
   const drag = useRef<number | null>(null)
   const sbScroll = useRef<HTMLDivElement>(null)
@@ -219,18 +226,45 @@ export default function App() {
         timeline: shownCard.timeline?.map((p) => ({ time: p.time, depth_m: p.depth_m })) ?? null,
       }
     : { village: 'Example', displayName: '', depth: 0, when: null, timeline: null })
-  // Tour: the first time, once the map is up. Steps 4-5 need a village open, so open the soonest one.
+  // Tour: the first time, once the map is up. Village steps need a village open, so open the soonest one; if the river is so low that
+  // none floods, show a what-if level for those steps and put the person's own level back when the tour ends.
   useEffect(() => {
     if (!meta || tourSeen()) return
     const id = window.setTimeout(() => setTour(true), 2400)
     return () => window.clearTimeout(id)
   }, [meta])
-  const tourVillage = scenario?.top_villages?.[0]?.id ?? scenario?.affected?.[0]?.id ?? null
-  const onTourStep = useCallback((i: number) => {
-    if (i <= 3) setSelectedId(null)
+  // A village where the water really gets in (depth above zero), not one it only touches the edge of.
+  const tourVillage = scenario?.top_villages?.find((v) => v.depth_m > 0)?.id ?? scenario?.affected?.find((a) => a.depth_m > 0)?.id ?? null
+  const onTourStep = useCallback((s: TourStep) => {
+    setSbHidden(false)
+    if (s.sample && scenario && tourVillage == null && !tourPrev.current && !replay) {
+      tourPrev.current = { q: discharge, live: liveApplied, shown: shownFlood }
+      setSampled(true)
+      setDischarge(TOUR_SAMPLE_Q)
+      setLiveApplied(false)
+      setShownFlood(null)
+    }
+    if (!s.village) setSelectedId(null)
     else if (tourVillage != null) setSelectedId(tourVillage)
-  }, [tourVillage])
-  const closeTour = useCallback(() => { markTourSeen(); setTour(false); setSelectedId(null) }, [])
+  }, [scenario, tourVillage, replay, discharge, liveApplied, shownFlood])
+  const closeTour = useCallback(() => {
+    markTourSeen()
+    setTour(false)
+    setSelectedId(null)
+    const prev = tourPrev.current
+    if (prev) {
+      tourPrev.current = null
+      setSampled(false)
+      setDischarge(prev.q)
+      setLiveApplied(prev.live)
+      setShownFlood(prev.shown)
+    }
+  }, [])
+  const [sbFor, setSbFor] = useState(selectedId)
+  if (sbFor !== selectedId) {                 // opening a village shows the panel again, because the village's card lives in it
+    setSbFor(selectedId)
+    if (selectedId != null) setSbHidden(false)
+  }
   const [routeCategory, setRouteCategory] = useState<Category | null>(null)
   const [routeFor, setRouteFor] = useState<number | null>(null)
   const [sheetFor, setSheetFor] = useState<number | null>(null)
@@ -288,7 +322,7 @@ export default function App() {
   if (!meta || live === null) return <Splash lang={lang} />
 
   return (
-    <div className={`app text-${textSize}`} lang={lang === 'en' ? 'en' : lang} data-sheet={sheet}>
+    <div className={`app text-${textSize}${sbMin ? ' sb-min' : ''}`} lang={lang === 'en' ? 'en' : lang} data-sheet={sheet}>
       <MapView tiles={meta.grid.layer_tiles} villages={villages} risk={risk} eta={eta} layer={layerPrefix(extentRise)}
         basemap={basemap} selectedId={selectedId} lang={lang} onSelect={setSelectedId}
         accent={THEMES.find((t) => t.id === theme)!.accent}
@@ -307,7 +341,15 @@ export default function App() {
 
       {!online && <div className="offline-pill" role="status">{N[lang].offline}</div>}
 
-      <aside className="sidebar" data-sheet={sheet}>
+      {sbMin && (
+        <button className="sb-rail" onClick={() => setSbHidden(false)} aria-expanded="false" aria-label={t.expand} title={t.expand}>
+          <Icon name="panel" />
+          <span className="sb-rail-num num">{q.toFixed(2)} <small>{t.unit}</small></span>
+          <span className={`level level-${levelOf(q)}`}>{LEVELS[lang][levelOf(q)]}</span>
+        </button>
+      )}
+
+      <aside className={`sidebar${sbMin ? ' is-min' : ''}`} data-sheet={sheet} inert={sbMin}>
         <div className="sb-top">
           <button className="sheet-handle" aria-label="Resize panel"
             onPointerDown={(e) => { drag.current = e.clientY; e.currentTarget.setPointerCapture(e.pointerId) }}
@@ -319,13 +361,18 @@ export default function App() {
               else if (dy > 30) setSheet(SHEETS[Math.max(0, i - 1)])
               else setSheet(SHEETS[(i + 1) % 3])
             }}><i /></button>
-        <div className="brand" title={t.replayNote}>
-          <Logo className="brand-badge" />
-          <span className="brand-text">
-            <span className="brand-name">{t.title}</span>
-            <span className="badge">{t.estimate}</span>
-          </span>
-        </div>
+          <div className="sb-row">
+            <div className="brand" title={t.replayNote}>
+              <Logo className="brand-badge" />
+              <span className="brand-text">
+                <span className="brand-name">{t.title}</span>
+                <span className="badge">{t.estimate}</span>
+              </span>
+            </div>
+            <button className="sb-collapse" onClick={() => setSbHidden(true)} aria-expanded="true" aria-label={t.collapse} title={t.collapse}>
+              <Icon name="panel" />
+            </button>
+          </div>
           <SearchBox villages={villages} lang={lang} risk={risk} eta={eta} onPick={setSelectedId} />
         </div>
         <div className="sb-scroll" ref={sbScroll}>
@@ -471,7 +518,7 @@ export default function App() {
       </div>
       {mirror && <MirrorModal lang={lang} target={mirror} onClose={() => setMirror(null)} />}
       {info && <InfoModal onClose={() => setInfo(false)} onTour={() => setTour(true)} />}
-      {tour && <Tour lang={lang} targets={TOUR_TARGETS} onStep={onTourStep} onClose={closeTour} />}
+      {tour && <Tour lang={lang} sampled={sampled} onStep={onTourStep} onClose={closeTour} />}
       {reportMode && (
         <ReportForm lang={lang} draft={draft}
           onClose={() => { setReportMode(false); setDraft(null) }}
