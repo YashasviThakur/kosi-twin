@@ -39,6 +39,12 @@ The Kosi ("sorrow of Bihar") floods the same districts almost every monsoon. War
 
 Open data on AWS: Copernicus DEM and Terrain Tiles (AWS Open Data Registry). Other open data: OpenStreetMap, Open-Meteo (rain forecast and GloFAS river flow), Sentinel-2 imagery, OpenFreeMap.
 
+## AI tools used
+- **Claude Code** (Anthropic's AI coding assistant) wrote most of the code, tests and documentation in this repository, working from our direction and review. Claude Code also used the design guidance listed in the README (Apple Human Interface Guidelines, DESIGN.md, taste-skill, Vercel's Web Interface Guidelines).
+- **AI image generation** made every illustration in the app (splash, village card headers, info panel). They are labelled "AI-generated" in the app and are not photographs of real events.
+- **In the product:** Amazon Translate, Polly and Rekognition are not generative models. Amazon Bedrock is wired in for AI-written advisories and AI-painted water, but this AWS account had no model access, so the app uses its built-in template and app-drawn water instead.
+- The flood model, the data pipeline and the numbers come from public data and standard methods (HAND on Copernicus DEM, official barrage readings), not from a language model.
+
 ## How the flood model works (and what it is not)
 Discharge → river rise (a rating curve) → flooded land and depth (HAND model on a 30 m terrain model) → arrival time per village (flood wave ~5 km/h, overland ~1 km/h) → walking route on OpenStreetMap roads that avoids roads that flood.
 

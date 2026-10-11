@@ -142,10 +142,12 @@ set a billing alert in AWS Budgets.
 
 ## Credits
 - Flood Mirror example scenes in `frontend/public/samples` are illustrations made by `backend/prep/make_samples.py`.
-- Images in the splash screen, village card headers and info panel are AI-generated illustrations (labelled as such in the app), plus three press
-  photographs and a basin map whose credits are still to be confirmed (see `frontend/public/img/`). Replace them with images you have the right to use.
-- The split-flap counter is adapted from [Componentry](https://componentry.dev) (no licence is stated on the site; verify before production use).
+- All images in the splash screen, village card headers and info panel (`frontend/public/img/`) are AI-generated illustrations, labelled as such in the
+  app. They are not photographs of real events.
+- The split-flap counter is adapted from [Componentry](https://componentry.dev) (MIT licence, Copyright (c) 2026 Harsh Jadhav); the notice is in
+  [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - Data: Bihar Water Resources Department barrage reports, Copernicus DEM and Meta HRSL (AWS Open Data), OpenStreetMap, Open-Meteo / GloFAS, Sentinel-2 (EOX).
+- Built with AI tools: see "AI tools used" in [SUBMISSION.md](SUBMISSION.md).
 - Design guidance used: Apple Human Interface Guidelines and DESIGN.md (VoltAgent/awesome-design-md), taste-skill, and Vercel's Web Interface Guidelines.
 
 ## Licence

@@ -1,5 +1,5 @@
 // "Every day since 2018": a calendar heatmap of the Kosi's daily peak discharge at the Birpur barrage, one year at a time.
-// Adapted from the "Github Calendar" component on componentry.dev (https://componentry.dev/docs/components/github-calendar):
+// Adapted from the "Github Calendar" component on componentry.dev (https://componentry.dev/docs/components/github-calendar), MIT licence, Copyright (c) 2026 Harsh Jadhav (see THIRD_PARTY_NOTICES.md):
 // weeks as columns of day squares that pop in one after another, a hover tooltip, and a glow on the big days. Here the
 // squares are coloured by the same aqua-to-magenta ramp as the flood layer on the map, and a day can be put on the map.
 // Plain CSS and no animation library (see .fc-* in App.css); a slider lets keyboard and touch users pick a day too.

@@ -1,4 +1,5 @@
 // Split-flap board, adapted from the "Split Flap Display" component on componentry.dev (https://componentry.dev/docs/components/split-flap-display).
+// Componentry is MIT licensed, Copyright (c) 2026 Harsh Jadhav (notice in THIRD_PARTY_NOTICES.md).
 // Changes for this app: plain CSS instead of Tailwind (see .sf-* in App.css), theme colours, reduced-motion support and an
 // accessible label (the cells are decoration; screen readers get the text). Each cell steps through the character set until it
 // reaches its target, so a new reading visibly ticks over, like a station departures board.

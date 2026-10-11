@@ -85,10 +85,10 @@ export function InfoModal({ onClose, onTour }: Props) {
           <section>
             <h3 className="eyebrow">Floods in the Kosi plain</h3>
             <div className="im-photos">
-              <figure><img src="/img/press-child.webp" alt="A man carries a small child on his shoulder through floodwater, buffaloes swimming behind him." width={1000} height={562} loading="lazy" /></figure>
-              <figure><img src="/img/press-street.webp" alt="People wade down a flooded village lane between brick and thatched houses." width={650} height={400} loading="lazy" /></figure>
+              <figure><img src="/img/scene-child.webp" alt="A man carries a small child on his shoulder through floodwater, buffaloes swimming behind him." width={1000} height={562} loading="lazy" /></figure>
+              <figure><img src="/img/scene-street.webp" alt="People wade down a flooded village lane between brick and thatched houses." width={650} height={400} loading="lazy" /></figure>
             </div>
-            <p className="im-credit">Press photographs, credits to be confirmed. Other images in the app are AI-generated illustrations.</p>
+            <p className="im-credit">Illustrative images, AI-generated. They do not show real events.</p>
           </section>
 
           <section>

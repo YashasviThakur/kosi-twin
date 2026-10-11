@@ -85,9 +85,9 @@ export function Landing() {
               </p>
             </div>
             <figure>
-              <img src="/img/press-child.webp" width={1000} height={562} loading="lazy"
+              <img src="/img/scene-child.webp" width={1000} height={562} loading="lazy"
                 alt="A man in a yellow headscarf wades through floodwater carrying a small child on his shoulder, buffaloes swimming behind him." />
-              <figcaption>Press photograph. Credit to be confirmed.</figcaption>
+              <figcaption>Illustrative image, AI-generated.</figcaption>
             </figure>
           </div>
         </section>
@@ -164,7 +164,7 @@ export function Landing() {
 
       <footer className="lp-foot">
         <p><strong>Honest limits.</strong> The flood model uses terrain height above the river and an uncalibrated rating curve: it shows where water is likely to go, not a certified forecast. Follow the district administration’s orders. Bhojpuri and Maithili text needs review by native speakers.</p>
-        <p>Photographs of real floods are from news agencies and credits are being confirmed; the other images are AI-generated illustrations. Built for the WeMakeDevs × AWS Environmental Hacks on AWS Lambda, CloudFront, DynamoDB, Translate, Polly and Rekognition. The split-flap counter is adapted from <a href="https://componentry.dev">Componentry</a>.</p>
+        <p>All images are AI-generated illustrations, not photographs of real events. Built for the WeMakeDevs × AWS Environmental Hacks on AWS Lambda, CloudFront, DynamoDB, Translate, Polly and Rekognition. The split-flap counter is adapted from <a href="https://componentry.dev">Componentry</a>.</p>
       </footer>
     </div>
   )
