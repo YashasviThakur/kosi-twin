@@ -74,7 +74,7 @@ Resources:
                 Action: [dynamodb:PutItem, dynamodb:GetItem, dynamodb:Query, dynamodb:UpdateItem]
                 Resource: !GetAtt ReportsTable.Arn
               - Effect: Allow
-                Action: [sns:Subscribe, sns:Publish, sns:SetSubscriptionAttributes]
+                Action: [sns:Subscribe, sns:Publish, sns:SetSubscriptionAttributes, sns:GetSubscriptionAttributes]
                 Resource: !Ref AlertTopic
               - Effect: Allow
                 Action: [s3:GetObject, s3:PutObject]

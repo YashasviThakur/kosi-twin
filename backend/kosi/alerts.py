@@ -160,10 +160,13 @@ def subscribe(email: str, village_id: int, lang: str = "en") -> dict:
         sns = cloud.client("sns")
         arn = sns.subscribe(TopicArn=TOPIC, Protocol="email", Endpoint=email, ReturnSubscriptionArn=True,
                             Attributes={"FilterPolicy": _filter_policy(h, ids)})["SubscriptionArn"]
-        status = "confirm_email"
-        if arn.startswith("arn:aws:sns:") and "pending" not in arn.lower():       # already confirmed: widen its filter now
-            sns.set_subscription_attributes(SubscriptionArn=arn, AttributeName="FilterPolicy", AttributeValue=_filter_policy(h, ids))
-            status = "updated"
+        policy = _filter_policy(h, ids)
+        try:                                      # widen the filter if this address already follows other villages
+            sns.set_subscription_attributes(SubscriptionArn=arn, AttributeName="FilterPolicy", AttributeValue=policy)
+        except Exception:
+            pass                                  # a brand-new subscription already carries its filter from subscribe()
+        pending = sns.get_subscription_attributes(SubscriptionArn=arn)["Attributes"].get("PendingConfirmation") != "false"
+        status = "confirm_email" if pending else "updated"
     return {"status": status, "villages": len(ids), "dry_run": not live}
 
 

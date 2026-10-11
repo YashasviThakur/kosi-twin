@@ -341,8 +341,10 @@ def test_alert_signup_through_aws_filters_each_address_to_its_villages(alert_env
     class FakeSns:
         def __init__(self): self.calls = []
         def subscribe(self, **kw):
-            self.calls.append(("subscribe", kw)); return {"SubscriptionArn": "pending confirmation"}
+            self.calls.append(("subscribe", kw)); return {"SubscriptionArn": "arn:aws:sns:us-east-1:1:kosi-alerts:new"}
         def set_subscription_attributes(self, **kw): self.calls.append(("set", kw))
+        pending = True
+        def get_subscription_attributes(self, **kw): return {"Attributes": {"PendingConfirmation": "true" if self.pending else "false"}}
         def publish(self, **kw): self.calls.append(("publish", kw))
 
     sns = FakeSns()
@@ -358,5 +360,7 @@ def test_alert_signup_through_aws_filters_each_address_to_its_villages(alert_env
     assert kind == "subscribe" and str(wet) in policy and f"test-{alerts._h('x@b.co')}" in policy and kw["Protocol"] == "email"
     sns.calls.clear()
     monkeypatch.setattr(sns, "subscribe", lambda **kw: {"SubscriptionArn": "arn:aws:sns:us-east-1:1:kosi-alerts:abc"})
-    assert alerts.subscribe("x@b.co", wet, "en")["status"] == "updated"        # an already-confirmed address has its filter widened
-    assert sns.calls and sns.calls[0][0] == "set"
+    assert alerts.subscribe("x@b.co", wet, "en")["status"] == "confirm_email"    # SNS returns a real ARN even while pending: ask it
+    sns.pending = False
+    assert alerts.subscribe("x@b.co", wet, "en")["status"] == "updated"          # confirmed: its filter is widened and no email is needed
+    assert any(c[0] == "set" for c in sns.calls)
