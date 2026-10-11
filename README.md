@@ -98,7 +98,7 @@ python fetch_barrage.py    # official barrage readings since 2018 (re-run to pic
 
 ## Method and limits (read this)
 
-- **Flood extent:** HAND (Height Above Nearest Drainage) along D8 flow paths to the Kosi on 90 m Copernicus DEM. A cell floods when the
+- **Flood extent:** HAND (Height Above Nearest Drainage) along D8 flow paths to the Kosi on the 30 m Copernicus DEM. A cell floods when the
   river rise exceeds its HAND and it connects to the channel.
 - **Discharge to rise:** `rise = 2.4 * ((Q / 1 lakh)^0.6 - 1)`. It is set so the 2024 flood gives about a 5 m rise and is **not calibrated**.
   The honest check in the app compares it with the department's downstream level readings: below the barrage the recorded river rose
