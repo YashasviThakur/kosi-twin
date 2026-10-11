@@ -202,6 +202,8 @@ def check_and_publish(live_lakh: float, reading_time: str = "") -> dict:
         return out
     now = time.time()
     for row in affected(hydro.Hydrograph.constant(live_lakh)):
+        if row["depth_m"] <= 0:                          # the water only reaches the outskirts: not worth an alert
+            continue
         vid = row["id"]
         if not _query(f"vsub#{vid}"):
             continue

@@ -13,8 +13,8 @@ from .village import affected, card
 TOP = 12                  # destinations returned, biggest first
 VILLAGES_SHOWN = 4        # village names listed per destination
 
-NOTE = ("Demand only: each village's people are counted at the place its card recommends. Capacities of schools, hospitals and roads "
-        "are not in our data, so this cannot say whether a place has room.")
+NOTE = ("Demand only: each village's people are counted at the place its card recommends. Villages where the water only reaches the "
+        "outskirts are not counted. Capacities of schools, hospitals and roads are not in our data, so this cannot say whether a place has room.")
 
 
 @lru_cache(maxsize=64)
@@ -25,6 +25,8 @@ def _load(step: int):
     places: dict[tuple, dict] = {}
     boat = {"people": 0, "villages": 0}
     for row in affected(h):
+        if row["depth_m"] <= 0:                 # the water reaches only the outskirts: nobody has to leave
+            continue
         c = card(row["id"], h)
         pop = vs[row["id"]]["pop"]
         if c is None or c.get("needs_boat") or not c.get("route"):

@@ -247,7 +247,8 @@ def test_shelter_load_counts_every_flooded_village_once():
     r = client.get("/api/shelter-load?discharge=4.0").json()
     rows = affected(hydro.Hydrograph.constant(4.0))
     vs = store.villages()
-    assert r["people_to_move"] == sum(vs[x["id"]]["pop"] for x in rows)
+    assert r["people_to_move"] == sum(vs[x["id"]]["pop"] for x in rows if x["depth_m"] > 0)      # outskirts-only villages are not counted
+    assert client.get("/api/shelter-load?discharge=0.67").json()["people_to_move"] == 0              # a normal river: nobody has to move
     assert r["people_to_move"] == r["people_by_road"] + r["boat"]["people"]
     people = [d["people"] for d in r["destinations"]]
     assert people == sorted(people, reverse=True) and r["destination_count"] >= len(r["destinations"])
