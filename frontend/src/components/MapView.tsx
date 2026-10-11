@@ -15,7 +15,7 @@ if (import.meta.env.PROD) maplibregl.setWorkerUrl(`${window.location.origin}/map
 
 export type Basemap = 'map' | 'satellite'
 
-const FLOOD_V = 'v3'   // bump when the flood overlay images are re-rendered (same file names)
+const FLOOD_V = 'v4'   // bump when the flood overlay images are re-rendered (same file names)
 const STYLE = 'https://tiles.openfreemap.org/styles/liberty'   // colourful, with 3D buildings
 const TERRARIUM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'
 const SATELLITE = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2023_3857/default/g/{z}/{y}/{x}.jpg'
@@ -353,9 +353,13 @@ export function MapView({ tiles, villages, risk, eta, layer, basemap, selectedId
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
-    tiles.forEach((_, i) => {
-      (map.getSource(`flood-${i}`) as maplibregl.ImageSource).updateImage({ url: layer ? `${layer}_${i}.png?${FLOOD_V}` : BLANK })
-    })
+    // Each swap decodes and uploads four tiles, so while the gauge is being dragged only the level it settles on is loaded.
+    const id = window.setTimeout(() => {
+      tiles.forEach((_, i) => {
+        (map.getSource(`flood-${i}`) as maplibregl.ImageSource).updateImage({ url: layer ? `${layer}_${i}.png?${FLOOD_V}` : BLANK })
+      })
+    }, 140)
+    return () => window.clearTimeout(id)
   }, [ready, layer, tiles])
 
   useEffect(() => { layerRef.current = layer }, [layer])
